@@ -1,0 +1,560 @@
+<?php
+/**
+ * Single Post Template — HolyprofWeb
+ * Platform layout: left sidebar + article + right sidebar.
+ * Reviews are completely separate from WP comments.
+ */
+
+get_header();
+?>
+
+<div class="platform-wrap platform-wrap--single">
+
+    <?php holyprofweb_left_sidebar(); ?>
+
+    <main id="primary" class="site-main platform-main">
+        <div class="single-wrap">
+
+            <?php while ( have_posts() ) : the_post();
+                $post_id     = get_the_ID();
+                $decoded_title = holyprofweb_get_decoded_post_title( $post_id );
+                $categories  = get_the_category();
+                $primary_cat = ! empty( $categories ) ? $categories[0] : null;
+                $rating      = holyprofweb_get_post_rating( $post_id );
+                $review_count = holyprofweb_get_review_count( $post_id );
+                $reactions   = holyprofweb_get_reactions( $post_id );
+                $tags        = get_the_tags();
+                $img_url     = holyprofweb_get_post_image_url( $post_id, 'full' );
+                $is_salary_post  = holyprofweb_post_in_category_tree( $post_id, 'salaries' );
+                $is_company_post = holyprofweb_post_in_category_tree( $post_id, 'companies' );
+                $salary_count    = holyprofweb_get_comment_count_by_type( $post_id, 'salary_submission' );
+                $salary_min      = get_post_meta( $post_id, '_hpw_salary_min', true );
+                $salary_max      = get_post_meta( $post_id, '_hpw_salary_max', true );
+                $salary_currency = get_post_meta( $post_id, '_hpw_salary_currency', true ) ?: '₦';
+                $salary_period   = get_post_meta( $post_id, '_hpw_salary_period', true );
+                $salary_role     = get_post_meta( $post_id, '_hpw_salary_role', true );
+                $work_score      = get_post_meta( $post_id, '_hpw_work_score', true );
+                $best_review_ids = holyprofweb_get_best_review_ids( $post_id, 2 );
+                $is_biography_post = holyprofweb_post_in_category_tree( $post_id, 'biography' );
+                $source_url   = holyprofweb_get_post_source_url( $post_id );
+                $verdict      = holyprofweb_get_review_verdict( $post_id );
+            ?>
+
+            <!-- =========================================
+                 ARTICLE
+            ========================================= -->
+            <article id="post-<?php the_ID(); ?>" <?php post_class( 'single-article' ); ?>>
+
+                <!-- Breadcrumb -->
+                <nav class="single-breadcrumb" aria-label="Breadcrumb">
+                    <a href="<?php echo esc_url( home_url( '/' ) ); ?>">Home</a>
+                    <?php if ( $primary_cat ) : ?>
+                    <span aria-hidden="true">/</span>
+                    <a href="<?php echo esc_url( get_category_link( $primary_cat->term_id ) ); ?>">
+                        <?php echo esc_html( $primary_cat->name ); ?>
+                    </a>
+                    <?php endif; ?>
+                    <span aria-hidden="true">/</span>
+                    <span aria-current="page"><?php echo esc_html( $decoded_title ); ?></span>
+                </nav>
+
+                <header class="single-header single-header--refined">
+                    <div class="single-featured-image single-featured-image--inline">
+                        <img src="<?php echo esc_url( $img_url ); ?>"
+                             alt="<?php echo esc_attr( $decoded_title ); ?>"
+                             loading="eager"
+                             class="<?php echo esc_attr( holyprofweb_get_post_image_class( $post_id ) ); ?>" />
+                    </div>
+                    <div class="single-header-copy">
+                        <?php if ( $primary_cat ) : ?>
+                        <span class="single-category">
+                            <a href="<?php echo esc_url( get_category_link( $primary_cat->term_id ) ); ?>">
+                                <?php echo esc_html( $primary_cat->name ); ?>
+                            </a>
+                        </span>
+                        <?php endif; ?>
+                        <?php if ( ! $is_biography_post ) : ?>
+                        <span class="verdict-badge <?php echo esc_attr( $verdict['class'] ); ?>"><?php echo esc_html( $verdict['label'] ); ?></span>
+                        <?php endif; ?>
+                        <h1 class="single-title"><?php echo esc_html( $decoded_title ); ?></h1>
+                        <p class="single-rating-summary">
+                            <?php if ( $is_biography_post ) : ?>
+                                <?php esc_html_e( 'Biography profile and background overview.', 'holyprofweb' ); ?>
+                            <?php elseif ( $rating > 0 ) : ?>
+                                <?php echo esc_html( number_format_i18n( $rating, 1 ) ); ?> &#9733; (<?php echo esc_html( $review_count ); ?> <?php echo esc_html( _n( 'review', 'reviews', $review_count, 'holyprofweb' ) ); ?>)
+                            <?php else : ?>
+                                <?php esc_html_e( 'No reviews yet. Be the first to contribute.', 'holyprofweb' ); ?>
+                            <?php endif; ?>
+                        </p>
+                        <div class="single-meta">
+                            <span><a href="<?php echo esc_url( get_author_posts_url( get_the_author_meta( 'ID' ) ) ); ?>"><?php the_author(); ?></a></span>
+                            <span><time datetime="<?php echo esc_attr( get_the_date( 'c' ) ); ?>"><?php echo esc_html( get_the_date() ); ?></time></span>
+                            <?php if ( $is_salary_post ) : ?>
+                            <span><?php echo esc_html( sprintf( _n( '%s salary submission', '%s salary submissions', $salary_count, 'holyprofweb' ), number_format_i18n( $salary_count ) ) ); ?></span>
+                            <?php endif; ?>
+                        </div>
+                        <div class="single-header-actions">
+                            <?php if ( $is_biography_post ) : ?>
+                            <a href="<?php echo esc_url( add_query_arg( array( 'submit_category' => 'biography', 'submit_name' => $decoded_title, 'mode' => 'suggest-edit' ), home_url( '/submit/' ) ) ); ?>" class="single-action-btn single-action-btn--alt"><?php esc_html_e( 'Suggest Edit', 'holyprofweb' ); ?></a>
+                            <a href="<?php echo esc_url( add_query_arg( array( 'submit_category' => 'biography', 'submit_name' => $decoded_title, 'mode' => 'add-information' ), home_url( '/submit/' ) ) ); ?>" class="single-action-btn"><?php esc_html_e( 'Add Information', 'holyprofweb' ); ?></a>
+                            <?php else : ?>
+                            <?php if ( $source_url ) : ?>
+                            <a href="<?php echo esc_url( $source_url ); ?>" class="single-action-btn single-action-btn--alt" target="_blank" rel="nofollow sponsored noopener"><?php esc_html_e( 'Visit Website', 'holyprofweb' ); ?></a>
+                            <?php endif; ?>
+                            <a href="#write-review" class="single-action-btn"><?php echo $is_salary_post ? esc_html__( 'Submit Salary', 'holyprofweb' ) : esc_html__( 'Have You Used This?', 'holyprofweb' ); ?></a>
+                            <a href="#reviews" class="single-action-btn single-action-btn--alt"><?php esc_html_e( 'See Reviews', 'holyprofweb' ); ?></a>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+                </header>
+
+                <!-- Category badge -->
+                <?php if ( $primary_cat ) : ?>
+                <span class="single-category">
+                    <a href="<?php echo esc_url( get_category_link( $primary_cat->term_id ) ); ?>">
+                        <?php echo esc_html( $primary_cat->name ); ?>
+                    </a>
+                </span>
+                <?php endif; ?>
+
+                <!-- Title + Rating -->
+                <header class="single-header">
+                    <h1 class="single-title"><?php echo esc_html( $decoded_title ); ?></h1>
+
+                    <?php if ( $rating > 0 ) : ?>
+                    <div class="single-rating-display">
+                        <?php echo holyprofweb_render_stars( $rating ); ?>
+                        <a href="#reviews" class="single-rating-count">
+                            (<?php echo esc_html( $review_count ); ?> <?php echo esc_html( _n( 'review', 'reviews', $review_count, 'holyprofweb' ) ); ?>)
+                        </a>
+                    </div>
+                    <?php endif; ?>
+                </header>
+
+                <!-- Featured image — always show -->
+                <div class="single-featured-image">
+                    <img src="<?php echo esc_url( $img_url ); ?>"
+                         alt="<?php echo esc_attr( $decoded_title ); ?>"
+                         loading="eager" />
+                </div>
+
+                <!-- Meta bar -->
+                <div class="single-meta">
+                    <span>
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                        <a href="<?php echo esc_url( get_author_posts_url( get_the_author_meta( 'ID' ) ) ); ?>"><?php the_author(); ?></a>
+                    </span>
+                    <span>
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                        <time datetime="<?php echo esc_attr( get_the_date( 'c' ) ); ?>"><?php echo esc_html( get_the_date() ); ?></time>
+                    </span>
+                    <?php if ( $primary_cat ) : ?>
+                    <span>
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
+                        <a href="<?php echo esc_url( get_category_link( $primary_cat->term_id ) ); ?>"><?php echo esc_html( $primary_cat->name ); ?></a>
+                    </span>
+                    <?php endif; ?>
+                </div>
+
+                <!-- Quick Facts -->
+                <aside class="key-info-box<?php echo $is_biography_post ? ' key-info-box--wiki' : ''; ?>" aria-label="Key Information">
+                    <p class="key-info-box-title">Quick Facts</p>
+                    <dl class="key-info-list">
+                        <?php if ( $primary_cat ) : ?>
+                        <div class="key-info-row">
+                            <dt class="key-info-label">Category</dt>
+                            <dd class="key-info-value"><a href="<?php echo esc_url( get_category_link( $primary_cat->term_id ) ); ?>"><?php echo esc_html( $primary_cat->name ); ?></a></dd>
+                        </div>
+                        <?php endif; ?>
+                        <div class="key-info-row">
+                            <dt class="key-info-label">Published</dt>
+                            <dd class="key-info-value"><time datetime="<?php echo esc_attr( get_the_date( 'c' ) ); ?>"><?php echo esc_html( get_the_date() ); ?></time></dd>
+                        </div>
+                        <?php if ( get_the_modified_date() !== get_the_date() ) : ?>
+                        <div class="key-info-row">
+                            <dt class="key-info-label">Updated</dt>
+                            <dd class="key-info-value"><time datetime="<?php echo esc_attr( get_the_modified_date( 'c' ) ); ?>"><?php echo esc_html( get_the_modified_date() ); ?></time></dd>
+                        </div>
+                        <?php endif; ?>
+                        <div class="key-info-row">
+                            <dt class="key-info-label">Author</dt>
+                            <dd class="key-info-value"><a href="<?php echo esc_url( get_author_posts_url( get_the_author_meta( 'ID' ) ) ); ?>"><?php the_author(); ?></a></dd>
+                        </div>
+                        <?php if ( $rating > 0 ) : ?>
+                        <div class="key-info-row">
+                            <dt class="key-info-label">Rating</dt>
+                            <dd class="key-info-value">
+                                <?php echo holyprofweb_render_stars( $rating ); ?>
+                                <span style="font-size:.78rem;color:var(--color-text-muted);margin-left:4px;">(<?php echo esc_html( $review_count ); ?>)</span>
+                            </dd>
+                        </div>
+                        <?php endif; ?>
+                        <?php if ( $salary_role ) : ?>
+                        <div class="key-info-row">
+                            <dt class="key-info-label">Role</dt>
+                            <dd class="key-info-value"><?php echo esc_html( $salary_role ); ?></dd>
+                        </div>
+                        <?php endif; ?>
+                        <?php if ( $salary_min || $salary_max ) : ?>
+                        <div class="key-info-row">
+                            <dt class="key-info-label">Salary</dt>
+                            <dd class="key-info-value">
+                                <?php
+                                if ( $salary_min && $salary_max ) {
+                                    echo esc_html( $salary_currency . number_format_i18n( $salary_min ) . ' - ' . $salary_currency . number_format_i18n( $salary_max ) . $salary_period );
+                                } elseif ( $salary_min ) {
+                                    echo esc_html( $salary_currency . number_format_i18n( $salary_min ) . $salary_period );
+                                } elseif ( $salary_max ) {
+                                    echo esc_html( $salary_currency . number_format_i18n( $salary_max ) . $salary_period );
+                                }
+                                ?>
+                            </dd>
+                        </div>
+                        <?php endif; ?>
+                        <?php if ( $work_score ) : ?>
+                        <div class="key-info-row">
+                            <dt class="key-info-label">Work-Life</dt>
+                            <dd class="key-info-value"><?php echo esc_html( number_format_i18n( (float) $work_score, 1 ) ); ?>/5</dd>
+                        </div>
+                        <?php endif; ?>
+                        <?php if ( ! empty( $tags ) ) :
+                            $tag_names = implode( ', ', array_map( fn($t) => $t->name, array_slice( $tags, 0, 4 ) ) ); ?>
+                        <div class="key-info-row">
+                            <dt class="key-info-label">Topics</dt>
+                            <dd class="key-info-value"><?php echo esc_html( $tag_names ); ?></dd>
+                        </div>
+                        <?php endif; ?>
+                    </dl>
+                </aside>
+
+                <!-- Post content — accordion on h2 -->
+                <div class="entry-content single-content">
+                    <?php the_content(); ?>
+                </div>
+
+                <?php if ( ! $is_biography_post ) : ?>
+                <!-- Reactions bar -->
+                <div class="reactions-bar" data-post-id="<?php the_ID(); ?>">
+                    <p class="reactions-label">Was this helpful?</p>
+                    <div class="reactions-buttons">
+                        <?php
+                        $reaction_defs = array(
+                            'helpful' => array( 'label' => '&#128077; Helpful',     'class' => 'reaction-helpful' ),
+                            'good'    => array( 'label' => '&#10003; Accurate',     'class' => 'reaction-good' ),
+                            'scam'    => array( 'label' => '&#9888; Scam Alert',    'class' => 'reaction-scam' ),
+                        );
+                        foreach ( $reaction_defs as $key => $def ) :
+                            $count = $reactions[ $key ];
+                        ?>
+                        <button class="reaction-btn <?php echo esc_attr( $def['class'] ); ?>"
+                                data-reaction="<?php echo esc_attr( $key ); ?>"
+                                type="button">
+                            <?php echo $def['label']; ?>
+                            <span class="reaction-count"><?php echo $count > 0 ? esc_html( $count ) : ''; ?></span>
+                        </button>
+                        <?php endforeach; ?>
+                    </div>
+                </div>
+                <?php endif; ?>
+
+                <!-- Email capture -->
+                <div class="email-capture-box">
+                    <p class="email-capture-title">Preparing for an interview or evaluating this platform?</p>
+                    <p class="email-capture-sub">Get updates on salaries, reviews and reports &mdash; straight to your inbox.</p>
+                    <form class="email-capture-form" novalidate>
+                        <input type="email" class="email-capture-input"
+                               placeholder="you@example.com" autocomplete="email" required />
+                        <button type="submit" class="email-capture-btn">Subscribe</button>
+                    </form>
+                    <p class="email-capture-note">No spam. Unsubscribe any time.</p>
+                </div>
+
+                <!-- Tags -->
+                <?php if ( ! empty( $tags ) ) : ?>
+                <div class="post-tags" aria-label="Post tags">
+                    <span class="tag-label">Tags:</span>
+                    <?php foreach ( $tags as $tag ) : ?>
+                    <a href="<?php echo esc_url( get_tag_link( $tag->term_id ) ); ?>"><?php echo esc_html( $tag->name ); ?></a>
+                    <?php endforeach; ?>
+                </div>
+                <?php endif; ?>
+
+                <!-- ============================================
+                     REVIEWS SECTION (separate from WP comments)
+                ============================================ -->
+                <?php if ( ! $is_biography_post ) : ?>
+                <section id="reviews" class="reviews-section">
+                    <div class="reviews-header">
+                        <h2 class="reviews-section-title">User Reviews</h2>
+                        <p class="reviews-summary-line"><?php echo $rating > 0 ? esc_html( number_format_i18n( $rating, 1 ) ) . ' ★ (' . esc_html( $review_count ) . ' ' . esc_html( _n( 'review', 'reviews', $review_count, 'holyprofweb' ) ) . ')' : esc_html__( 'No reviews yet', 'holyprofweb' ); ?></p>
+                    </div>
+
+                    <?php $reviews = holyprofweb_get_post_reviews( $post_id ); ?>
+                    <?php if ( ! empty( $reviews ) ) : ?>
+                    <div class="review-list" id="review-list">
+                        <?php foreach ( $reviews as $review ) :
+                            $r_rating   = (int) get_comment_meta( $review->comment_ID, 'rating', true );
+                            $r_url      = current_user_can( 'manage_options' ) ? get_comment_meta( $review->comment_ID, 'site_url', true ) : '';
+                            $r_initial  = strtoupper( mb_substr( $review->comment_author, 0, 1 ) );
+                            $verified   = holyprofweb_is_comment_verified( $review->comment_ID );
+                            $is_best    = in_array( (int) $review->comment_ID, $best_review_ids, true );
+                        ?>
+                        <div class="review-card<?php echo $is_best ? ' review-card--featured' : ''; ?>">
+                            <div class="review-card-header">
+                                <div class="review-avatar" aria-hidden="true"><?php echo esc_html( $r_initial ); ?></div>
+                                <div class="review-meta">
+                                    <span class="review-author"><?php echo esc_html( $review->comment_author ); ?></span>
+                                    <?php if ( $verified ) : ?><span class="review-verified-badge"><?php esc_html_e( 'Verified', 'holyprofweb' ); ?></span><?php endif; ?>
+                                    <?php if ( $r_url ) : ?>
+                                    <a href="<?php echo esc_url( $r_url ); ?>" class="review-site-url" target="_blank" rel="nofollow noopener">
+                                        <?php echo esc_html( preg_replace( '#^https?://#', '', rtrim( $r_url, '/' ) ) ); ?>
+                                    </a>
+                                    <?php endif; ?>
+                                    <time class="review-date" datetime="<?php echo esc_attr( get_comment_date( 'c', $review ) ); ?>">
+                                        <?php echo esc_html( get_comment_date( 'M j, Y', $review ) ); ?>
+                                    </time>
+                                </div>
+                                <?php if ( $r_rating > 0 ) : ?>
+                                <div class="review-stars"><?php echo holyprofweb_render_stars( $r_rating ); ?></div>
+                                <?php endif; ?>
+                            </div>
+                            <div class="review-card-body">
+                                <p><?php echo esc_html( $review->comment_content ); ?></p>
+                            </div>
+                        </div>
+                        <?php endforeach; ?>
+                    </div>
+                    <?php else : ?>
+                    <p class="reviews-empty">No reviews yet. Be the first to share your experience.</p>
+                    <?php endif; ?>
+
+                    <div class="review-form-wrap review-form-wrap--switch" id="write-review">
+                        <?php if ( $is_salary_post ) : ?>
+                        <h3 class="review-form-title">Submit your salary</h3>
+                        <p class="review-form-sub">Share your salary data privately. It will appear in admin immediately for moderation.</p>
+                        <form class="review-form salary-form" id="salary-form" novalidate data-post-id="<?php echo esc_attr( $post_id ); ?>">
+                            <div class="review-form-row">
+                                <div class="review-form-field">
+                                    <label class="review-form-label" for="salary-name">Your Name <span class="review-required">*</span></label>
+                                    <input type="text" id="salary-name" name="submitter_name" class="review-form-input" autocomplete="name" required />
+                                </div>
+                                <div class="review-form-field">
+                                    <label class="review-form-label" for="salary-email">Email <span class="review-required">*</span></label>
+                                    <input type="email" id="salary-email" name="submitter_email" class="review-form-input" autocomplete="email" required />
+                                </div>
+                            </div>
+                            <div class="review-form-row">
+                                <div class="review-form-field">
+                                    <label class="review-form-label" for="salary-company">Company <span class="review-required">*</span></label>
+                                    <input type="text" id="salary-company" name="salary_company" class="review-form-input" value="<?php echo esc_attr( $decoded_title ); ?>" required />
+                                </div>
+                                <div class="review-form-field">
+                                    <label class="review-form-label" for="salary-role">Role <span class="review-required">*</span></label>
+                                    <input type="text" id="salary-role" name="salary_role" class="review-form-input" value="<?php echo esc_attr( $salary_role ); ?>" required />
+                                </div>
+                            </div>
+                            <div class="review-form-row">
+                                <div class="review-form-field">
+                                    <label class="review-form-label" for="salary-amount">Salary <span class="review-required">*</span></label>
+                                    <input type="text" id="salary-amount" name="salary_amount" class="review-form-input" placeholder="e.g. 850000 / month" required />
+                                </div>
+                                <div class="review-form-field">
+                                    <label class="review-form-label" for="salary-location">Location</label>
+                                    <input type="text" id="salary-location" name="salary_location" class="review-form-input" placeholder="e.g. Lagos, Nigeria" />
+                                </div>
+                            </div>
+                            <div class="review-form-row">
+                                <div class="review-form-field">
+                                    <label class="review-form-label" for="salary-currency">Currency</label>
+                                    <input type="text" id="salary-currency" name="salary_currency" class="review-form-input" value="<?php echo esc_attr( $salary_currency ); ?>" />
+                                </div>
+                                <div class="review-form-field">
+                                    <label class="review-form-label" for="salary-work-life">Work-Life Score</label>
+                                    <input type="number" id="salary-work-life" name="salary_work_life" class="review-form-input" min="1" max="5" step="0.1" />
+                                </div>
+                            </div>
+                            <div class="review-form-error" id="salary-error" aria-live="polite" hidden></div>
+                            <button type="submit" class="review-form-submit" id="salary-submit">Submit Salary</button>
+                        </form>
+                        <?php else : ?>
+                        <h3 class="review-form-title">Have you used this?</h3>
+                        <p class="review-form-sub">Share your experience — your review helps others make better decisions.</p>
+                        <form class="review-form" id="review-form" novalidate data-post-id="<?php echo esc_attr( $post_id ); ?>">
+                            <div class="review-form-field">
+                                <label class="review-form-label">Your Rating <span class="review-required">*</span></label>
+                                <div class="review-star-picker" role="radiogroup" aria-label="Star rating">
+                                    <?php for ( $s = 5; $s >= 1; $s-- ) : ?>
+                                    <input type="radio" name="rating" id="rev-star-<?php echo $s; ?>" value="<?php echo $s; ?>" class="review-star-radio" />
+                                    <label for="rev-star-<?php echo $s; ?>" class="review-star-label" title="<?php echo esc_attr( $s ); ?> stars">&#9733;</label>
+                                    <?php endfor; ?>
+                                </div>
+                                <span class="review-star-hint">Click a star to rate</span>
+                            </div>
+                            <div class="review-form-row">
+                                <div class="review-form-field">
+                                    <label class="review-form-label" for="reviewer-name">Your Name <span class="review-required">*</span></label>
+                                    <input type="text" id="reviewer-name" name="reviewer_name" class="review-form-input" placeholder="e.g. John D." autocomplete="name" required />
+                                </div>
+                                <div class="review-form-field">
+                                    <label class="review-form-label" for="reviewer-email">Email <span class="review-required">*</span></label>
+                                    <input type="email" id="reviewer-email" name="reviewer_email" class="review-form-input" placeholder="you@example.com" autocomplete="email" required />
+                                    <span class="review-form-note">Not published publicly.</span>
+                                </div>
+                            </div>
+                            <div class="review-form-field">
+                                <label class="review-form-label" for="review-content">Short Review <span class="review-required">*</span></label>
+                                <textarea id="review-content" name="review_content" class="review-form-textarea" rows="5" placeholder="Share what worked, what didn't, and who should use this platform..." required></textarea>
+                            </div>
+                            <div class="review-form-error" id="review-error" aria-live="polite" hidden></div>
+                            <button type="submit" class="review-form-submit" id="review-submit">Post Review</button>
+                        </form>
+                        <?php endif; ?>
+                    </div>
+                </section>
+                <?php else : ?>
+                <section class="review-form-wrap review-form-wrap--switch biography-contribution-box" id="write-review">
+                    <h3 class="review-form-title"><?php esc_html_e( 'Help Improve This Biography', 'holyprofweb' ); ?></h3>
+                    <p class="review-form-sub"><?php esc_html_e( 'Send corrections, missing background, achievements, or timeline updates for editorial review.', 'holyprofweb' ); ?></p>
+                    <div class="single-header-actions">
+                        <a href="<?php echo esc_url( add_query_arg( array( 'submit_category' => 'biography', 'submit_name' => $decoded_title, 'mode' => 'suggest-edit' ), home_url( '/submit/' ) ) ); ?>" class="single-action-btn single-action-btn--alt"><?php esc_html_e( 'Suggest Edit', 'holyprofweb' ); ?></a>
+                        <a href="<?php echo esc_url( add_query_arg( array( 'submit_category' => 'biography', 'submit_name' => $decoded_title, 'mode' => 'add-information' ), home_url( '/submit/' ) ) ); ?>" class="single-action-btn"><?php esc_html_e( 'Add Information', 'holyprofweb' ); ?></a>
+                    </div>
+                </section>
+                <?php endif; ?>
+
+                <?php
+                $related       = holyprofweb_get_related_posts( $post_id, 3 );
+                $similar_posts = new WP_Query( array(
+                    'post_type'      => 'post',
+                    'post_status'    => 'publish',
+                    'posts_per_page' => 3,
+                    'post__not_in'   => array( $post_id ),
+                    'category__in'   => $primary_cat ? array( (int) $primary_cat->term_id ) : array(),
+                    'no_found_rows'  => true,
+                ) );
+                $compare_posts = new WP_Query( array(
+                    'post_type'      => 'post',
+                    'post_status'    => 'publish',
+                    'posts_per_page' => 3,
+                    'post__not_in'   => array( $post_id ),
+                    'tag__in'        => $tags ? wp_list_pluck( $tags, 'term_id' ) : array(),
+                    'no_found_rows'  => true,
+                ) );
+                $search_terms   = holyprofweb_get_trending_searches( 5 );
+                $salary_links   = new WP_Query( array(
+                    'post_type'      => 'post',
+                    'post_status'    => 'publish',
+                    'posts_per_page' => 3,
+                    'post__not_in'   => array( $post_id ),
+                    'category_name'  => 'salaries',
+                    's'              => wp_trim_words( get_the_title(), 3, '' ),
+                    'no_found_rows'  => true,
+                ) );
+                $tips_links     = new WP_Query( array(
+                    'post_type'      => 'post',
+                    'post_status'    => 'publish',
+                    'posts_per_page' => 3,
+                    'post__not_in'   => array( $post_id ),
+                    'category_name'  => 'reports',
+                    'no_found_rows'  => true,
+                ) );
+                ?>
+                <section class="related-posts related-posts--stack" aria-labelledby="related-title">
+                    <h2 id="related-title" class="related-posts-title">Keep Exploring</h2>
+                    <?php if ( ! empty( $search_terms ) ) : ?>
+                    <div class="search-also-searched">
+                        <p class="search-also-label">People also searched</p>
+                        <div class="search-also-pills">
+                            <?php foreach ( $search_terms as $term ) : ?>
+                            <a href="<?php echo esc_url( home_url( '/?s=' . urlencode( $term['term'] ) ) ); ?>" class="search-cat-pill"><?php echo esc_html( $term['term'] ); ?></a>
+                            <?php endforeach; ?>
+                        </div>
+                    </div>
+                    <?php endif; ?>
+
+                    <div class="related-link-grid">
+                        <?php if ( $similar_posts->have_posts() ) : ?>
+                        <div>
+                            <h3 class="related-posts-title">Similar Platforms</h3>
+                            <div class="related-grid">
+                                <?php while ( $similar_posts->have_posts() ) : $similar_posts->the_post(); ?>
+                                <article class="related-card">
+                                    <a href="<?php the_permalink(); ?>" class="related-card-thumb"><img src="<?php echo esc_url( holyprofweb_get_post_image_url( get_the_ID(), 'holyprofweb-card' ) ); ?>" alt="<?php echo esc_attr( holyprofweb_get_decoded_post_title() ); ?>" loading="lazy" class="<?php echo esc_attr( holyprofweb_get_post_image_class( get_the_ID() ) ); ?>" /></a>
+                                    <h4 class="related-card-title"><a href="<?php the_permalink(); ?>"><?php holyprofweb_the_decoded_title(); ?></a></h4>
+                                </article>
+                                <?php endwhile; wp_reset_postdata(); ?>
+                            </div>
+                        </div>
+                        <?php endif; ?>
+
+                        <?php if ( $compare_posts->have_posts() ) : ?>
+                        <div>
+                            <h3 class="related-posts-title">Compare With</h3>
+                            <div class="related-grid">
+                                <?php while ( $compare_posts->have_posts() ) : $compare_posts->the_post(); ?>
+                                <article class="related-card">
+                                    <a href="<?php the_permalink(); ?>" class="related-card-thumb"><img src="<?php echo esc_url( holyprofweb_get_post_image_url( get_the_ID(), 'holyprofweb-card' ) ); ?>" alt="<?php echo esc_attr( holyprofweb_get_decoded_post_title() ); ?>" loading="lazy" class="<?php echo esc_attr( holyprofweb_get_post_image_class( get_the_ID() ) ); ?>" /></a>
+                                    <h4 class="related-card-title"><a href="<?php the_permalink(); ?>"><?php holyprofweb_the_decoded_title(); ?></a></h4>
+                                </article>
+                                <?php endwhile; wp_reset_postdata(); ?>
+                            </div>
+                        </div>
+                        <?php endif; ?>
+
+                        <?php if ( $is_company_post && $salary_links->have_posts() ) : ?>
+                        <div>
+                            <h3 class="related-posts-title">Salary Insights</h3>
+                            <div class="related-grid">
+                                <?php while ( $salary_links->have_posts() ) : $salary_links->the_post(); ?>
+                                <article class="related-card">
+                                    <a href="<?php the_permalink(); ?>" class="related-card-thumb"><img src="<?php echo esc_url( holyprofweb_get_post_image_url( get_the_ID(), 'holyprofweb-card' ) ); ?>" alt="<?php echo esc_attr( holyprofweb_get_decoded_post_title() ); ?>" loading="lazy" class="<?php echo esc_attr( holyprofweb_get_post_image_class( get_the_ID() ) ); ?>" /></a>
+                                    <h4 class="related-card-title"><a href="<?php the_permalink(); ?>"><?php holyprofweb_the_decoded_title(); ?></a></h4>
+                                </article>
+                                <?php endwhile; wp_reset_postdata(); ?>
+                            </div>
+                        </div>
+                        <?php endif; ?>
+
+                        <?php if ( $is_company_post && $tips_links->have_posts() ) : ?>
+                        <div>
+                            <h3 class="related-posts-title">Interview Tips</h3>
+                            <div class="related-grid">
+                                <?php while ( $tips_links->have_posts() ) : $tips_links->the_post(); ?>
+                                <article class="related-card">
+                                    <a href="<?php the_permalink(); ?>" class="related-card-thumb"><img src="<?php echo esc_url( holyprofweb_get_post_image_url( get_the_ID(), 'holyprofweb-card' ) ); ?>" alt="<?php echo esc_attr( holyprofweb_get_decoded_post_title() ); ?>" loading="lazy" class="<?php echo esc_attr( holyprofweb_get_post_image_class( get_the_ID() ) ); ?>" /></a>
+                                    <h4 class="related-card-title"><a href="<?php the_permalink(); ?>"><?php holyprofweb_the_decoded_title(); ?></a></h4>
+                                </article>
+                                <?php endwhile; wp_reset_postdata(); ?>
+                            </div>
+                        </div>
+                        <?php endif; ?>
+                    </div>
+                </section>
+
+                <!-- Standard WP comments (for general discussion, separate from reviews) -->
+                <?php if ( ! $is_biography_post && comments_open() ) {
+                    comments_template();
+                } ?>
+
+            </article>
+
+            <!-- =========================================
+                 RIGHT SIDEBAR
+            ========================================= -->
+            <aside class="sidebar single-sidebar" role="complementary" aria-label="Sidebar">
+
+                <?php holyprofweb_render_ad( 'sidebar' ); ?>
+
+                <?php get_sidebar(); ?>
+
+                <?php holyprofweb_render_ad( 'sidebar_2' ); ?>
+
+            </aside>
+
+        </div><!-- .single-wrap -->
+        <?php endwhile; ?>
+    </main>
+
+</div><!-- .platform-wrap -->
+
+<?php get_footer(); ?>

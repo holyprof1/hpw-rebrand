@@ -1,0 +1,14 @@
+# Ignore everything by default in this local WP install
+*
+*/
+
+# Keep git metadata files at repo root
+!.gitignore
+
+# Track the custom theme
+!wp-content/
+wp-content/*
+!wp-content/themes/
+wp-content/themes/*
+!wp-content/themes/holyprofweb/
+!wp-content/themes/holyprofweb/**

@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630">
+  <rect width="1200" height="630" fill="#0B1120"/>
+  <circle cx="1010" cy="120" r="190" fill="#B8860B" fill-opacity="0.16"/>
+  <circle cx="190" cy="520" r="120" fill="#FFFFFF" fill-opacity="0.08"/>
+  <rect x="0" y="0" width="12" height="630" fill="#B8860B"/>
+  <rect x="44" y="44" width="1112" height="542" rx="24" fill="#FFFFFF" fill-opacity="0.08" stroke="#FFFFFF" stroke-opacity="0.18"/>
+  <rect x="86" y="88" width="176" height="48" rx="22" fill="#B8860B"/>
+  <text x="108" y="119" font-family="Inter, Segoe UI, sans-serif" font-size="18" font-weight="700" fill="#111111">HOLYPROFWEB</text>
+  <text x="86" y="252" font-family="Inter, Segoe UI, sans-serif" font-size="54" font-weight="700" fill="#F5F4F0">Research first.</text>
+  <text x="86" y="318" font-family="Inter, Segoe UI, sans-serif" font-size="54" font-weight="700" fill="#F5F4F0">Decide with confidence.</text>
+  <text x="88" y="378" font-family="Inter, Segoe UI, sans-serif" font-size="24" font-weight="400" fill="#BFBBAF">Reviews, companies, salaries, reports, and biographies in one place.</text>
+  <text x="88" y="560" font-family="Inter, Segoe UI, sans-serif" font-size="18" font-weight="500" fill="#BFBBAF">holyprofweb.com</text>
+</svg>
