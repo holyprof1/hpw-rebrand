@@ -4122,7 +4122,7 @@ function holyprofweb_register_settings() {
     register_setting( 'hpw_automation', 'hpw_ai_faq_count',              array( 'sanitize_callback' => 'absint' ) );
     register_setting( 'hpw_automation', 'hpw_ai_brand_voice',            array( 'sanitize_callback' => 'sanitize_textarea_field' ) );
     register_setting( 'hpw_automation', 'hpw_ai_prompt_notes',           array( 'sanitize_callback' => 'sanitize_textarea_field' ) );
-    register_setting( 'hpw_general',    'hpw_redirect_rules',            array( 'sanitize_callback' => 'sanitize_textarea_field' ) );
+    register_setting( 'hpw_general',    'hpw_redirect_rules',            array( 'sanitize_callback' => 'holyprofweb_sanitize_redirect_rules' ) );
 }
 add_action( 'admin_init', 'holyprofweb_register_settings' );
 
@@ -4230,8 +4230,9 @@ function holyprofweb_settings_page() {
                 <tr>
                     <th><?php esc_html_e( 'Redirect rules', 'holyprofweb' ); ?></th>
                     <td>
-                        <textarea name="hpw_redirect_rules" rows="8" class="large-text code"><?php echo esc_textarea( get_option( 'hpw_redirect_rules', '' ) ); ?></textarea>
-                        <p class="description"><?php esc_html_e( 'One redirect per line using this format: /old-slug/|/new-slug/ or /old-url/|https://example.com/new-url/', 'holyprofweb' ); ?></p>
+                        <textarea name="hpw_redirect_rules" rows="10" class="large-text code" placeholder="/old-path/,/new-path/&#10;/old-ranking-url/|/reviews/new-ranking-url/&#10;/old-url/,https://example.com/new-url/"><?php echo esc_textarea( get_option( 'hpw_redirect_rules', '' ) ); ?></textarea>
+                        <p class="description"><?php esc_html_e( 'One redirect per line. Use old path first, then new path. Accepted formats: /old-path/,/new-path/ or /old-path/|/new-path/ or /old-url/,https://example.com/new-url/', 'holyprofweb' ); ?></p>
+                        <p class="description"><?php esc_html_e( 'The theme will normalize the paths automatically and send a 301 redirect.', 'holyprofweb' ); ?></p>
                     </td>
                 </tr>
             </table>
@@ -4833,25 +4834,65 @@ function holyprofweb_parse_redirect_rules() {
     $rules = array();
 
     foreach ( $lines as $line ) {
-        $line = trim( $line );
-        if ( ! $line || false === strpos( $line, '|' ) ) {
+        $pair = holyprofweb_parse_redirect_line( $line );
+        if ( empty( $pair['from'] ) || empty( $pair['to'] ) ) {
             continue;
         }
 
-        list( $from, $to ) = array_map( 'trim', explode( '|', $line, 2 ) );
-        if ( ! $from || ! $to ) {
-            continue;
-        }
-
-        $from = '/' . ltrim( $from, '/' );
-        if ( home_url( '/' ) !== $to && 0 !== strpos( $to, 'http://' ) && 0 !== strpos( $to, 'https://' ) ) {
-            $to = '/' . ltrim( $to, '/' );
-        }
-
-        $rules[ untrailingslashit( $from ) ] = $to;
+        $rules[ untrailingslashit( $pair['from'] ) ] = $pair['to'];
     }
 
     return $rules;
+}
+
+function holyprofweb_parse_redirect_line( $line ) {
+    $line = trim( (string) $line );
+    if ( '' === $line ) {
+        return array();
+    }
+
+    $parts = array();
+
+    if ( false !== strpos( $line, '|' ) ) {
+        $parts = array_map( 'trim', explode( '|', $line, 2 ) );
+    } elseif ( false !== strpos( $line, ',' ) ) {
+        $parts = array_map( 'trim', explode( ',', $line, 2 ) );
+    } elseif ( preg_match( '/\s{2,}|\t/', $line ) ) {
+        $parts = preg_split( '/\s{2,}|\t/', $line, 2 );
+        $parts = array_map( 'trim', $parts );
+    }
+
+    if ( count( $parts ) < 2 || '' === $parts[0] || '' === $parts[1] ) {
+        return array();
+    }
+
+    $from = '/' . ltrim( wp_parse_url( $parts[0], PHP_URL_PATH ) ?: $parts[0], '/' );
+    $to   = trim( $parts[1] );
+
+    if ( 0 !== strpos( $to, 'http://' ) && 0 !== strpos( $to, 'https://' ) ) {
+        $to = '/' . ltrim( wp_parse_url( $to, PHP_URL_PATH ) ?: $to, '/' );
+    }
+
+    return array(
+        'from' => untrailingslashit( $from ),
+        'to'   => $to,
+    );
+}
+
+function holyprofweb_sanitize_redirect_rules( $value ) {
+    $lines      = preg_split( '/\r\n|\r|\n/', (string) $value );
+    $normalized = array();
+
+    foreach ( $lines as $line ) {
+        $pair = holyprofweb_parse_redirect_line( $line );
+        if ( empty( $pair['from'] ) || empty( $pair['to'] ) ) {
+            continue;
+        }
+
+        $normalized[] = $pair['from'] . ' | ' . $pair['to'];
+    }
+
+    return implode( "\n", array_values( array_unique( $normalized ) ) );
 }
 
 function holyprofweb_handle_redirect_rules() {
