@@ -31,8 +31,6 @@ function holyprofweb_setup() {
         'flex-height' => true,
         'flex-width'  => true,
     ) );
-    add_theme_support( 'custom-header' );
-    add_theme_support( 'custom-background' );
 
     add_theme_support( 'post-formats', array( 'aside', 'quote', 'link' ) );
     add_theme_support( 'automatic-feed-links' );
@@ -2323,7 +2321,12 @@ function holyprofweb_get_post_image_url( $post_id, $size = 'holyprofweb-card' ) 
         holyprofweb_generate_post_image_modern( $post_id, $post );
     }
 
-    $url = get_the_post_thumbnail_url( $post_id, $size );
+    $image_size = $size;
+    if ( $generated_url || holyprofweb_is_placeholder_post( $post_id ) ) {
+        $image_size = 'full';
+    }
+
+    $url = get_the_post_thumbnail_url( $post_id, $image_size );
     if ( $url ) {
         return $url;
     }
@@ -2363,37 +2366,6 @@ function holyprofweb_get_post_image_url( $post_id, $size = 'holyprofweb-card' ) 
     }
 
     return holyprofweb_placeholder_url();
-}
-
-function holyprofweb_branding_menu() {
-    add_submenu_page(
-        'themes.php',
-        __( 'Logo & Favicon', 'holyprofweb' ),
-        __( 'Logo & Favicon', 'holyprofweb' ),
-        'edit_theme_options',
-        'holyprofweb-branding',
-        'holyprofweb_branding_page'
-    );
-}
-add_action( 'admin_menu', 'holyprofweb_branding_menu' );
-
-function holyprofweb_branding_page() {
-    if ( ! current_user_can( 'edit_theme_options' ) ) {
-        return;
-    }
-
-    $branding_url = admin_url( 'customize.php?autofocus[section]=title_tagline' );
-    ?>
-    <div class="wrap">
-        <h1><?php esc_html_e( 'Logo & Favicon', 'holyprofweb' ); ?></h1>
-        <p><?php esc_html_e( 'Upload and manage your site logo and favicon from Site Identity.', 'holyprofweb' ); ?></p>
-        <p><a href="<?php echo esc_url( $branding_url ); ?>" class="button button-primary"><?php esc_html_e( 'Open Site Identity', 'holyprofweb' ); ?></a></p>
-        <ul style="list-style:disc;padding-left:20px;">
-            <li><?php esc_html_e( 'Logo: used in the header and footer.', 'holyprofweb' ); ?></li>
-            <li><?php esc_html_e( 'Site Icon: used as the browser favicon and app icon.', 'holyprofweb' ); ?></li>
-        </ul>
-    </div>
-    <?php
 }
 
 

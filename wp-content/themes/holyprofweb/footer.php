@@ -36,29 +36,8 @@
                 </p>
             </div>
 
-            <!-- Column 2: Company -->
+            <!-- Column 2: Platform -->
             <nav class="footer-col footer-col--nav" aria-label="<?php esc_attr_e( 'Platform links', 'holyprofweb' ); ?>">
-                <h3 class="footer-col-title"><?php esc_html_e( 'Company', 'holyprofweb' ); ?></h3>
-                <ul>
-                    <?php
-                    $company_links = array(
-                        'Work with us' => '/work-with-us/',
-                        'Advertise'    => '/advertise/',
-                        'About'        => '/about/',
-                    );
-                    foreach ( $company_links as $label => $path ) :
-                    ?>
-                    <li>
-                        <a href="<?php echo esc_url( home_url( $path ) ); ?>">
-                            <?php echo esc_html( $label ); ?>
-                        </a>
-                    </li>
-                    <?php endforeach; ?>
-                </ul>
-            </nav>
-
-            <!-- Column 3: Platform -->
-            <nav class="footer-col footer-col--nav" aria-label="<?php esc_attr_e( 'Company links', 'holyprofweb' ); ?>">
                 <h3 class="footer-col-title"><?php esc_html_e( 'Platform', 'holyprofweb' ); ?></h3>
                 <ul>
                     <?php
@@ -70,6 +49,27 @@
                         'Reports'   => '/category/reports/',
                     );
                     foreach ( $platform_links as $label => $path ) :
+                    ?>
+                    <li>
+                        <a href="<?php echo esc_url( home_url( $path ) ); ?>">
+                            <?php echo esc_html( $label ); ?>
+                        </a>
+                    </li>
+                    <?php endforeach; ?>
+                </ul>
+            </nav>
+
+            <!-- Column 3: Company -->
+            <nav class="footer-col footer-col--nav" aria-label="<?php esc_attr_e( 'Company links', 'holyprofweb' ); ?>">
+                <h3 class="footer-col-title"><?php esc_html_e( 'Company', 'holyprofweb' ); ?></h3>
+                <ul>
+                    <?php
+                    $company_links = array(
+                        'Work with us' => '/work-with-us/',
+                        'Advertise'    => '/advertise/',
+                        'About'        => '/about/',
+                    );
+                    foreach ( $company_links as $label => $path ) :
                     ?>
                     <li>
                         <a href="<?php echo esc_url( home_url( $path ) ); ?>">
