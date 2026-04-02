@@ -2945,6 +2945,9 @@ function holyprofweb_submit_review_ajax() {
             'interview-candidate',
             'partner-vendor',
             'customer-client',
+            'affected-user',
+            'scam-reporter',
+            'job-seeker',
             'other',
         );
 
@@ -4499,6 +4502,29 @@ function holyprofweb_settings_reviews_page() {
     <div class="wrap">
         <h1>&#9733; <?php esc_html_e( 'HPW Settings — Reviews', 'holyprofweb' ); ?></h1>
         <?php holyprofweb_settings_nav( 'reviews' ); ?>
+        <style>
+            @media (max-width: 960px) {
+                .hpw-content-desk form[method="get"] {
+                    grid-template-columns: 1fr !important;
+                }
+                .hpw-content-desk table thead {
+                    display: none;
+                }
+                .hpw-content-desk table,
+                .hpw-content-desk tbody,
+                .hpw-content-desk tr,
+                .hpw-content-desk td {
+                    display: block;
+                    width: 100%;
+                }
+                .hpw-content-desk tr {
+                    margin-bottom: 14px;
+                    border: 1px solid #ece4d4;
+                    border-radius: 18px;
+                    overflow: hidden;
+                }
+            }
+        </style>
         <form method="post" action="options.php">
             <?php settings_fields( 'hpw_reviews' ); ?>
             <table class="form-table">
@@ -4529,17 +4555,27 @@ function holyprofweb_settings_reviews_page() {
         </form>
 
         <hr>
-        <h2><?php esc_html_e( 'Content Control Desk', 'holyprofweb' ); ?></h2>
-        <p><?php esc_html_e( 'Search companies, apps, websites, and blog/report posts. You can adjust the displayed rating, verdict label, source URL, and country focus from here.', 'holyprofweb' ); ?></p>
-        <form method="get" action="<?php echo esc_url( admin_url( 'admin.php' ) ); ?>" style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end;margin:18px 0;">
+        <div class="hpw-content-desk" style="background:linear-gradient(180deg,#ffffff 0%,#fbfaf7 100%);border:1px solid #e7dec9;border-radius:22px;padding:22px 22px 18px;box-shadow:0 18px 40px rgba(15,23,42,0.05);">
+        <div style="display:flex;justify-content:space-between;gap:16px;align-items:flex-start;flex-wrap:wrap;">
+            <div>
+                <h2 style="margin:0 0 6px;"><?php esc_html_e( 'Content Control Desk', 'holyprofweb' ); ?></h2>
+                <p style="margin:0;color:#5f6470;max-width:760px;"><?php esc_html_e( 'Search companies, apps, websites, and blog/report posts. Update the display score, trust label, source URL, and location focus without opening each full editor.', 'holyprofweb' ); ?></p>
+            </div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                <span class="verdict-badge verdict-badge--legit"><?php esc_html_e( 'Legit', 'holyprofweb' ); ?></span>
+                <span class="verdict-badge verdict-badge--caution"><?php esc_html_e( 'Complications', 'holyprofweb' ); ?></span>
+                <span class="verdict-badge verdict-badge--scam"><?php esc_html_e( 'Scam Alert', 'holyprofweb' ); ?></span>
+            </div>
+        </div>
+        <form method="get" action="<?php echo esc_url( admin_url( 'admin.php' ) ); ?>" style="display:grid;grid-template-columns:minmax(280px,1.4fr) minmax(180px,0.6fr) auto;gap:12px;align-items:end;margin:18px 0 20px;">
             <input type="hidden" name="page" value="hpw-settings-reviews">
             <div>
                 <label for="hpw-content-search"><strong><?php esc_html_e( 'Search', 'holyprofweb' ); ?></strong></label><br>
-                <input type="search" id="hpw-content-search" name="hpw_content_search" value="<?php echo esc_attr( $content_search ); ?>" class="regular-text" placeholder="<?php esc_attr_e( 'e.g. GTBank, Bet9ja, Moniepoint', 'holyprofweb' ); ?>">
+                <input type="search" id="hpw-content-search" name="hpw_content_search" value="<?php echo esc_attr( $content_search ); ?>" class="regular-text" placeholder="<?php esc_attr_e( 'e.g. GTBank, Bet9ja, Moniepoint', 'holyprofweb' ); ?>" style="width:100%;max-width:none;">
             </div>
             <div>
                 <label for="hpw-content-type"><strong><?php esc_html_e( 'Type', 'holyprofweb' ); ?></strong></label><br>
-                <select id="hpw-content-type" name="hpw_content_type">
+                <select id="hpw-content-type" name="hpw_content_type" style="width:100%;">
                     <?php foreach ( $filter_options as $key => $label ) : ?>
                     <option value="<?php echo esc_attr( $key ); ?>" <?php selected( $content_type, $key ); ?>><?php echo esc_html( $label ); ?></option>
                     <?php endforeach; ?>
@@ -4550,7 +4586,7 @@ function holyprofweb_settings_reviews_page() {
         <?php if ( empty( $content_rows ) ) : ?>
         <p><?php esc_html_e( 'No tracked content matched your search yet.', 'holyprofweb' ); ?></p>
         <?php else : ?>
-        <table class="widefat striped">
+        <table class="widefat striped" style="border:0;box-shadow:none;background:transparent;">
             <thead><tr>
                 <th><?php esc_html_e( 'Title', 'holyprofweb' ); ?></th>
                 <th><?php esc_html_e( 'Type', 'holyprofweb' ); ?></th>
@@ -4568,24 +4604,26 @@ function holyprofweb_settings_reviews_page() {
                 $source_url       = (string) get_post_meta( $post_id, '_hpw_source_url', true );
                 $country_focus    = (string) get_post_meta( $post_id, '_hpw_country_focus', true );
                 $status_object    = get_post_status_object( get_post_status( $post_id ) );
+                $verdict_preview  = holyprofweb_get_review_verdict( $post_id );
                 ?>
-            <tr>
-                <td>
+            <tr style="background:#fff;">
+                <td style="padding:18px 16px;vertical-align:top;">
                     <strong><a href="<?php echo esc_url( admin_url( 'post.php?post=' . $post_id . '&action=edit' ) ); ?>"><?php echo esc_html( get_the_title( $post_id ) ); ?></a></strong><br>
                     <span><?php echo esc_html( $status_object ? $status_object->label : ucfirst( (string) get_post_status( $post_id ) ) ); ?></span>
                     <span style="color:#6b7280;"> • <?php echo esc_html( mysql2date( 'Y-m-d', $content_post->post_modified ) ); ?></span><br>
                     <a href="<?php echo esc_url( get_permalink( $post_id ) ); ?>" target="_blank" rel="noopener"><?php esc_html_e( 'View live', 'holyprofweb' ); ?></a>
                 </td>
-                <td>
+                <td style="padding:18px 16px;vertical-align:top;">
                     <strong><?php echo esc_html( holyprofweb_get_admin_content_kind( $post_id ) ); ?></strong><br>
                     <span><?php echo esc_html( implode( ', ', wp_list_pluck( get_the_category( $post_id ), 'name' ) ) ); ?></span>
                 </td>
-                <td>
+                <td style="padding:18px 16px;vertical-align:top;">
                     <strong><?php echo $live_rating ? esc_html( number_format_i18n( $live_rating, 1 ) ) . '/5' : esc_html__( 'No rating yet', 'holyprofweb' ); ?></strong><br>
-                    <span><?php echo esc_html( sprintf( _n( '%d review', '%d reviews', $review_count, 'holyprofweb' ), $review_count ) ); ?></span>
+                    <span><?php echo esc_html( sprintf( _n( '%d review', '%d reviews', $review_count, 'holyprofweb' ), $review_count ) ); ?></span><br>
+                    <span class="verdict-badge <?php echo esc_attr( $verdict_preview['class'] ); ?>" style="margin-top:8px;"><?php echo esc_html( $verdict_preview['label'] ); ?></span>
                 </td>
-                <td style="min-width:340px;">
-                    <form method="post" action="<?php echo esc_url( admin_url( 'admin.php?page=hpw-settings-reviews' ) ); ?>" style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px 12px;">
+                <td style="min-width:340px;padding:18px 16px;vertical-align:top;">
+                    <form method="post" action="<?php echo esc_url( admin_url( 'admin.php?page=hpw-settings-reviews' ) ); ?>" style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px 12px;padding:14px;border:1px solid #ece4d4;border-radius:18px;background:linear-gradient(180deg,#fffdfa 0%,#ffffff 100%);">
                         <?php wp_nonce_field( 'hpw_reviews_content_update', 'hpw_reviews_content_nonce' ); ?>
                         <input type="hidden" name="page" value="hpw-settings-reviews">
                         <input type="hidden" name="hpw_reviews_content_update" value="1">
@@ -4622,6 +4660,7 @@ function holyprofweb_settings_reviews_page() {
             </tbody>
         </table>
         <?php endif; ?>
+        </div>
 
         <hr>
         <h2><?php esc_html_e( 'Pending Reviews', 'holyprofweb' ); ?></h2>

@@ -256,6 +256,9 @@
         var salaryInput = form.querySelector('[name="salary_range"]');
         var interviewInput = form.querySelector('[name="interview_stage"]');
         var issueInput = form.querySelector('[name="experience_issue"]');
+        var reviewContent = form.querySelector('[name="review_content"]');
+        var issueLabel = form.querySelector('label[for="experience-issue"]');
+        var interviewLabel = form.querySelector('label[for="interview-stage"]');
 
         function getRating() {
             var selected = form.querySelector('[name="rating"]:checked');
@@ -265,6 +268,23 @@
         function toggleField(field, visible) {
             if (!field) return;
             field.hidden = !visible;
+            field.classList.toggle('is-visible', !!visible);
+        }
+
+        function setSelectOptions(select, options, placeholder) {
+            if (!select) return;
+            var current = select.value;
+            var html = '<option value="">' + placeholder + '</option>';
+
+            options.forEach(function (option) {
+                html += '<option value="' + option.value + '">' + option.label + '</option>';
+            });
+
+            select.innerHTML = html;
+
+            if (current && options.some(function (option) { return option.value === current; })) {
+                select.value = current;
+            }
         }
 
         function updateCompanyReviewForm() {
@@ -272,35 +292,135 @@
             var rating = getRating();
             var isStaff = type === 'staff' || type === 'former-staff';
             var isInterview = type === 'interview-candidate';
+            var isPartner = type === 'partner-vendor';
+            var isCustomer = type === 'customer-client';
+            var isAffected = type === 'affected-user' || type === 'scam-reporter';
+            var isJobSeeker = type === 'job-seeker';
             var hasType = !!type;
+            var showIssue = false;
+            var rolePlaceholder = 'e.g. Product Designer, customer success, client';
+            var locationPlaceholder = 'e.g. Lagos, Nigeria';
+            var reviewPlaceholder = 'Share what it feels like to work with this company, interview here, partner with them, or buy from them...';
+            var interviewPlaceholder = 'Optional: e.g. 700k fixed, salary expectation form, no range shared';
+            var interviewTitle = 'Salary they asked or pay expectation mentioned';
+            var issueTitle = 'What happened?';
+            var issueOptions = [
+                { value: 'other', label: 'Other issue' }
+            ];
 
             toggleField(contextField, hasType);
 
+            if (isStaff) {
+                rolePlaceholder = type === 'former-staff' ? 'e.g. Former product manager' : 'e.g. Backend engineer, operations lead';
+                reviewPlaceholder = 'Share what the work, management, pay, pressure, and team culture feel like inside this company...';
+                showIssue = rating > 0 && rating <= 2;
+                issueOptions = [
+                    { value: 'pay', label: 'Pay / benefits issue' },
+                    { value: 'management', label: 'Management problem' },
+                    { value: 'culture', label: 'Culture / toxic environment' },
+                    { value: 'workload', label: 'Workload / burnout' },
+                    { value: 'communication', label: 'Communication problem' },
+                    { value: 'other', label: 'Other issue' }
+                ];
+            } else if (isInterview) {
+                rolePlaceholder = 'e.g. Product Manager candidate';
+                locationPlaceholder = 'e.g. Lagos interview hub, remote';
+                reviewPlaceholder = 'Share how the interview felt, what stage you reached, how they communicated, and whether the process looked serious...';
+                interviewTitle = 'Salary they asked or expectation they mentioned';
+                showIssue = rating > 0 && rating <= 3;
+                issueOptions = [
+                    { value: 'interview', label: 'Interview process issue' },
+                    { value: 'communication', label: 'Communication problem' },
+                    { value: 'fraud', label: 'Fraud / scam concern' },
+                    { value: 'other', label: 'Other issue' }
+                ];
+            } else if (isPartner) {
+                rolePlaceholder = 'e.g. Agency partner, logistics vendor';
+                reviewPlaceholder = 'Share how they behave as a business partner, how they pay, communicate, or handle deals...';
+                showIssue = rating > 0 && rating <= 3;
+                issueOptions = [
+                    { value: 'billing', label: 'Billing / payment issue' },
+                    { value: 'communication', label: 'Communication problem' },
+                    { value: 'management', label: 'Management problem' },
+                    { value: 'fraud', label: 'Fraud / scam concern' },
+                    { value: 'other', label: 'Other issue' }
+                ];
+            } else if (isCustomer) {
+                rolePlaceholder = 'e.g. customer, subscriber, account holder';
+                reviewPlaceholder = 'Share how the company treated you as a customer, how support responded, and what went wrong or right...';
+                showIssue = true;
+                issueOptions = [
+                    { value: 'support', label: 'Support / service issue' },
+                    { value: 'product', label: 'Product / delivery issue' },
+                    { value: 'billing', label: 'Billing / payment issue' },
+                    { value: 'fraud', label: 'Fraud / scam concern' },
+                    { value: 'other', label: 'Other issue' }
+                ];
+            } else if (isAffected) {
+                rolePlaceholder = type === 'scam-reporter' ? 'e.g. victim, witness, reporter' : 'e.g. affected user, community member';
+                reviewPlaceholder = 'Explain what happened, what money, access, or trust issue you faced, and what others should watch out for...';
+                issueTitle = type === 'scam-reporter' ? 'What scam or red flag did you notice?' : 'What happened?';
+                showIssue = true;
+                issueOptions = [
+                    { value: 'fraud', label: 'Fraud / scam concern' },
+                    { value: 'billing', label: 'Billing / payment issue' },
+                    { value: 'support', label: 'Support / service issue' },
+                    { value: 'communication', label: 'Communication problem' },
+                    { value: 'other', label: 'Other issue' }
+                ];
+            } else if (isJobSeeker) {
+                rolePlaceholder = 'e.g. Applicant, graduate trainee';
+                reviewPlaceholder = 'Share what you noticed as a job seeker, whether the role felt real, and how they handled the process...';
+                interviewTitle = 'Salary or pay range mentioned';
+                interviewPlaceholder = 'Optional: e.g. no salary stated, 500k cap, negotiable after probation';
+                showIssue = rating > 0 && rating <= 3;
+                issueOptions = [
+                    { value: 'interview', label: 'Interview / hiring issue' },
+                    { value: 'communication', label: 'Communication problem' },
+                    { value: 'fraud', label: 'Fraud / scam concern' },
+                    { value: 'other', label: 'Other issue' }
+                ];
+            }
+
             toggleField(salaryField, isStaff);
-            toggleField(interviewField, isInterview);
-            toggleField(issueField, isStaff && rating > 0 && rating <= 2);
+            toggleField(interviewField, isInterview || isJobSeeker);
+            toggleField(issueField, hasType && showIssue);
 
             if (roleInput) {
-                roleInput.placeholder = isInterview
-                    ? 'e.g. Product Manager candidate'
-                    : (type === 'partner-vendor'
-                        ? 'e.g. Agency partner, vendor'
-                        : 'e.g. Product Designer, customer success, client');
+                roleInput.placeholder = rolePlaceholder;
             }
 
             if (locationInput) {
-                locationInput.placeholder = isInterview ? 'e.g. Lagos interview hub, remote' : 'e.g. Lagos, Nigeria';
+                locationInput.placeholder = locationPlaceholder;
             }
+
+            if (reviewContent) {
+                reviewContent.placeholder = reviewPlaceholder;
+            }
+
+            if (interviewInput) {
+                interviewInput.placeholder = interviewPlaceholder;
+            }
+
+            if (interviewLabel) {
+                interviewLabel.textContent = interviewTitle;
+            }
+
+            if (issueLabel) {
+                issueLabel.textContent = issueTitle;
+            }
+
+            setSelectOptions(issueInput, issueOptions, 'Select what best fits');
 
             if (!isStaff && salaryInput) {
                 salaryInput.value = '';
             }
 
-            if (!isInterview && interviewInput) {
+            if (!(isInterview || isJobSeeker) && interviewInput) {
                 interviewInput.value = '';
             }
 
-            if (!(isStaff && rating > 0 && rating <= 2) && issueInput) {
+            if (!(hasType && showIssue) && issueInput) {
                 issueInput.value = '';
             }
         }

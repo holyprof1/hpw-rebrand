@@ -312,6 +312,9 @@ get_header();
                                 'interview-candidate' => __( 'Interview candidate', 'holyprofweb' ),
                                 'partner-vendor'      => __( 'Partner / vendor', 'holyprofweb' ),
                                 'customer-client'     => __( 'Customer / client', 'holyprofweb' ),
+                                'affected-user'       => __( 'Affected user', 'holyprofweb' ),
+                                'scam-reporter'       => __( 'Scam victim / reporter', 'holyprofweb' ),
+                                'job-seeker'          => __( 'Job seeker', 'holyprofweb' ),
                                 'other'               => __( 'Other', 'holyprofweb' ),
                             );
                             $experience_issue_labels = array(
@@ -320,6 +323,11 @@ get_header();
                                 'culture'    => __( 'Culture problem', 'holyprofweb' ),
                                 'workload'   => __( 'Workload / burnout', 'holyprofweb' ),
                                 'interview'  => __( 'Interview problem', 'holyprofweb' ),
+                                'support'    => __( 'Support / service issue', 'holyprofweb' ),
+                                'product'    => __( 'Product / delivery issue', 'holyprofweb' ),
+                                'billing'    => __( 'Billing / payment issue', 'holyprofweb' ),
+                                'fraud'      => __( 'Fraud / scam concern', 'holyprofweb' ),
+                                'communication' => __( 'Communication problem', 'holyprofweb' ),
                                 'other'      => __( 'Other issue', 'holyprofweb' ),
                             );
                         ?>
@@ -478,6 +486,9 @@ get_header();
                                     <option value="interview-candidate"><?php esc_html_e( 'Interview candidate', 'holyprofweb' ); ?></option>
                                     <option value="partner-vendor"><?php esc_html_e( 'Partner / vendor', 'holyprofweb' ); ?></option>
                                     <option value="customer-client"><?php esc_html_e( 'Customer / client', 'holyprofweb' ); ?></option>
+                                    <option value="affected-user"><?php esc_html_e( 'Affected user', 'holyprofweb' ); ?></option>
+                                    <option value="scam-reporter"><?php esc_html_e( 'Scam victim / reporter', 'holyprofweb' ); ?></option>
+                                    <option value="job-seeker"><?php esc_html_e( 'Job seeker', 'holyprofweb' ); ?></option>
                                     <option value="other"><?php esc_html_e( 'Other', 'holyprofweb' ); ?></option>
                                 </select>
                                 <span class="review-form-note"><?php esc_html_e( 'Extra company fields stay hidden until you choose the path that fits.', 'holyprofweb' ); ?></span>
@@ -510,6 +521,11 @@ get_header();
                                         <option value="culture"><?php esc_html_e( 'Culture / toxic environment', 'holyprofweb' ); ?></option>
                                         <option value="workload"><?php esc_html_e( 'Workload / burnout', 'holyprofweb' ); ?></option>
                                         <option value="interview"><?php esc_html_e( 'Interview process issue', 'holyprofweb' ); ?></option>
+                                        <option value="support"><?php esc_html_e( 'Support / service issue', 'holyprofweb' ); ?></option>
+                                        <option value="product"><?php esc_html_e( 'Product / delivery issue', 'holyprofweb' ); ?></option>
+                                        <option value="billing"><?php esc_html_e( 'Billing / payment issue', 'holyprofweb' ); ?></option>
+                                        <option value="fraud"><?php esc_html_e( 'Fraud / scam concern', 'holyprofweb' ); ?></option>
+                                        <option value="communication"><?php esc_html_e( 'Communication problem', 'holyprofweb' ); ?></option>
                                         <option value="other"><?php esc_html_e( 'Other', 'holyprofweb' ); ?></option>
                                     </select>
                                 </div>
