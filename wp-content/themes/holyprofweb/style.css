@@ -9064,3 +9064,36 @@ body.hpw-no-copy label {
         min-height: 158px !important;
     }
 }
+
+/* Final live reviews override: one-card carousel on every device */
+.home .front-section[aria-labelledby="live-reviews-heading"] .live-reviews-grid {
+    display: grid !important;
+    grid-auto-flow: column !important;
+    grid-template-columns: none !important;
+    grid-auto-columns: minmax(100%, 100%) !important;
+    gap: 18px !important;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    padding: 0 0 10px !important;
+    scroll-snap-type: x mandatory !important;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-x: contain;
+}
+
+.home .front-section[aria-labelledby="live-reviews-heading"] .live-reviews-grid::-webkit-scrollbar {
+    display: none;
+}
+
+.home .front-section[aria-labelledby="live-reviews-heading"] .live-review-card {
+    width: 100% !important;
+    min-width: 100% !important;
+    max-width: 100% !important;
+    scroll-snap-align: start !important;
+}
+
+@media (min-width: 901px) {
+    .home .front-section[aria-labelledby="live-reviews-heading"] .live-review-card {
+        padding: 30px 34px !important;
+    }
+}

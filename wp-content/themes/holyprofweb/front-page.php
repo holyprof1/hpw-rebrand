@@ -43,6 +43,27 @@ $live_reviews = get_comments( array(
     'status' => 'approve',
     'number' => 6,
 ) );
+if ( ! empty( $live_reviews ) ) {
+    usort(
+        $live_reviews,
+        static function( $a, $b ) {
+            $a_verified = holyprofweb_is_comment_verified( $a->comment_ID ) ? 1 : 0;
+            $b_verified = holyprofweb_is_comment_verified( $b->comment_ID ) ? 1 : 0;
+
+            if ( $a_verified !== $b_verified ) {
+                return $b_verified <=> $a_verified;
+            }
+
+            $a_rating = (int) get_comment_meta( $a->comment_ID, 'rating', true );
+            $b_rating = (int) get_comment_meta( $b->comment_ID, 'rating', true );
+            if ( $a_rating !== $b_rating ) {
+                return $b_rating <=> $a_rating;
+            }
+
+            return strtotime( $b->comment_date_gmt ) <=> strtotime( $a->comment_date_gmt );
+        }
+    );
+}
 $featured_topics = holyprofweb_get_frontpage_topic_categories( 8 );
 ?>
 

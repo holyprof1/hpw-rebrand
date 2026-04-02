@@ -141,7 +141,6 @@
 
         function startAutoPlay() {
             stopAutoPlay();
-            if (!isMobileReviewsCarousel()) return;
 
             timer = window.setInterval(function () {
                 syncActiveIndex();

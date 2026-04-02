@@ -49,6 +49,12 @@ add_action( 'after_setup_theme', 'holyprofweb_setup' );
 // =========================================
 
 function holyprofweb_enqueue_assets() {
+    $style_path       = get_stylesheet_directory() . '/style.css';
+    $main_script_path = get_template_directory() . '/assets/js/main.js';
+    $search_script_path = get_template_directory() . '/assets/js/live-search.js';
+    $style_version    = file_exists( $style_path ) ? (string) filemtime( $style_path ) : wp_get_theme()->get( 'Version' );
+    $main_version     = file_exists( $main_script_path ) ? (string) filemtime( $main_script_path ) : wp_get_theme()->get( 'Version' );
+    $search_version   = file_exists( $search_script_path ) ? (string) filemtime( $search_script_path ) : wp_get_theme()->get( 'Version' );
 
     wp_enqueue_style(
         'holyprofweb-fonts',
@@ -61,14 +67,14 @@ function holyprofweb_enqueue_assets() {
         'holyprofweb-style',
         get_stylesheet_uri(),
         array( 'holyprofweb-fonts' ),
-        wp_get_theme()->get( 'Version' )
+        $style_version
     );
 
     wp_enqueue_script(
         'holyprofweb-main',
         get_template_directory_uri() . '/assets/js/main.js',
         array(),
-        wp_get_theme()->get( 'Version' ),
+        $main_version,
         true
     );
 
@@ -76,7 +82,7 @@ function holyprofweb_enqueue_assets() {
         'holyprofweb-live-search',
         get_template_directory_uri() . '/assets/js/live-search.js',
         array(),
-        wp_get_theme()->get( 'Version' ),
+        $search_version,
         true
     );
 
