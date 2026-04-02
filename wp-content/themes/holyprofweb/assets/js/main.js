@@ -52,18 +52,138 @@
 
     document.querySelectorAll('.post-carousel').forEach(function (carousel) {
         if (carousel.children.length < 2) return;
-        var autoSlide = window.setInterval(function () {
-            if (window.innerWidth <= 768) return;
-            carousel.scrollBy({ left: 280, behavior: 'smooth' });
-            if (carousel.scrollLeft + carousel.clientWidth >= carousel.scrollWidth - 40) {
-                window.setTimeout(function () {
-                    carousel.scrollTo({ left: 0, behavior: 'smooth' });
-                }, 900);
-            }
-        }, 4500);
+        var autoSlide = null;
 
-        carousel.addEventListener('mouseenter', function () {
-            window.clearInterval(autoSlide);
+        function stopCarouselAutoSlide() {
+            if (autoSlide) {
+                window.clearInterval(autoSlide);
+                autoSlide = null;
+            }
+        }
+
+        function startCarouselAutoSlide() {
+            stopCarouselAutoSlide();
+
+            autoSlide = window.setInterval(function () {
+                var step = Math.max(220, Math.round(carousel.clientWidth * 0.82));
+                var nextLeft = carousel.scrollLeft + step;
+                var endReached = carousel.scrollLeft + carousel.clientWidth >= carousel.scrollWidth - 40;
+
+                if (endReached) {
+                    carousel.scrollTo({ left: 0, behavior: 'smooth' });
+                    return;
+                }
+
+                carousel.scrollTo({ left: nextLeft, behavior: 'smooth' });
+            }, 4300);
+        }
+
+        carousel.addEventListener('mouseenter', stopCarouselAutoSlide);
+        carousel.addEventListener('mouseleave', startCarouselAutoSlide);
+        carousel.addEventListener('touchstart', stopCarouselAutoSlide, { passive: true });
+        carousel.addEventListener('touchend', startCarouselAutoSlide, { passive: true });
+        carousel.addEventListener('focusin', stopCarouselAutoSlide);
+        carousel.addEventListener('focusout', startCarouselAutoSlide);
+
+        document.addEventListener('visibilitychange', function () {
+            if (document.hidden) {
+                stopCarouselAutoSlide();
+                return;
+            }
+            startCarouselAutoSlide();
+        });
+
+        window.addEventListener('resize', startCarouselAutoSlide);
+        startCarouselAutoSlide();
+    });
+
+    document.querySelectorAll('.home .live-reviews-grid').forEach(function (carousel) {
+        var cards = Array.prototype.slice.call(carousel.children || []);
+        var timer = null;
+        var activeIndex = 0;
+
+        if (cards.length < 2) return;
+
+        function isMobileReviewsCarousel() {
+            return window.innerWidth <= 900;
+        }
+
+        function syncActiveIndex() {
+            var closestIndex = 0;
+            var closestDistance = Number.POSITIVE_INFINITY;
+
+            cards.forEach(function (card, index) {
+                var distance = Math.abs(card.offsetLeft - carousel.scrollLeft);
+                if (distance < closestDistance) {
+                    closestDistance = distance;
+                    closestIndex = index;
+                }
+            });
+
+            activeIndex = closestIndex;
+        }
+
+        function goToCard(index) {
+            if (!cards[index]) return;
+            activeIndex = index;
+            carousel.scrollTo({
+                left: cards[index].offsetLeft,
+                behavior: 'smooth'
+            });
+        }
+
+        function stopAutoPlay() {
+            if (timer) {
+                window.clearInterval(timer);
+                timer = null;
+            }
+        }
+
+        function startAutoPlay() {
+            stopAutoPlay();
+            if (!isMobileReviewsCarousel()) return;
+
+            timer = window.setInterval(function () {
+                syncActiveIndex();
+                goToCard((activeIndex + 1) % cards.length);
+            }, 4200);
+        }
+
+        carousel.addEventListener('scroll', syncActiveIndex, { passive: true });
+        carousel.addEventListener('mouseenter', stopAutoPlay);
+        carousel.addEventListener('mouseleave', startAutoPlay);
+        carousel.addEventListener('focusin', stopAutoPlay);
+        carousel.addEventListener('focusout', startAutoPlay);
+        carousel.addEventListener('touchstart', stopAutoPlay, { passive: true });
+        carousel.addEventListener('touchend', startAutoPlay, { passive: true });
+
+        document.addEventListener('visibilitychange', function () {
+            if (document.hidden) {
+                stopAutoPlay();
+                return;
+            }
+            startAutoPlay();
+        });
+
+        window.addEventListener('resize', function () {
+            syncActiveIndex();
+            startAutoPlay();
+        });
+
+        syncActiveIndex();
+        startAutoPlay();
+    });
+
+    document.body.classList.add('hpw-no-copy');
+
+    function allowsSelection(target) {
+        return !!(target && target.closest('input, textarea, button, select, option, label, [contenteditable="true"], .comment-form, .review-form, .salary-form, .email-capture-form'));
+    }
+
+    ['copy', 'cut', 'contextmenu', 'dragstart', 'selectstart'].forEach(function (eventName) {
+        document.addEventListener(eventName, function (event) {
+            if (allowsSelection(event.target)) return;
+            event.preventDefault();
         });
     });
 
@@ -120,6 +240,79 @@
         });
     }
 
+    (function () {
+        var form = document.getElementById('review-form');
+        if (!form) return;
+
+        var reviewerType = form.querySelector('[name="reviewer_type"]');
+        if (!reviewerType) return;
+
+        var contextField = form.querySelector('[data-company-review-field="context"]');
+        var salaryField = form.querySelector('[data-company-review-field="salary"]');
+        var interviewField = form.querySelector('[data-company-review-field="interview"]');
+        var issueField = form.querySelector('[data-company-review-field="issue"]');
+        var roleInput = form.querySelector('[name="company_role"]');
+        var locationInput = form.querySelector('[name="company_location"]');
+        var salaryInput = form.querySelector('[name="salary_range"]');
+        var interviewInput = form.querySelector('[name="interview_stage"]');
+        var issueInput = form.querySelector('[name="experience_issue"]');
+
+        function getRating() {
+            var selected = form.querySelector('[name="rating"]:checked');
+            return selected ? parseInt(selected.value, 10) : 0;
+        }
+
+        function toggleField(field, visible) {
+            if (!field) return;
+            field.hidden = !visible;
+        }
+
+        function updateCompanyReviewForm() {
+            var type = reviewerType.value || '';
+            var rating = getRating();
+            var isStaff = type === 'staff' || type === 'former-staff';
+            var isInterview = type === 'interview-candidate';
+            var hasType = !!type;
+
+            toggleField(contextField, hasType);
+
+            toggleField(salaryField, isStaff);
+            toggleField(interviewField, isInterview);
+            toggleField(issueField, isStaff && rating > 0 && rating <= 2);
+
+            if (roleInput) {
+                roleInput.placeholder = isInterview
+                    ? 'e.g. Product Manager candidate'
+                    : (type === 'partner-vendor'
+                        ? 'e.g. Agency partner, vendor'
+                        : 'e.g. Product Designer, customer success, client');
+            }
+
+            if (locationInput) {
+                locationInput.placeholder = isInterview ? 'e.g. Lagos interview hub, remote' : 'e.g. Lagos, Nigeria';
+            }
+
+            if (!isStaff && salaryInput) {
+                salaryInput.value = '';
+            }
+
+            if (!isInterview && interviewInput) {
+                interviewInput.value = '';
+            }
+
+            if (!(isStaff && rating > 0 && rating <= 2) && issueInput) {
+                issueInput.value = '';
+            }
+        }
+
+        reviewerType.addEventListener('change', updateCompanyReviewForm);
+        form.querySelectorAll('[name="rating"]').forEach(function (radio) {
+            radio.addEventListener('change', updateCompanyReviewForm);
+        });
+
+        updateCompanyReviewForm();
+    })();
+
     function bindAjaxForm(options) {
         var form = document.getElementById(options.formId);
         var error = document.getElementById(options.errorId);
@@ -174,10 +367,12 @@
             var email = (form.querySelector('[name="reviewer_email"]') || {}).value || '';
             var rating = (form.querySelector('[name="rating"]:checked') || {}).value || '';
             var content = (form.querySelector('[name="review_content"]') || {}).value || '';
+            var reviewerType = form.querySelector('[name="reviewer_type"]');
 
             if (!rating) return 'Please select a star rating.';
             if (!name.trim()) return 'Please enter your name.';
             if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return 'Please enter a valid email.';
+            if (reviewerType && !reviewerType.value) return 'Please choose how you know this company.';
             if (content.trim().length < 10) return 'Please enter a short review.';
             return '';
         },
@@ -189,6 +384,12 @@
                 '&reviewer_email=' + encodeURIComponent((form.querySelector('[name="reviewer_email"]') || {}).value || '') +
                 '&rating=' + encodeURIComponent((form.querySelector('[name="rating"]:checked') || {}).value || '') +
                 '&review_content=' + encodeURIComponent((form.querySelector('[name="review_content"]') || {}).value || '') +
+                '&reviewer_type=' + encodeURIComponent((form.querySelector('[name="reviewer_type"]') || {}).value || '') +
+                '&company_role=' + encodeURIComponent((form.querySelector('[name="company_role"]') || {}).value || '') +
+                '&company_location=' + encodeURIComponent((form.querySelector('[name="company_location"]') || {}).value || '') +
+                '&salary_range=' + encodeURIComponent((form.querySelector('[name="salary_range"]') || {}).value || '') +
+                '&interview_stage=' + encodeURIComponent((form.querySelector('[name="interview_stage"]') || {}).value || '') +
+                '&experience_issue=' + encodeURIComponent((form.querySelector('[name="experience_issue"]') || {}).value || '') +
                 '&site_url=' + encodeURIComponent((form.querySelector('[name="site_url"]') || {}).value || '');
         },
         onSuccess: function (form, data) {

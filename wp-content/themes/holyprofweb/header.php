@@ -152,19 +152,18 @@
 <?php
 function holyprofweb_fallback_menu() {
     $items = array(
-        'Home'      => '/',
-        'Reviews'   => '/category/reviews/',
-        'Companies' => '/category/companies/',
-        'Salaries'  => '/category/salaries/',
-        'Biography' => '/category/biography/',
-        'Reports'   => '/category/reports/',
-        'Contact'   => '/contact/',
+        'Home'      => home_url( '/' ),
+        'Reviews'   => home_url( '/category/reviews/' ),
+        'Companies' => home_url( '/category/companies/' ),
+        'Biography' => home_url( '/category/biography/' ),
+        'Blog'      => holyprofweb_get_blog_url(),
+        'Contact'   => home_url( '/contact/' ),
     );
     echo '<ul id="primary-menu">';
-    foreach ( $items as $label => $path ) {
+    foreach ( $items as $label => $url ) {
         printf(
             '<li><a href="%s">%s</a></li>',
-            esc_url( home_url( $path ) ),
+            esc_url( $url ),
             esc_html( $label )
         );
     }

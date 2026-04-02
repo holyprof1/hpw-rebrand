@@ -36,6 +36,8 @@ get_header();
                 $work_score      = get_post_meta( $post_id, '_hpw_work_score', true );
                 $best_review_ids = holyprofweb_get_best_review_ids( $post_id, 2 );
                 $is_biography_post = holyprofweb_post_in_category_tree( $post_id, 'biography' );
+                $show_company_review_mode = $is_company_post;
+                $show_salary_module = $is_salary_post;
                 $source_url   = holyprofweb_get_post_source_url( $post_id );
                 $verdict      = holyprofweb_get_review_verdict( $post_id );
             ?>
@@ -101,7 +103,7 @@ get_header();
                             <?php if ( $source_url ) : ?>
                             <a href="<?php echo esc_url( $source_url ); ?>" class="single-action-btn single-action-btn--alt" target="_blank" rel="nofollow sponsored noopener"><?php esc_html_e( 'Visit Website', 'holyprofweb' ); ?></a>
                             <?php endif; ?>
-                            <a href="#write-review" class="single-action-btn"><?php echo $is_salary_post ? esc_html__( 'Submit Salary', 'holyprofweb' ) : esc_html__( 'Have You Used This?', 'holyprofweb' ); ?></a>
+                            <a href="#write-review" class="single-action-btn"><?php echo $show_salary_module ? esc_html__( 'Submit Salary', 'holyprofweb' ) : ( $show_company_review_mode ? esc_html__( 'Share Company Review', 'holyprofweb' ) : esc_html__( 'Have You Used This?', 'holyprofweb' ) ); ?></a>
                             <a href="#reviews" class="single-action-btn single-action-btn--alt"><?php esc_html_e( 'See Reviews', 'holyprofweb' ); ?></a>
                             <?php endif; ?>
                         </div>
@@ -232,7 +234,7 @@ get_header();
                     <?php the_content(); ?>
                 </div>
 
-                <?php if ( ! $is_biography_post ) : ?>
+                <?php if ( ! $is_biography_post && ! $is_company_post ) : ?>
                 <!-- Reactions bar -->
                 <div class="reactions-bar" data-post-id="<?php the_ID(); ?>">
                     <p class="reactions-label">Was this helpful?</p>
@@ -298,6 +300,28 @@ get_header();
                             $r_initial  = strtoupper( mb_substr( $review->comment_author, 0, 1 ) );
                             $verified   = holyprofweb_is_comment_verified( $review->comment_ID );
                             $is_best    = in_array( (int) $review->comment_ID, $best_review_ids, true );
+                            $reviewer_type = (string) get_comment_meta( $review->comment_ID, 'reviewer_type', true );
+                            $company_role_meta = (string) get_comment_meta( $review->comment_ID, 'company_role', true );
+                            $company_location_meta = (string) get_comment_meta( $review->comment_ID, 'company_location', true );
+                            $salary_range_meta = (string) get_comment_meta( $review->comment_ID, 'salary_range', true );
+                            $interview_stage_meta = (string) get_comment_meta( $review->comment_ID, 'interview_stage', true );
+                            $experience_issue_meta = (string) get_comment_meta( $review->comment_ID, 'experience_issue', true );
+                            $reviewer_type_labels = array(
+                                'staff'               => __( 'Current staff', 'holyprofweb' ),
+                                'former-staff'        => __( 'Former staff', 'holyprofweb' ),
+                                'interview-candidate' => __( 'Interview candidate', 'holyprofweb' ),
+                                'partner-vendor'      => __( 'Partner / vendor', 'holyprofweb' ),
+                                'customer-client'     => __( 'Customer / client', 'holyprofweb' ),
+                                'other'               => __( 'Other', 'holyprofweb' ),
+                            );
+                            $experience_issue_labels = array(
+                                'pay'        => __( 'Pay / benefits issue', 'holyprofweb' ),
+                                'management' => __( 'Management problem', 'holyprofweb' ),
+                                'culture'    => __( 'Culture problem', 'holyprofweb' ),
+                                'workload'   => __( 'Workload / burnout', 'holyprofweb' ),
+                                'interview'  => __( 'Interview problem', 'holyprofweb' ),
+                                'other'      => __( 'Other issue', 'holyprofweb' ),
+                            );
                         ?>
                         <div class="review-card<?php echo $is_best ? ' review-card--featured' : ''; ?>">
                             <div class="review-card-header">
@@ -305,6 +329,16 @@ get_header();
                                 <div class="review-meta">
                                     <span class="review-author"><?php echo esc_html( $review->comment_author ); ?></span>
                                     <?php if ( $verified ) : ?><span class="review-verified-badge"><?php esc_html_e( 'Verified', 'holyprofweb' ); ?></span><?php endif; ?>
+                                    <?php if ( $show_company_review_mode && ( $reviewer_type || $company_role_meta || $company_location_meta || $salary_range_meta || $interview_stage_meta || $experience_issue_meta ) ) : ?>
+                                    <div class="review-context-meta">
+                                        <?php if ( $reviewer_type && isset( $reviewer_type_labels[ $reviewer_type ] ) ) : ?><span class="review-context-chip"><?php echo esc_html( $reviewer_type_labels[ $reviewer_type ] ); ?></span><?php endif; ?>
+                                        <?php if ( $company_role_meta ) : ?><span class="review-context-chip"><?php echo esc_html( $company_role_meta ); ?></span><?php endif; ?>
+                                        <?php if ( $company_location_meta ) : ?><span class="review-context-chip"><?php echo esc_html( $company_location_meta ); ?></span><?php endif; ?>
+                                        <?php if ( $salary_range_meta ) : ?><span class="review-context-chip review-context-chip--accent"><?php echo esc_html( $salary_range_meta ); ?></span><?php endif; ?>
+                                        <?php if ( $interview_stage_meta ) : ?><span class="review-context-chip"><?php echo esc_html( $interview_stage_meta ); ?></span><?php endif; ?>
+                                        <?php if ( $experience_issue_meta && isset( $experience_issue_labels[ $experience_issue_meta ] ) ) : ?><span class="review-context-chip"><?php echo esc_html( $experience_issue_labels[ $experience_issue_meta ] ); ?></span><?php endif; ?>
+                                    </div>
+                                    <?php endif; ?>
                                     <?php if ( $r_url ) : ?>
                                     <a href="<?php echo esc_url( $r_url ); ?>" class="review-site-url" target="_blank" rel="nofollow noopener">
                                         <?php echo esc_html( preg_replace( '#^https?://#', '', rtrim( $r_url, '/' ) ) ); ?>
@@ -325,13 +359,46 @@ get_header();
                         <?php endforeach; ?>
                     </div>
                     <?php else : ?>
-                    <p class="reviews-empty">No reviews yet. Be the first to share your experience.</p>
+                    <p class="reviews-empty"><?php echo $show_company_review_mode ? esc_html__( 'No company reviews yet. Staff, interview candidates, partners, and customers can share what the experience is really like.', 'holyprofweb' ) : esc_html__( 'No reviews yet. Be the first to share your experience.', 'holyprofweb' ); ?></p>
+                    <?php endif; ?>
+
+                    <?php if ( $show_company_review_mode && ( $salary_min || $salary_max || $salary_role || $work_score ) ) : ?>
+                    <div class="company-signals-strip" aria-label="<?php esc_attr_e( 'Company signals', 'holyprofweb' ); ?>">
+                        <?php if ( $salary_min || $salary_max ) : ?>
+                        <div class="company-signal-card">
+                            <span class="company-signal-label"><?php esc_html_e( 'Salary Range', 'holyprofweb' ); ?></span>
+                            <strong class="company-signal-value">
+                                <?php
+                                if ( $salary_min && $salary_max ) {
+                                    echo esc_html( $salary_currency . number_format_i18n( $salary_min ) . ' - ' . $salary_currency . number_format_i18n( $salary_max ) . $salary_period );
+                                } elseif ( $salary_min ) {
+                                    echo esc_html( $salary_currency . number_format_i18n( $salary_min ) . $salary_period );
+                                } elseif ( $salary_max ) {
+                                    echo esc_html( $salary_currency . number_format_i18n( $salary_max ) . $salary_period );
+                                }
+                                ?>
+                            </strong>
+                        </div>
+                        <?php endif; ?>
+                        <?php if ( $salary_role ) : ?>
+                        <div class="company-signal-card">
+                            <span class="company-signal-label"><?php esc_html_e( 'Hiring Focus', 'holyprofweb' ); ?></span>
+                            <strong class="company-signal-value"><?php echo esc_html( $salary_role ); ?></strong>
+                        </div>
+                        <?php endif; ?>
+                        <?php if ( $work_score ) : ?>
+                        <div class="company-signal-card">
+                            <span class="company-signal-label"><?php esc_html_e( 'Work-Life Score', 'holyprofweb' ); ?></span>
+                            <strong class="company-signal-value"><?php echo esc_html( number_format_i18n( (float) $work_score, 1 ) ); ?>/5</strong>
+                        </div>
+                        <?php endif; ?>
+                    </div>
                     <?php endif; ?>
 
                     <div class="review-form-wrap review-form-wrap--switch" id="write-review">
-                        <?php if ( $is_salary_post ) : ?>
-                        <h3 class="review-form-title">Submit your salary</h3>
-                        <p class="review-form-sub">Share your salary data privately. It will appear in admin immediately for moderation.</p>
+                        <?php if ( $show_salary_module ) : ?>
+                        <h3 class="review-form-title"><?php esc_html_e( 'Submit your salary', 'holyprofweb' ); ?></h3>
+                        <p class="review-form-sub"><?php esc_html_e( 'Share your salary data privately. It will appear in admin immediately for moderation.', 'holyprofweb' ); ?></p>
                         <form class="review-form salary-form" id="salary-form" novalidate data-post-id="<?php echo esc_attr( $post_id ); ?>">
                             <div class="review-form-row">
                                 <div class="review-form-field">
@@ -377,8 +444,8 @@ get_header();
                             <button type="submit" class="review-form-submit" id="salary-submit">Submit Salary</button>
                         </form>
                         <?php else : ?>
-                        <h3 class="review-form-title">Have you used this?</h3>
-                        <p class="review-form-sub">Share your experience — your review helps others make better decisions.</p>
+                        <h3 class="review-form-title"><?php echo $show_company_review_mode ? esc_html__( 'Share your company experience', 'holyprofweb' ) : esc_html__( 'Have you used this?', 'holyprofweb' ); ?></h3>
+                        <p class="review-form-sub"><?php echo $show_company_review_mode ? esc_html__( 'Current staff, former staff, interview candidates, partners, and customers can all share useful company context here.', 'holyprofweb' ) : esc_html__( 'Share your experience — your review helps others make better decisions.', 'holyprofweb' ); ?></p>
                         <form class="review-form" id="review-form" novalidate data-post-id="<?php echo esc_attr( $post_id ); ?>">
                             <div class="review-form-field">
                                 <label class="review-form-label">Your Rating <span class="review-required">*</span></label>
@@ -401,9 +468,56 @@ get_header();
                                     <span class="review-form-note">Not published publicly.</span>
                                 </div>
                             </div>
+                            <?php if ( $show_company_review_mode ) : ?>
+                            <div class="review-form-field review-form-field--compact">
+                                <label class="review-form-label" for="reviewer-type"><?php esc_html_e( 'You are writing as', 'holyprofweb' ); ?> <span class="review-required">*</span></label>
+                                <select id="reviewer-type" name="reviewer_type" class="review-form-input" required>
+                                    <option value=""><?php esc_html_e( 'Pick your relationship with this company', 'holyprofweb' ); ?></option>
+                                    <option value="staff"><?php esc_html_e( 'Current staff', 'holyprofweb' ); ?></option>
+                                    <option value="former-staff"><?php esc_html_e( 'Former staff', 'holyprofweb' ); ?></option>
+                                    <option value="interview-candidate"><?php esc_html_e( 'Interview candidate', 'holyprofweb' ); ?></option>
+                                    <option value="partner-vendor"><?php esc_html_e( 'Partner / vendor', 'holyprofweb' ); ?></option>
+                                    <option value="customer-client"><?php esc_html_e( 'Customer / client', 'holyprofweb' ); ?></option>
+                                    <option value="other"><?php esc_html_e( 'Other', 'holyprofweb' ); ?></option>
+                                </select>
+                                <span class="review-form-note"><?php esc_html_e( 'Extra company fields stay hidden until you choose the path that fits.', 'holyprofweb' ); ?></span>
+                            </div>
+                            <div class="review-form-adaptive-panel" data-company-review-field="context" hidden>
+                                <div class="review-form-row">
+                                    <div class="review-form-field">
+                                        <label class="review-form-label" for="company-role"><?php esc_html_e( 'Role or relationship', 'holyprofweb' ); ?></label>
+                                        <input type="text" id="company-role" name="company_role" class="review-form-input" placeholder="<?php esc_attr_e( 'e.g. Product Designer, candidate, agency partner', 'holyprofweb' ); ?>" />
+                                    </div>
+                                    <div class="review-form-field">
+                                        <label class="review-form-label" for="company-location"><?php esc_html_e( 'Location', 'holyprofweb' ); ?></label>
+                                        <input type="text" id="company-location" name="company_location" class="review-form-input" placeholder="<?php esc_attr_e( 'e.g. Lagos, Nigeria', 'holyprofweb' ); ?>" />
+                                    </div>
+                                </div>
+                                <div class="review-form-field" data-company-review-field="salary" hidden>
+                                    <label class="review-form-label" for="salary-range"><?php esc_html_e( 'Salary range', 'holyprofweb' ); ?></label>
+                                    <input type="text" id="salary-range" name="salary_range" class="review-form-input" placeholder="<?php esc_attr_e( 'Optional: e.g. 850k - 1.2m / month', 'holyprofweb' ); ?>" />
+                                </div>
+                                <div class="review-form-field" data-company-review-field="interview" hidden>
+                                    <label class="review-form-label" for="interview-stage"><?php esc_html_e( 'Salary they asked or pay expectation mentioned', 'holyprofweb' ); ?></label>
+                                    <input type="text" id="interview-stage" name="interview_stage" class="review-form-input" placeholder="<?php esc_attr_e( 'Optional: e.g. 700k fixed, salary expectation form, no range shared', 'holyprofweb' ); ?>" />
+                                </div>
+                                <div class="review-form-field" data-company-review-field="issue" hidden>
+                                    <label class="review-form-label" for="experience-issue"><?php esc_html_e( 'What happened?', 'holyprofweb' ); ?></label>
+                                    <select id="experience-issue" name="experience_issue" class="review-form-input">
+                                        <option value=""><?php esc_html_e( 'Select what best fits', 'holyprofweb' ); ?></option>
+                                        <option value="pay"><?php esc_html_e( 'Pay / benefits issue', 'holyprofweb' ); ?></option>
+                                        <option value="management"><?php esc_html_e( 'Management problem', 'holyprofweb' ); ?></option>
+                                        <option value="culture"><?php esc_html_e( 'Culture / toxic environment', 'holyprofweb' ); ?></option>
+                                        <option value="workload"><?php esc_html_e( 'Workload / burnout', 'holyprofweb' ); ?></option>
+                                        <option value="interview"><?php esc_html_e( 'Interview process issue', 'holyprofweb' ); ?></option>
+                                        <option value="other"><?php esc_html_e( 'Other', 'holyprofweb' ); ?></option>
+                                    </select>
+                                </div>
+                            </div>
+                            <?php endif; ?>
                             <div class="review-form-field">
                                 <label class="review-form-label" for="review-content">Short Review <span class="review-required">*</span></label>
-                                <textarea id="review-content" name="review_content" class="review-form-textarea" rows="5" placeholder="Share what worked, what didn't, and who should use this platform..." required></textarea>
+                                <textarea id="review-content" name="review_content" class="review-form-textarea" rows="5" placeholder="<?php echo esc_attr( $show_company_review_mode ? __( 'Share what it feels like to work with this company, interview here, partner with them, or buy from them...', 'holyprofweb' ) : __( 'Share what worked, what didn\'t, and who should use this platform...', 'holyprofweb' ) ); ?>" required></textarea>
                             </div>
                             <div class="review-form-error" id="review-error" aria-live="polite" hidden></div>
                             <button type="submit" class="review-form-submit" id="review-submit">Post Review</button>
@@ -459,6 +573,20 @@ get_header();
                     'no_found_rows'  => true,
                 ) );
                 ?>
+                <?php if ( $related instanceof WP_Query && $related->have_posts() ) : ?>
+                <p class="also-read-inline">
+                    <strong><?php esc_html_e( 'Also read:', 'holyprofweb' ); ?></strong>
+                    <?php
+                    $also_links = array();
+                    while ( $related->have_posts() ) :
+                        $related->the_post();
+                        $also_links[] = '<a href="' . esc_url( get_permalink() ) . '">' . esc_html( holyprofweb_get_decoded_post_title() ) . '</a>';
+                    endwhile;
+                    wp_reset_postdata();
+                    echo wp_kses_post( implode( ' / ', $also_links ) );
+                    ?>
+                </p>
+                <?php endif; ?>
                 <section class="related-posts related-posts--stack" aria-labelledby="related-title">
                     <h2 id="related-title" class="related-posts-title">Keep Exploring</h2>
                     <?php if ( ! empty( $search_terms ) ) : ?>
@@ -532,7 +660,7 @@ get_header();
                 </section>
 
                 <!-- Standard WP comments (for general discussion, separate from reviews) -->
-                <?php if ( ! $is_biography_post && comments_open() ) {
+                <?php if ( holyprofweb_post_allows_wp_comments( $post_id ) && comments_open() ) {
                     comments_template();
                 } ?>
 

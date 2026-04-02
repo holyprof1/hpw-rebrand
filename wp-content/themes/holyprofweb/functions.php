@@ -1932,6 +1932,10 @@ function holyprofweb_get_visible_category_count() {
 
 function holyprofweb_get_frontpage_topic_categories( $limit = 8 ) {
     $priority_slugs = array(
+        'companies',
+        'fintech',
+        'banks',
+        'startups',
         'scam-legit',
         'app-reviews',
         'website-reviews',
@@ -1940,8 +1944,7 @@ function holyprofweb_get_frontpage_topic_categories( $limit = 8 ) {
         'scholarship',
         'tech',
         'reports',
-        'companies',
-        'salaries',
+        'blog-opinion',
     );
 
     $terms = array();
@@ -1959,6 +1962,18 @@ function holyprofweb_get_frontpage_topic_categories( $limit = 8 ) {
     return $terms;
 }
 
+function holyprofweb_get_blog_url() {
+    $posts_page_id = (int) get_option( 'page_for_posts' );
+    if ( $posts_page_id ) {
+        $url = get_permalink( $posts_page_id );
+        if ( $url ) {
+            return $url;
+        }
+    }
+
+    return home_url( '/' );
+}
+
 function holyprofweb_post_in_category_tree( $post_id, $root_slug ) {
     $root = get_term_by( 'slug', $root_slug, 'category' );
     if ( ! $root || is_wp_error( $root ) ) {
@@ -1967,6 +1982,47 @@ function holyprofweb_post_in_category_tree( $post_id, $root_slug ) {
 
     return has_category( $root->term_id, $post_id );
 }
+
+function holyprofweb_post_allows_wp_comments( $post_id = 0 ) {
+    $post_id = $post_id ? (int) $post_id : get_the_ID();
+    if ( ! $post_id ) {
+        return false;
+    }
+
+    if ( holyprofweb_post_in_category_tree( $post_id, 'blog-opinion' ) ) {
+        return true;
+    }
+
+    if ( holyprofweb_post_in_category_tree( $post_id, 'reports' ) ) {
+        return true;
+    }
+
+    if ( holyprofweb_post_in_category_tree( $post_id, 'biography' ) ) {
+        return false;
+    }
+
+    if ( holyprofweb_post_in_category_tree( $post_id, 'reviews' ) ) {
+        return false;
+    }
+
+    if ( holyprofweb_post_in_category_tree( $post_id, 'companies' ) ) {
+        return false;
+    }
+
+    if ( holyprofweb_post_in_category_tree( $post_id, 'salaries' ) ) {
+        return false;
+    }
+
+    return false;
+}
+
+add_filter( 'comments_open', function( $open, $post_id ) {
+    if ( is_admin() ) {
+        return $open;
+    }
+
+    return holyprofweb_post_allows_wp_comments( $post_id ) ? $open : false;
+}, 20, 2 );
 
 
 // =========================================
@@ -1988,19 +2044,18 @@ function holyprofweb_create_menus() {
 
     if ( ! is_wp_error( $primary_id ) ) {
         $items = array(
-            'Home'      => '/',
-            'Reviews'   => '/category/reviews/',
-            'Companies' => '/category/companies/',
-            'Salaries'  => '/category/salaries/',
-            'Biography' => '/category/biography/',
-            'Reports'   => '/category/reports/',
-            'Contact'   => '/contact/',
+            'Home'      => home_url( '/' ),
+            'Reviews'   => home_url( '/category/reviews/' ),
+            'Companies' => home_url( '/category/companies/' ),
+            'Biography' => home_url( '/category/biography/' ),
+            'Blog'      => holyprofweb_get_blog_url(),
+            'Contact'   => home_url( '/contact/' ),
         );
         $i = 1;
-        foreach ( $items as $label => $path ) {
+        foreach ( $items as $label => $url ) {
             wp_update_nav_menu_item( $primary_id, 0, array(
                 'menu-item-title'    => $label,
-                'menu-item-url'      => home_url( $path ),
+                'menu-item-url'      => $url,
                 'menu-item-status'   => 'publish',
                 'menu-item-type'     => 'custom',
                 'menu-item-position' => $i++,
@@ -2769,6 +2824,11 @@ function holyprofweb_get_best_review_ids( $post_id, $limit = 2 ) {
  * Get average rating for a post from reviews (comment_type = 'review').
  */
 function holyprofweb_get_post_rating( $post_id ) {
+    $rating_override = get_post_meta( $post_id, '_hpw_rating_override', true );
+    if ( '' !== (string) $rating_override && is_numeric( $rating_override ) ) {
+        return round( max( 0, min( 5, (float) $rating_override ) ), 1 );
+    }
+
     $reviews = get_comments( array(
         'post_id' => $post_id,
         'status'  => 'approve',
@@ -2788,12 +2848,25 @@ function holyprofweb_get_post_rating( $post_id ) {
     return round( array_sum( $ratings ) / count( $ratings ), 1 );
 }
 
+function holyprofweb_get_verdict_options() {
+    return array(
+        ''              => array( 'label' => __( 'Auto detect', 'holyprofweb' ),   'class' => '' ),
+        'legit'         => array( 'label' => __( 'Legit', 'holyprofweb' ),         'class' => 'verdict-badge--legit' ),
+        'complications' => array( 'label' => __( 'Complications', 'holyprofweb' ), 'class' => 'verdict-badge--caution' ),
+        'caution'       => array( 'label' => __( 'Caution', 'holyprofweb' ),       'class' => 'verdict-badge--caution' ),
+        'scam'          => array( 'label' => __( 'Scam Alert', 'holyprofweb' ),    'class' => 'verdict-badge--scam' ),
+    );
+}
+
 /**
  * AJAX: Submit a review (stored as wp_comment with type='review').
  */
 function holyprofweb_submit_review_ajax() {
+    ob_start();
+
     $nonce = isset( $_POST['nonce'] ) ? sanitize_text_field( wp_unslash( $_POST['nonce'] ) ) : '';
     if ( ! wp_verify_nonce( $nonce, 'holyprofweb_submit_review' ) ) {
+        ob_clean();
         wp_send_json_error( 'Security check failed.' );
     }
 
@@ -2803,7 +2876,14 @@ function holyprofweb_submit_review_ajax() {
     $rating   = isset( $_POST['rating'] )          ? min( 5, max( 1, (int) $_POST['rating'] ) )                      : 0;
     $content  = isset( $_POST['review_content'] )  ? sanitize_textarea_field( wp_unslash( $_POST['review_content'] ) ) : '';
     $site_url = current_user_can( 'manage_options' ) && isset( $_POST['site_url'] ) ? esc_url_raw( wp_unslash( $_POST['site_url'] ) ) : '';
+    $reviewer_type   = isset( $_POST['reviewer_type'] ) ? sanitize_key( wp_unslash( $_POST['reviewer_type'] ) ) : '';
+    $company_role    = isset( $_POST['company_role'] ) ? sanitize_text_field( wp_unslash( $_POST['company_role'] ) ) : '';
+    $company_location = isset( $_POST['company_location'] ) ? sanitize_text_field( wp_unslash( $_POST['company_location'] ) ) : '';
+    $salary_range    = isset( $_POST['salary_range'] ) ? sanitize_text_field( wp_unslash( $_POST['salary_range'] ) ) : '';
+    $interview_stage = isset( $_POST['interview_stage'] ) ? sanitize_text_field( wp_unslash( $_POST['interview_stage'] ) ) : '';
+    $experience_issue = isset( $_POST['experience_issue'] ) ? sanitize_key( wp_unslash( $_POST['experience_issue'] ) ) : '';
     $content  = holyprofweb_strip_public_urls( $content );
+    $is_company_post = holyprofweb_post_in_category_tree( $post_id, 'companies' );
 
     if ( ! $post_id || ! get_post( $post_id ) ) {
         wp_send_json_error( 'Invalid post.' );
@@ -2820,6 +2900,9 @@ function holyprofweb_submit_review_ajax() {
     $min_length = max( 10, (int) get_option( 'hpw_review_min_length', 20 ) );
     if ( mb_strlen( $content ) < $min_length ) {
         wp_send_json_error( sprintf( 'Review must be at least %d characters.', $min_length ) );
+    }
+    if ( $is_company_post && ! $reviewer_type ) {
+        wp_send_json_error( 'Please choose how you know this company.' );
     }
 
     $spam_words = array_filter( array_map( 'trim', preg_split( '/\r\n|\r|\n/', (string) get_option( 'hpw_review_spam_words', '' ) ) ) );
@@ -2846,6 +2929,7 @@ function holyprofweb_submit_review_ajax() {
     ) );
 
     if ( ! $comment_id || is_wp_error( $comment_id ) ) {
+        ob_clean();
         wp_send_json_error( 'Could not save review. Please try again.' );
     }
 
@@ -2854,11 +2938,41 @@ function holyprofweb_submit_review_ajax() {
     if ( $site_url ) {
         update_comment_meta( $comment_id, 'site_url', esc_url_raw( $site_url ) );
     }
+    if ( $is_company_post ) {
+        $allowed_types = array(
+            'staff',
+            'former-staff',
+            'interview-candidate',
+            'partner-vendor',
+            'customer-client',
+            'other',
+        );
+
+        if ( in_array( $reviewer_type, $allowed_types, true ) ) {
+            update_comment_meta( $comment_id, 'reviewer_type', $reviewer_type );
+        }
+        if ( $company_role ) {
+            update_comment_meta( $comment_id, 'company_role', $company_role );
+        }
+        if ( $company_location ) {
+            update_comment_meta( $comment_id, 'company_location', $company_location );
+        }
+        if ( $salary_range ) {
+            update_comment_meta( $comment_id, 'salary_range', $salary_range );
+        }
+        if ( $interview_stage ) {
+            update_comment_meta( $comment_id, 'interview_stage', $interview_stage );
+        }
+        if ( $experience_issue ) {
+            update_comment_meta( $comment_id, 'experience_issue', $experience_issue );
+        }
+    }
 
     // Recompute and cache rating
     $new_rating = holyprofweb_get_post_rating( $post_id );
     update_post_meta( $post_id, '_cached_rating', $new_rating );
 
+    ob_clean();
     wp_send_json_success( array(
         'message'    => get_option( 'hpw_review_auto_approve', 0 ) ? 'Thank you for your review!' : 'Thank you. Your review is awaiting moderation.',
         'rating'     => $rating,
@@ -3085,11 +3199,7 @@ function holyprofweb_get_post_source_url( $post_id, $post = null ) {
 function holyprofweb_get_review_verdict( $post_id ) {
     $override = trim( (string) get_post_meta( $post_id, '_hpw_verdict_override', true ) );
     if ( $override ) {
-        $map = array(
-            'legit' => array( 'label' => 'Legit', 'class' => 'verdict-badge--legit' ),
-            'caution' => array( 'label' => 'Caution', 'class' => 'verdict-badge--caution' ),
-            'scam' => array( 'label' => 'Scam Alert', 'class' => 'verdict-badge--scam' ),
-        );
+        $map = holyprofweb_get_verdict_options();
         if ( isset( $map[ $override ] ) ) {
             return $map[ $override ];
         }
@@ -3613,9 +3723,8 @@ function holyprofweb_left_sidebar() {
     $parent_cats = array(
         'reviews'   => array( 'label' => 'Reviews',   'icon' => '&#9733;' ),
         'companies' => array( 'label' => 'Companies', 'icon' => '&#127970;' ),
-        'salaries'  => array( 'label' => 'Salaries',  'icon' => '&#128176;' ),
         'biography' => array( 'label' => 'Biography', 'icon' => '&#128100;' ),
-        'reports'   => array( 'label' => 'Reports',   'icon' => '&#128203;' ),
+        'reports'   => array( 'label' => 'Blog',      'icon' => '&#128203;' ),
     );
 
     echo '<aside class="left-sidebar" id="left-sidebar" aria-label="' . esc_attr__( 'Category Navigation', 'holyprofweb' ) . '">';
@@ -3646,7 +3755,7 @@ function holyprofweb_left_sidebar() {
         echo '<span class="left-nav-icon" aria-hidden="true">' . $data['icon'] . '</span>';
         echo '<span class="left-nav-parent-main">';
         echo '<a href="' . esc_url( $parent_url ) . '" class="left-nav-parent-link">' . esc_html( $data['label'] ) . '</a>';
-        echo '<span class="left-nav-count">(' . (int) $parent->count . ')</span>';
+        echo '<span class="left-nav-count">(' . esc_html( holyprofweb_format_display_count( (int) $parent->count ) ) . ')</span>';
         echo '</span>';
         if ( $has_children ) {
             echo '<svg class="left-nav-arrow" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="6 9 12 15 18 9"></polyline></svg>';
@@ -3660,7 +3769,7 @@ function holyprofweb_left_sidebar() {
                 echo '<li' . ( $active_child ? ' class="is-active"' : '' ) . '>';
                 echo '<a href="' . esc_url( get_category_link( $child->term_id ) ) . '">';
                 echo esc_html( $child->name );
-                echo ' <span class="left-nav-count">(' . (int) $child->count . ')</span>';
+                echo ' <span class="left-nav-count">(' . esc_html( holyprofweb_format_display_count( (int) $child->count ) ) . ')</span>';
                 echo '</a>';
                 echo '</li>';
             }
@@ -3902,6 +4011,8 @@ function holyprofweb_post_ops_meta_box_render( $post ) {
     $external_image = get_post_meta( $post->ID, 'external_image', true );
     $country_focus = get_post_meta( $post->ID, '_hpw_country_focus', true );
     $verdict_override = get_post_meta( $post->ID, '_hpw_verdict_override', true );
+    $rating_override = get_post_meta( $post->ID, '_hpw_rating_override', true );
+    $verdict_options = holyprofweb_get_verdict_options();
     ?>
     <p>
         <label for="hpw_source_url"><strong><?php esc_html_e( 'Reviewed Site URL', 'holyprofweb' ); ?></strong></label><br>
@@ -3916,12 +4027,16 @@ function holyprofweb_post_ops_meta_box_render( $post ) {
         <input type="text" id="hpw_country_focus" name="hpw_country_focus" value="<?php echo esc_attr( $country_focus ); ?>" class="widefat" placeholder="Nigeria, USA, France" />
     </p>
     <p>
+        <label for="hpw_rating_override"><strong><?php esc_html_e( 'Display Rating Override', 'holyprofweb' ); ?></strong></label><br>
+        <input type="number" id="hpw_rating_override" name="hpw_rating_override" value="<?php echo esc_attr( $rating_override ); ?>" class="small-text" min="0" max="5" step="0.1" />
+        <span class="description"><?php esc_html_e( 'Leave blank to keep the live review average.', 'holyprofweb' ); ?></span>
+    </p>
+    <p>
         <label for="hpw_verdict_override"><strong><?php esc_html_e( 'Verdict Badge', 'holyprofweb' ); ?></strong></label><br>
         <select id="hpw_verdict_override" name="hpw_verdict_override" class="widefat">
-            <option value=""><?php esc_html_e( 'Auto detect', 'holyprofweb' ); ?></option>
-            <option value="legit" <?php selected( $verdict_override, 'legit' ); ?>><?php esc_html_e( 'Legit', 'holyprofweb' ); ?></option>
-            <option value="caution" <?php selected( $verdict_override, 'caution' ); ?>><?php esc_html_e( 'Caution', 'holyprofweb' ); ?></option>
-            <option value="scam" <?php selected( $verdict_override, 'scam' ); ?>><?php esc_html_e( 'Scam Alert', 'holyprofweb' ); ?></option>
+            <?php foreach ( $verdict_options as $value => $option ) : ?>
+            <option value="<?php echo esc_attr( $value ); ?>" <?php selected( $verdict_override, $value ); ?>><?php echo esc_html( $option['label'] ); ?></option>
+            <?php endforeach; ?>
         </select>
     </p>
     <?php
@@ -3953,6 +4068,8 @@ function holyprofweb_save_salary_meta( $post_id ) {
         update_post_meta( $post_id, 'external_image', isset( $_POST['hpw_external_image'] ) ? esc_url_raw( wp_unslash( $_POST['hpw_external_image'] ) ) : '' );
         update_post_meta( $post_id, '_hpw_country_focus', isset( $_POST['hpw_country_focus'] ) ? sanitize_text_field( wp_unslash( $_POST['hpw_country_focus'] ) ) : '' );
         update_post_meta( $post_id, '_hpw_verdict_override', isset( $_POST['hpw_verdict_override'] ) ? sanitize_key( wp_unslash( $_POST['hpw_verdict_override'] ) ) : '' );
+        $rating_override = isset( $_POST['hpw_rating_override'] ) ? trim( (string) wp_unslash( $_POST['hpw_rating_override'] ) ) : '';
+        update_post_meta( $post_id, '_hpw_rating_override', ( '' !== $rating_override && is_numeric( $rating_override ) ) ? round( max( 0, min( 5, (float) $rating_override ) ), 1 ) : '' );
     }
 }
 add_action( 'save_post', 'holyprofweb_save_salary_meta' );
@@ -4014,6 +4131,123 @@ function holyprofweb_get_admin_alert_counts() {
         'total'              => (int) $pending_reviews + (int) $pending_salary + (int) $recent_subscribers,
     );
 }
+
+function holyprofweb_get_admin_content_filter_options() {
+    return array(
+        'all'           => __( 'All tracked content', 'holyprofweb' ),
+        'companies'     => __( 'Companies', 'holyprofweb' ),
+        'apps-websites' => __( 'Apps / Websites', 'holyprofweb' ),
+        'blog'          => __( 'Blog / Reports', 'holyprofweb' ),
+    );
+}
+
+function holyprofweb_get_admin_content_kind( $post_id ) {
+    if ( holyprofweb_post_in_category_tree( $post_id, 'companies' ) ) {
+        return __( 'Company', 'holyprofweb' );
+    }
+
+    if ( holyprofweb_post_in_category_tree( $post_id, 'reviews' ) ) {
+        return __( 'App / Website', 'holyprofweb' );
+    }
+
+    if ( holyprofweb_post_in_category_tree( $post_id, 'blog-opinion' ) || holyprofweb_post_in_category_tree( $post_id, 'reports' ) ) {
+        return __( 'Blog / Report', 'holyprofweb' );
+    }
+
+    return __( 'Post', 'holyprofweb' );
+}
+
+function holyprofweb_matches_admin_content_filter( $post_id, $filter ) {
+    switch ( $filter ) {
+        case 'companies':
+            return holyprofweb_post_in_category_tree( $post_id, 'companies' );
+        case 'apps-websites':
+            return holyprofweb_post_in_category_tree( $post_id, 'reviews' );
+        case 'blog':
+            return holyprofweb_post_in_category_tree( $post_id, 'blog-opinion' ) || holyprofweb_post_in_category_tree( $post_id, 'reports' );
+        case 'all':
+        default:
+            return holyprofweb_post_in_category_tree( $post_id, 'companies' )
+                || holyprofweb_post_in_category_tree( $post_id, 'reviews' )
+                || holyprofweb_post_in_category_tree( $post_id, 'blog-opinion' )
+                || holyprofweb_post_in_category_tree( $post_id, 'reports' );
+    }
+}
+
+function holyprofweb_get_admin_content_rows( $search = '', $filter = 'all', $limit = 40 ) {
+    $query = new WP_Query(
+        array(
+            'post_type'              => 'post',
+            'post_status'            => array( 'publish', 'draft', 'pending' ),
+            'posts_per_page'         => (int) $limit,
+            's'                      => $search,
+            'orderby'                => 'modified',
+            'order'                  => 'DESC',
+            'ignore_sticky_posts'    => true,
+            'no_found_rows'          => true,
+            'update_post_meta_cache' => false,
+            'update_post_term_cache' => true,
+        )
+    );
+
+    if ( empty( $query->posts ) ) {
+        return array();
+    }
+
+    return array_values(
+        array_filter(
+            $query->posts,
+            static function( $post ) use ( $filter ) {
+                return holyprofweb_matches_admin_content_filter( $post->ID, $filter );
+            }
+        )
+    );
+}
+
+function holyprofweb_handle_reviews_admin_quick_update() {
+    if ( ! is_admin() || ! current_user_can( 'manage_options' ) ) {
+        return;
+    }
+
+    if ( empty( $_POST['hpw_reviews_content_update'] ) || empty( $_POST['page'] ) || 'hpw-settings-reviews' !== $_POST['page'] ) {
+        return;
+    }
+
+    check_admin_referer( 'hpw_reviews_content_update', 'hpw_reviews_content_nonce' );
+
+    $post_id = isset( $_POST['hpw_content_post_id'] ) ? (int) $_POST['hpw_content_post_id'] : 0;
+    if ( ! $post_id || ! current_user_can( 'edit_post', $post_id ) ) {
+        wp_die( esc_html__( 'You cannot edit this content item.', 'holyprofweb' ) );
+    }
+
+    $rating_override  = isset( $_POST['hpw_rating_override'] ) ? trim( (string) wp_unslash( $_POST['hpw_rating_override'] ) ) : '';
+    $verdict_override = isset( $_POST['hpw_verdict_override'] ) ? sanitize_key( wp_unslash( $_POST['hpw_verdict_override'] ) ) : '';
+    $source_url       = isset( $_POST['hpw_source_url'] ) ? esc_url_raw( wp_unslash( $_POST['hpw_source_url'] ) ) : '';
+    $country_focus    = isset( $_POST['hpw_country_focus'] ) ? sanitize_text_field( wp_unslash( $_POST['hpw_country_focus'] ) ) : '';
+    if ( ! array_key_exists( $verdict_override, holyprofweb_get_verdict_options() ) ) {
+        $verdict_override = '';
+    }
+
+    update_post_meta( $post_id, '_hpw_rating_override', ( '' !== $rating_override && is_numeric( $rating_override ) ) ? round( max( 0, min( 5, (float) $rating_override ) ), 1 ) : '' );
+    update_post_meta( $post_id, '_hpw_verdict_override', $verdict_override );
+    update_post_meta( $post_id, '_hpw_source_url', $source_url );
+    update_post_meta( $post_id, '_hpw_country_focus', $country_focus );
+
+    $redirect = add_query_arg(
+        array(
+            'page'                => 'hpw-settings-reviews',
+            'hpw_content_updated' => 1,
+            'hpw_content_post_id' => $post_id,
+            'hpw_content_search'  => isset( $_POST['hpw_content_search'] ) ? sanitize_text_field( wp_unslash( $_POST['hpw_content_search'] ) ) : '',
+            'hpw_content_type'    => isset( $_POST['hpw_content_type'] ) ? sanitize_key( wp_unslash( $_POST['hpw_content_type'] ) ) : 'all',
+        ),
+        admin_url( 'admin.php' )
+    );
+
+    wp_safe_redirect( $redirect );
+    exit;
+}
+add_action( 'admin_init', 'holyprofweb_handle_reviews_admin_quick_update' );
 
 function holyprofweb_admin_menu_badges() {
     global $menu, $submenu;
@@ -4249,6 +4483,17 @@ function holyprofweb_settings_reviews_page() {
     if ( isset( $_GET['settings-updated'] ) ) {
         add_settings_error( 'hpw_messages', 'hpw_saved', __( 'Settings saved.', 'holyprofweb' ), 'updated' );
     }
+    if ( isset( $_GET['hpw_content_updated'] ) ) {
+        add_settings_error( 'hpw_messages', 'hpw_content_saved', __( 'Content controls updated.', 'holyprofweb' ), 'updated' );
+    }
+    $content_search  = isset( $_GET['hpw_content_search'] ) ? sanitize_text_field( wp_unslash( $_GET['hpw_content_search'] ) ) : '';
+    $content_type    = isset( $_GET['hpw_content_type'] ) ? sanitize_key( wp_unslash( $_GET['hpw_content_type'] ) ) : 'all';
+    $filter_options  = holyprofweb_get_admin_content_filter_options();
+    if ( ! isset( $filter_options[ $content_type ] ) ) {
+        $content_type = 'all';
+    }
+    $content_rows    = holyprofweb_get_admin_content_rows( $content_search, $content_type, 30 );
+    $verdict_options = holyprofweb_get_verdict_options();
     settings_errors( 'hpw_messages' );
     ?>
     <div class="wrap">
@@ -4282,6 +4527,101 @@ function holyprofweb_settings_reviews_page() {
             </table>
             <?php submit_button( __( 'Save Review Settings', 'holyprofweb' ) ); ?>
         </form>
+
+        <hr>
+        <h2><?php esc_html_e( 'Content Control Desk', 'holyprofweb' ); ?></h2>
+        <p><?php esc_html_e( 'Search companies, apps, websites, and blog/report posts. You can adjust the displayed rating, verdict label, source URL, and country focus from here.', 'holyprofweb' ); ?></p>
+        <form method="get" action="<?php echo esc_url( admin_url( 'admin.php' ) ); ?>" style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end;margin:18px 0;">
+            <input type="hidden" name="page" value="hpw-settings-reviews">
+            <div>
+                <label for="hpw-content-search"><strong><?php esc_html_e( 'Search', 'holyprofweb' ); ?></strong></label><br>
+                <input type="search" id="hpw-content-search" name="hpw_content_search" value="<?php echo esc_attr( $content_search ); ?>" class="regular-text" placeholder="<?php esc_attr_e( 'e.g. GTBank, Bet9ja, Moniepoint', 'holyprofweb' ); ?>">
+            </div>
+            <div>
+                <label for="hpw-content-type"><strong><?php esc_html_e( 'Type', 'holyprofweb' ); ?></strong></label><br>
+                <select id="hpw-content-type" name="hpw_content_type">
+                    <?php foreach ( $filter_options as $key => $label ) : ?>
+                    <option value="<?php echo esc_attr( $key ); ?>" <?php selected( $content_type, $key ); ?>><?php echo esc_html( $label ); ?></option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+            <?php submit_button( __( 'Search Content', 'holyprofweb' ), 'secondary', '', false ); ?>
+        </form>
+        <?php if ( empty( $content_rows ) ) : ?>
+        <p><?php esc_html_e( 'No tracked content matched your search yet.', 'holyprofweb' ); ?></p>
+        <?php else : ?>
+        <table class="widefat striped">
+            <thead><tr>
+                <th><?php esc_html_e( 'Title', 'holyprofweb' ); ?></th>
+                <th><?php esc_html_e( 'Type', 'holyprofweb' ); ?></th>
+                <th><?php esc_html_e( 'Live Score', 'holyprofweb' ); ?></th>
+                <th><?php esc_html_e( 'Quick Controls', 'holyprofweb' ); ?></th>
+            </tr></thead>
+            <tbody>
+            <?php foreach ( $content_rows as $content_post ) : ?>
+                <?php
+                $post_id          = (int) $content_post->ID;
+                $live_rating      = holyprofweb_get_post_rating( $post_id );
+                $review_count     = holyprofweb_get_review_count( $post_id );
+                $rating_override  = get_post_meta( $post_id, '_hpw_rating_override', true );
+                $verdict_override = (string) get_post_meta( $post_id, '_hpw_verdict_override', true );
+                $source_url       = (string) get_post_meta( $post_id, '_hpw_source_url', true );
+                $country_focus    = (string) get_post_meta( $post_id, '_hpw_country_focus', true );
+                $status_object    = get_post_status_object( get_post_status( $post_id ) );
+                ?>
+            <tr>
+                <td>
+                    <strong><a href="<?php echo esc_url( admin_url( 'post.php?post=' . $post_id . '&action=edit' ) ); ?>"><?php echo esc_html( get_the_title( $post_id ) ); ?></a></strong><br>
+                    <span><?php echo esc_html( $status_object ? $status_object->label : ucfirst( (string) get_post_status( $post_id ) ) ); ?></span>
+                    <span style="color:#6b7280;"> • <?php echo esc_html( mysql2date( 'Y-m-d', $content_post->post_modified ) ); ?></span><br>
+                    <a href="<?php echo esc_url( get_permalink( $post_id ) ); ?>" target="_blank" rel="noopener"><?php esc_html_e( 'View live', 'holyprofweb' ); ?></a>
+                </td>
+                <td>
+                    <strong><?php echo esc_html( holyprofweb_get_admin_content_kind( $post_id ) ); ?></strong><br>
+                    <span><?php echo esc_html( implode( ', ', wp_list_pluck( get_the_category( $post_id ), 'name' ) ) ); ?></span>
+                </td>
+                <td>
+                    <strong><?php echo $live_rating ? esc_html( number_format_i18n( $live_rating, 1 ) ) . '/5' : esc_html__( 'No rating yet', 'holyprofweb' ); ?></strong><br>
+                    <span><?php echo esc_html( sprintf( _n( '%d review', '%d reviews', $review_count, 'holyprofweb' ), $review_count ) ); ?></span>
+                </td>
+                <td style="min-width:340px;">
+                    <form method="post" action="<?php echo esc_url( admin_url( 'admin.php?page=hpw-settings-reviews' ) ); ?>" style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px 12px;">
+                        <?php wp_nonce_field( 'hpw_reviews_content_update', 'hpw_reviews_content_nonce' ); ?>
+                        <input type="hidden" name="page" value="hpw-settings-reviews">
+                        <input type="hidden" name="hpw_reviews_content_update" value="1">
+                        <input type="hidden" name="hpw_content_post_id" value="<?php echo esc_attr( $post_id ); ?>">
+                        <input type="hidden" name="hpw_content_search" value="<?php echo esc_attr( $content_search ); ?>">
+                        <input type="hidden" name="hpw_content_type" value="<?php echo esc_attr( $content_type ); ?>">
+                        <label>
+                            <span style="display:block;font-weight:600;margin-bottom:4px;"><?php esc_html_e( 'Display rating', 'holyprofweb' ); ?></span>
+                            <input type="number" name="hpw_rating_override" min="0" max="5" step="0.1" value="<?php echo esc_attr( $rating_override ); ?>" class="small-text" style="width:100%;">
+                        </label>
+                        <label>
+                            <span style="display:block;font-weight:600;margin-bottom:4px;"><?php esc_html_e( 'Verdict', 'holyprofweb' ); ?></span>
+                            <select name="hpw_verdict_override" style="width:100%;">
+                                <?php foreach ( $verdict_options as $value => $option ) : ?>
+                                <option value="<?php echo esc_attr( $value ); ?>" <?php selected( $verdict_override, $value ); ?>><?php echo esc_html( $option['label'] ); ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                        </label>
+                        <label style="grid-column:1 / -1;">
+                            <span style="display:block;font-weight:600;margin-bottom:4px;"><?php esc_html_e( 'Source URL', 'holyprofweb' ); ?></span>
+                            <input type="url" name="hpw_source_url" value="<?php echo esc_attr( $source_url ); ?>" class="regular-text" style="width:100%;">
+                        </label>
+                        <label>
+                            <span style="display:block;font-weight:600;margin-bottom:4px;"><?php esc_html_e( 'Country focus', 'holyprofweb' ); ?></span>
+                            <input type="text" name="hpw_country_focus" value="<?php echo esc_attr( $country_focus ); ?>" class="regular-text" style="width:100%;">
+                        </label>
+                        <div style="align-self:end;">
+                            <?php submit_button( __( 'Save', 'holyprofweb' ), 'primary small', '', false ); ?>
+                        </div>
+                    </form>
+                </td>
+            </tr>
+            <?php endforeach; ?>
+            </tbody>
+        </table>
+        <?php endif; ?>
 
         <hr>
         <h2><?php esc_html_e( 'Pending Reviews', 'holyprofweb' ); ?></h2>

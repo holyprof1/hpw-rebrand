@@ -7,7 +7,8 @@ get_header();
 
 $total_posts      = (int) wp_count_posts()->publish;
 $total_reviews    = (int) get_comments( array( 'type' => 'review', 'status' => 'approve', 'count' => true ) );
-$total_categories = holyprofweb_get_visible_category_count();
+$companies_term   = get_term_by( 'slug', 'companies', 'category' );
+$total_companies  = $companies_term && ! is_wp_error( $companies_term ) ? (int) $companies_term->count : 0;
 $trending_searches = holyprofweb_get_trending_searches( 8 );
 
 $latest_query = new WP_Query( array(
@@ -24,12 +25,17 @@ $just_added_query = new WP_Query( array(
     'no_found_rows'  => true,
 ) );
 
-$reports_term = get_term_by( 'slug', 'reports', 'category' );
+$reports_term      = get_term_by( 'slug', 'reports', 'category' );
+$blog_opinion_term = get_term_by( 'slug', 'blog-opinion', 'category' );
+$blog_term_ids     = array_values( array_filter( array(
+    $reports_term ? (int) $reports_term->term_id : 0,
+    $blog_opinion_term ? (int) $blog_opinion_term->term_id : 0,
+) ) );
 $guides_query = new WP_Query( array(
     'posts_per_page' => 4,
     'post_status'    => 'publish',
     'no_found_rows'  => true,
-    'cat'            => $reports_term ? (int) $reports_term->term_id : 0,
+    'category__in'   => $blog_term_ids,
 ) );
 
 $live_reviews = get_comments( array(
@@ -62,13 +68,13 @@ $featured_topics = holyprofweb_get_frontpage_topic_categories( 8 );
                 <span class="hero-feature-kicker"><?php esc_html_e( 'Reviews', 'holyprofweb' ); ?></span>
                 <strong class="hero-feature-title"><?php esc_html_e( 'See user experiences before you decide', 'holyprofweb' ); ?></strong>
             </a>
-            <a href="<?php echo esc_url( home_url( '/category/salaries/' ) ); ?>" class="hero-feature-card">
-                <span class="hero-feature-kicker"><?php esc_html_e( 'Salaries', 'holyprofweb' ); ?></span>
-                <strong class="hero-feature-title"><?php esc_html_e( 'Compare pay stories and role expectations', 'holyprofweb' ); ?></strong>
+            <a href="<?php echo esc_url( home_url( '/category/companies/' ) ); ?>" class="hero-feature-card">
+                <span class="hero-feature-kicker"><?php esc_html_e( 'Companies', 'holyprofweb' ); ?></span>
+                <strong class="hero-feature-title"><?php esc_html_e( 'See what companies do, where they operate, pay range, and what people say about working there', 'holyprofweb' ); ?></strong>
             </a>
             <a href="<?php echo esc_url( home_url( '/submit/' ) ); ?>" class="hero-feature-card">
                 <span class="hero-feature-kicker"><?php esc_html_e( 'Contribute', 'holyprofweb' ); ?></span>
-                <strong class="hero-feature-title"><?php esc_html_e( 'Add a review, salary story, or correction', 'holyprofweb' ); ?></strong>
+                <strong class="hero-feature-title"><?php esc_html_e( 'Add a review, salary range, interview question, or correction', 'holyprofweb' ); ?></strong>
             </a>
         </div>
     </div>
@@ -80,17 +86,17 @@ $featured_topics = holyprofweb_get_frontpage_topic_categories( 8 );
     <div class="stats-bar-inner">
         <div class="stat-item">
             <span class="stat-number"><?php echo esc_html( holyprofweb_format_display_count( max( 1, $total_posts ) ) ); ?></span>
-            <span class="stat-label"><?php esc_html_e( 'Published Posts', 'holyprofweb' ); ?></span>
+            <span class="stat-label"><?php esc_html_e( 'Posts', 'holyprofweb' ); ?></span>
         </div>
         <div class="stat-divider" aria-hidden="true"></div>
         <div class="stat-item">
             <span class="stat-number"><?php echo esc_html( holyprofweb_format_display_count( max( 1, $total_reviews ) ) ); ?></span>
-            <span class="stat-label"><?php esc_html_e( 'Public Reviews', 'holyprofweb' ); ?></span>
+            <span class="stat-label"><?php esc_html_e( 'Reviews', 'holyprofweb' ); ?></span>
         </div>
         <div class="stat-divider" aria-hidden="true"></div>
         <div class="stat-item">
-            <span class="stat-number"><?php echo esc_html( holyprofweb_format_display_count( max( 1, $total_categories ) ) ); ?></span>
-            <span class="stat-label"><?php esc_html_e( 'Active Categories', 'holyprofweb' ); ?></span>
+            <span class="stat-number"><?php echo esc_html( holyprofweb_format_display_count( max( 1, $total_companies ) ) ); ?></span>
+            <span class="stat-label"><?php esc_html_e( 'Companies', 'holyprofweb' ); ?></span>
         </div>
     </div>
 </div>
@@ -129,7 +135,7 @@ $featured_topics = holyprofweb_get_frontpage_topic_categories( 8 );
                 else :
                     foreach ( array(
                         array( 'title' => 'PalmPay Review', 'category' => 'Reviews' ),
-                        array( 'title' => 'Flutterwave Salary Guide', 'category' => 'Salaries' ),
+                        array( 'title' => 'Flutterwave Company Profile', 'category' => 'Companies' ),
                         array( 'title' => 'Best Loan Apps', 'category' => 'Reports' ),
                     ) as $fallback ) :
                 ?>
@@ -146,7 +152,7 @@ $featured_topics = holyprofweb_get_frontpage_topic_categories( 8 );
 
         <section class="front-section front-section--carousel" aria-labelledby="category-strip-heading">
             <div class="section-header">
-                <h2 id="category-strip-heading" class="section-title"><?php esc_html_e( 'Topics People Need', 'holyprofweb' ); ?></h2>
+                <h2 id="category-strip-heading" class="section-title"><?php esc_html_e( 'Explore Companies and Topics', 'holyprofweb' ); ?></h2>
             </div>
             <div class="post-carousel">
                 <?php
@@ -166,7 +172,7 @@ $featured_topics = holyprofweb_get_frontpage_topic_categories( 8 );
         <section class="front-section front-section--carousel" aria-labelledby="just-added-heading">
             <div class="section-header">
                 <h2 id="just-added-heading" class="section-title"><?php esc_html_e( 'Just Added', 'holyprofweb' ); ?></h2>
-                <a href="<?php echo esc_url( home_url( '/' ) ); ?>" class="section-link"><?php esc_html_e( 'Browse all', 'holyprofweb' ); ?></a>
+                <a href="<?php echo esc_url( holyprofweb_get_blog_url() ); ?>" class="section-link"><?php esc_html_e( 'Browse all', 'holyprofweb' ); ?></a>
             </div>
 
             <div class="post-carousel">
@@ -222,10 +228,12 @@ $featured_topics = holyprofweb_get_frontpage_topic_categories( 8 );
                         ?>
                     <article class="live-review-card">
                         <div class="live-review-header">
-                            <div>
-                                <strong class="live-review-author"><?php echo esc_html( $review->comment_author ); ?></strong>
-                                <?php if ( $is_verified ) : ?><span class="review-verified-badge"><?php esc_html_e( 'Verified', 'holyprofweb' ); ?></span><?php endif; ?>
-                                <?php if ( ! empty( $review_cats ) ) : ?><span class="live-review-chip"><?php echo esc_html( $review_cats[0]->name ); ?></span><?php endif; ?>
+                            <div class="live-review-copy">
+                                <div class="live-review-meta">
+                                    <strong class="live-review-author"><?php echo esc_html( $review->comment_author ); ?></strong>
+                                    <?php if ( $is_verified ) : ?><span class="review-verified-badge"><?php esc_html_e( 'Verified', 'holyprofweb' ); ?></span><?php endif; ?>
+                                    <?php if ( ! empty( $review_cats ) ) : ?><span class="live-review-chip"><?php echo esc_html( $review_cats[0]->name ); ?></span><?php endif; ?>
+                                </div>
                                 <a class="live-review-post" href="<?php echo esc_url( get_permalink( $post_id ) ); ?>"><?php echo esc_html( holyprofweb_get_decoded_post_title( $post_id ) ); ?></a>
                             </div>
                             <div class="live-review-stars"><?php echo wp_kses_post( holyprofweb_render_stars( $rating ) ); ?></div>
@@ -238,8 +246,10 @@ $featured_topics = holyprofweb_get_frontpage_topic_categories( 8 );
                     <?php foreach ( array_slice( $trending_searches, 0, 3 ) as $item ) : ?>
                     <article class="live-review-card live-review-card--placeholder">
                         <div class="live-review-header">
-                            <div>
-                                <strong class="live-review-author"><?php esc_html_e( 'HolyprofWeb', 'holyprofweb' ); ?></strong>
+                            <div class="live-review-copy">
+                                <div class="live-review-meta">
+                                    <strong class="live-review-author"><?php esc_html_e( 'HolyprofWeb', 'holyprofweb' ); ?></strong>
+                                </div>
                                 <a class="live-review-post" href="<?php echo esc_url( home_url( '/?s=' . urlencode( $item['term'] ) ) ); ?>"><?php echo esc_html( $item['term'] ); ?></a>
                             </div>
                         </div>
@@ -254,8 +264,8 @@ $featured_topics = holyprofweb_get_frontpage_topic_categories( 8 );
 
         <section class="front-section" aria-labelledby="guides-heading">
             <div class="section-header">
-                <h2 id="guides-heading" class="section-title"><?php esc_html_e( 'Blog / Guides', 'holyprofweb' ); ?></h2>
-                <a href="<?php echo esc_url( home_url( '/category/reports/' ) ); ?>" class="section-link"><?php esc_html_e( 'All guides', 'holyprofweb' ); ?></a>
+                <h2 id="guides-heading" class="section-title"><?php esc_html_e( 'From the Blog', 'holyprofweb' ); ?></h2>
+                <a href="<?php echo esc_url( home_url( '/' ) ); ?>" class="section-link"><?php esc_html_e( 'Browse all', 'holyprofweb' ); ?></a>
             </div>
 
             <div class="post-grid post-grid--compact">
