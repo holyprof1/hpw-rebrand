@@ -4475,7 +4475,24 @@ function holyprofweb_settings_page() {
                     <td>
                         <textarea name="hpw_redirect_rules" rows="10" class="large-text code" placeholder="/old-path/,/new-path/&#10;/old-ranking-url/|/reviews/new-ranking-url/&#10;/old-url/,https://example.com/new-url/"><?php echo esc_textarea( get_option( 'hpw_redirect_rules', '' ) ); ?></textarea>
                         <p class="description"><?php esc_html_e( 'One redirect per line. Use old path first, then new path. Accepted formats: /old-path/,/new-path/ or /old-path/|/new-path/ or /old-url/,https://example.com/new-url/', 'holyprofweb' ); ?></p>
-                        <p class="description"><?php esc_html_e( 'The theme will normalize the paths automatically and send a 301 redirect.', 'holyprofweb' ); ?></p>
+                        <p class="description"><?php esc_html_e( 'The theme will normalize the paths automatically and send a 301 redirect. Published URL changes and deleted posts/pages are also captured automatically for SEO.', 'holyprofweb' ); ?></p>
+                        <?php $redirect_preview = holyprofweb_parse_redirect_rules(); ?>
+                        <?php if ( ! empty( $redirect_preview ) ) : ?>
+                        <div style="margin-top:14px;border:1px solid #e6dcc7;border-radius:16px;background:#fffdfa;overflow:hidden;">
+                            <div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:0;background:#f7f2e7;padding:10px 14px;font-weight:700;">
+                                <span><?php esc_html_e( 'Old URL', 'holyprofweb' ); ?></span>
+                                <span><?php esc_html_e( 'New URL', 'holyprofweb' ); ?></span>
+                            </div>
+                            <div style="max-height:220px;overflow:auto;">
+                                <?php foreach ( $redirect_preview as $old_path => $new_path ) : ?>
+                                <div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px;padding:10px 14px;border-top:1px solid #eee6d6;">
+                                    <code><?php echo esc_html( $old_path ); ?></code>
+                                    <code><?php echo esc_html( $new_path ); ?></code>
+                                </div>
+                                <?php endforeach; ?>
+                            </div>
+                        </div>
+                        <?php endif; ?>
                     </td>
                 </tr>
             </table>
@@ -5279,6 +5296,96 @@ function holyprofweb_sanitize_redirect_rules( $value ) {
 
     return implode( "\n", array_values( array_unique( $normalized ) ) );
 }
+
+function holyprofweb_store_redirect_rule( $from, $to ) {
+    $pair = holyprofweb_parse_redirect_line( $from . ' | ' . $to );
+    if ( empty( $pair['from'] ) || empty( $pair['to'] ) || $pair['from'] === $pair['to'] ) {
+        return false;
+    }
+
+    $rules = holyprofweb_parse_redirect_rules();
+    $rules[ $pair['from'] ] = $pair['to'];
+
+    $lines = array();
+    foreach ( $rules as $rule_from => $rule_to ) {
+        $lines[] = $rule_from . ' | ' . $rule_to;
+    }
+
+    update_option( 'hpw_redirect_rules', implode( "\n", $lines ), false );
+    return true;
+}
+
+function holyprofweb_get_redirect_fallback_target( $post_id ) {
+    if ( ! $post_id ) {
+        return home_url( '/' );
+    }
+
+    if ( 'page' === get_post_type( $post_id ) ) {
+        return home_url( '/' );
+    }
+
+    if ( holyprofweb_post_in_category_tree( $post_id, 'companies' ) ) {
+        return home_url( '/category/companies/' );
+    }
+
+    if ( holyprofweb_post_in_category_tree( $post_id, 'reviews' ) ) {
+        return home_url( '/category/reviews/' );
+    }
+
+    if ( holyprofweb_post_in_category_tree( $post_id, 'biography' ) ) {
+        return home_url( '/category/biography/' );
+    }
+
+    if ( holyprofweb_post_in_category_tree( $post_id, 'reports' ) || holyprofweb_post_in_category_tree( $post_id, 'blog-opinion' ) ) {
+        return holyprofweb_get_blog_url();
+    }
+
+    return home_url( '/' );
+}
+
+function holyprofweb_capture_permalink_redirect_on_update( $post_id, $post_after, $post_before ) {
+    if ( ! $post_after instanceof WP_Post || ! $post_before instanceof WP_Post ) {
+        return;
+    }
+
+    if ( 'post' !== $post_after->post_type && 'page' !== $post_after->post_type ) {
+        return;
+    }
+
+    if ( 'publish' !== $post_before->post_status || 'publish' !== $post_after->post_status ) {
+        return;
+    }
+
+    $old_path = wp_parse_url( get_permalink( $post_before ), PHP_URL_PATH );
+    $new_path = wp_parse_url( get_permalink( $post_after ), PHP_URL_PATH );
+
+    if ( ! $old_path || ! $new_path || untrailingslashit( $old_path ) === untrailingslashit( $new_path ) ) {
+        return;
+    }
+
+    holyprofweb_store_redirect_rule( $old_path, $new_path );
+}
+add_action( 'post_updated', 'holyprofweb_capture_permalink_redirect_on_update', 10, 3 );
+
+function holyprofweb_capture_redirect_before_delete( $post_id ) {
+    $post = get_post( $post_id );
+    if ( ! $post || ! in_array( $post->post_type, array( 'post', 'page' ), true ) ) {
+        return;
+    }
+
+    if ( 'publish' !== $post->post_status && 'trash' !== $post->post_status ) {
+        return;
+    }
+
+    $old_path = wp_parse_url( get_permalink( $post_id ), PHP_URL_PATH );
+    if ( ! $old_path ) {
+        return;
+    }
+
+    holyprofweb_store_redirect_rule( $old_path, holyprofweb_get_redirect_fallback_target( $post_id ) );
+}
+add_action( 'trashed_post', 'holyprofweb_capture_redirect_before_delete', 10, 1 );
+add_action( 'before_delete_post', 'holyprofweb_capture_redirect_before_delete', 10, 1 );
 
 function holyprofweb_handle_redirect_rules() {
     if ( is_admin() || wp_doing_ajax() ) {

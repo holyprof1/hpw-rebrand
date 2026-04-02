@@ -9097,3 +9097,83 @@ body.hpw-no-copy label {
         padding: 30px 34px !important;
     }
 }
+
+/* Final header and review sizing correction */
+.site-logo img,
+.site-logo .custom-logo,
+.site-logo-link img {
+    max-width: min(100%, 360px) !important;
+    height: 96px !important;
+}
+
+.home .front-section[aria-labelledby="live-reviews-heading"] .live-reviews-grid {
+    grid-auto-columns: minmax(82%, 82%) !important;
+    justify-content: start !important;
+}
+
+.home .front-section[aria-labelledby="live-reviews-heading"] .live-review-card {
+    width: min(82vw, 860px) !important;
+    min-width: min(82vw, 860px) !important;
+    max-width: min(82vw, 860px) !important;
+}
+
+@media (max-width: 900px) {
+    .site-logo img,
+    .site-logo .custom-logo,
+    .site-logo-link img {
+        max-width: min(100%, 248px) !important;
+        height: 70px !important;
+    }
+
+    .home .front-section[aria-labelledby="live-reviews-heading"] .live-reviews-grid {
+        grid-auto-columns: minmax(88%, 88%) !important;
+        padding-right: 18px !important;
+    }
+
+    .home .front-section[aria-labelledby="live-reviews-heading"] .live-review-card {
+        width: min(88vw, 720px) !important;
+        min-width: min(88vw, 720px) !important;
+        max-width: min(88vw, 720px) !important;
+    }
+}
+
+@media (max-width: 480px) {
+    .header-inner {
+        grid-template-columns: minmax(0, 1fr) auto !important;
+        gap: 10px !important;
+        padding: 10px 12px !important;
+    }
+
+    .site-logo img,
+    .site-logo .custom-logo,
+    .site-logo-link img {
+        max-width: min(100%, 210px) !important;
+        height: 60px !important;
+    }
+
+    .header-search-trigger span {
+        display: none;
+    }
+
+    .header-cta {
+        display: inline-flex !important;
+        min-height: 40px !important;
+        padding: 0 12px !important;
+        font-size: 0.76rem !important;
+        border-radius: 999px !important;
+    }
+
+    .header-actions {
+        gap: 8px !important;
+    }
+
+    .home .front-section[aria-labelledby="live-reviews-heading"] .live-reviews-grid {
+        grid-auto-columns: minmax(90%, 90%) !important;
+    }
+
+    .home .front-section[aria-labelledby="live-reviews-heading"] .live-review-card {
+        width: min(90vw, 540px) !important;
+        min-width: min(90vw, 540px) !important;
+        max-width: min(90vw, 540px) !important;
+    }
+}
