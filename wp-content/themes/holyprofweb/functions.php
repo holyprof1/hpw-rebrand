@@ -221,6 +221,95 @@ function holyprofweb_get_related_posts( $post_id, $count = 3 ) {
     ) );
 }
 
+function holyprofweb_get_inline_also_read_posts( $post_id, $limit = 3 ) {
+    $categories = get_the_category( $post_id );
+    $category_ids = ! empty( $categories ) ? wp_list_pluck( $categories, 'term_id' ) : array();
+    $country_context = holyprofweb_get_active_country_context( $post_id );
+    $country_focus = ! empty( $country_context['focus'] ) ? $country_context['focus'] : '';
+
+    $query_args = array(
+        'post_type'      => 'post',
+        'post_status'    => 'publish',
+        'posts_per_page' => max( 3, (int) $limit ),
+        'post__not_in'   => array( $post_id ),
+        'no_found_rows'  => true,
+    );
+
+    if ( ! empty( $category_ids ) ) {
+        $query_args['category__in'] = $category_ids;
+    }
+
+    if ( $country_focus && 'General' !== $country_focus && 'Unknown' !== $country_focus ) {
+        $query_args['meta_query'] = array(
+            'relation' => 'OR',
+            array(
+                'key'     => '_hpw_country_focus',
+                'value'   => $country_focus,
+                'compare' => 'LIKE',
+            ),
+            array(
+                'key'     => '_hpw_country_focus',
+                'compare' => 'NOT EXISTS',
+            ),
+        );
+    }
+
+    $query = new WP_Query( $query_args );
+    if ( ! empty( $query->posts ) ) {
+        return array_slice( $query->posts, 0, $limit );
+    }
+
+    $fallback = holyprofweb_get_related_posts( $post_id, $limit );
+    if ( ! empty( $fallback->posts ) ) {
+        return array_slice( $fallback->posts, 0, $limit );
+    }
+
+    return array();
+}
+
+function holyprofweb_inject_inline_also_read( $content ) {
+    if ( is_admin() || ! is_singular( 'post' ) || ! in_the_loop() || ! is_main_query() ) {
+        return $content;
+    }
+
+    global $post;
+    if ( ! $post instanceof WP_Post ) {
+        return $content;
+    }
+
+    $related_posts = holyprofweb_get_inline_also_read_posts( $post->ID, 3 );
+    if ( empty( $related_posts ) ) {
+        return $content;
+    }
+
+    $parts = explode( '</p>', $content );
+    if ( count( $parts ) < 2 ) {
+        return $content;
+    }
+
+    $insert_points = array( 2, 4, 6 );
+    $paragraphs = 0;
+    $new_parts = array();
+    $inserted = 0;
+
+    foreach ( $parts as $index => $part ) {
+        $new_parts[] = $part;
+
+        if ( '' !== trim( wp_strip_all_tags( $part ) ) ) {
+            $paragraphs++;
+        }
+
+        if ( $inserted < count( $related_posts ) && in_array( $paragraphs, $insert_points, true ) && $index < count( $parts ) - 1 ) {
+            $related_post = $related_posts[ $inserted ];
+            $new_parts[] = '<div class="also-read-inline also-read-inline--body"><strong>' . esc_html__( 'Also read:', 'holyprofweb' ) . '</strong> <a href="' . esc_url( get_permalink( $related_post ) ) . '">' . esc_html( holyprofweb_get_decoded_post_title( $related_post->ID ) ) . '</a></div>';
+            $inserted++;
+        }
+    }
+
+    return implode( '</p>', $new_parts );
+}
+add_filter( 'the_content', 'holyprofweb_inject_inline_also_read', 19 );
+
 
 // =========================================
 // PAGINATION HELPER

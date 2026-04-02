@@ -9188,6 +9188,10 @@ body.hpw-no-copy label {
     order: 1;
 }
 
+/* =========================================
+   FINAL LAYOUT OVERRIDES
+========================================= */
+
 .single-header--refined {
     order: 2;
 }
@@ -9205,12 +9209,12 @@ body.hpw-no-copy label {
     margin: 18px 0 0;
 }
 
-.reviews-section,
-.biography-contribution-box {
+.reactions-bar {
     order: 6;
 }
 
-.reactions-bar {
+.reviews-section,
+.biography-contribution-box {
     order: 7;
 }
 
@@ -9231,58 +9235,135 @@ body.hpw-no-copy label {
     order: 11;
 }
 
+.single-sidebar {
+    min-width: 0;
+}
+
+.also-read-inline:not(.also-read-inline--body) {
+    display: none !important;
+}
+
+.platform-wrap--single .single-article > .single-category,
+.platform-wrap--single .single-article > .single-header:not(.single-header--refined),
+.platform-wrap--single .single-article > .single-featured-image,
+.platform-wrap--single .single-article > .single-meta {
+    display: none !important;
+}
+
+.platform-wrap--single .single-wrap {
+    grid-template-columns: minmax(0, 1fr) !important;
+    gap: 28px !important;
+}
+
+.platform-wrap--single .single-sidebar {
+    display: none !important;
+}
+
+.platform-wrap--single .single-header--refined {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 20px !important;
+}
+
+.platform-wrap--single .single-featured-image--inline {
+    order: 1 !important;
+    width: min(100%, 380px) !important;
+    max-width: 380px !important;
+}
+
+.platform-wrap--single .single-featured-image--inline img {
+    width: 100% !important;
+    max-width: 380px !important;
+    height: auto !important;
+}
+
+.platform-wrap--single .single-header-copy {
+    order: 2 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+}
+
+.platform-wrap--single .single-header--refined .single-title {
+    max-width: 100% !important;
+    overflow-wrap: break-word !important;
+    word-break: normal !important;
+    hyphens: auto !important;
+}
+
+/* Bring the right sidebar back only on truly wide desktops. */
+@media (min-width: 1800px) {
+    .platform-wrap--single .single-wrap {
+        grid-template-columns: minmax(0, 1fr) 280px !important;
+        gap: 32px !important;
+    }
+
+    .platform-wrap--single .single-sidebar {
+        display: block !important;
+    }
+}
+
+/* Homepage live reviews: one horizontal strip, slightly slimmer cards. */
 .home .front-section[aria-labelledby="live-reviews-heading"] .live-reviews-grid {
-    grid-auto-columns: minmax(78%, 78%) !important;
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    gap: 16px !important;
+    padding-right: 22px !important;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    grid-auto-columns: unset !important;
+    align-items: stretch !important;
+    scroll-snap-type: x mandatory !important;
+}
+
+.home .front-section[aria-labelledby="live-reviews-heading"] .live-reviews-grid::-webkit-scrollbar {
+    display: none !important;
 }
 
 .home .front-section[aria-labelledby="live-reviews-heading"] .live-review-card {
-    width: min(78vw, 760px) !important;
-    min-width: min(78vw, 760px) !important;
-    max-width: min(78vw, 760px) !important;
+    flex: 0 0 clamp(260px, 58vw, 500px) !important;
+    width: clamp(260px, 58vw, 500px) !important;
+    min-width: clamp(260px, 58vw, 500px) !important;
+    max-width: clamp(260px, 58vw, 500px) !important;
+    box-sizing: border-box !important;
+    scroll-snap-align: start !important;
 }
 
-.single-header--refined .single-title {
-    overflow-wrap: break-word !important;
-    word-break: normal !important;
-    hyphens: auto;
-}
-
-@media (max-width: 1360px) {
-    .single-header--refined {
-        grid-template-columns: 1fr !important;
-        align-items: start !important;
-    }
-
-    .single-featured-image--inline {
-        max-width: 760px;
-    }
-
-    .single-header-copy {
-        max-width: 860px;
-    }
-}
-
-@media (max-width: 900px) {
+@media (max-width: 640px) {
     .home .front-section[aria-labelledby="live-reviews-heading"] .live-reviews-grid {
-        grid-auto-columns: minmax(84%, 84%) !important;
-    }
-
-    .home .front-section[aria-labelledby="live-reviews-heading"] .live-review-card {
-        width: min(84vw, 620px) !important;
-        min-width: min(84vw, 620px) !important;
-        max-width: min(84vw, 620px) !important;
-    }
-}
-
-@media (max-width: 520px) {
-    .home .front-section[aria-labelledby="live-reviews-heading"] .live-reviews-grid {
-        grid-auto-columns: minmax(86%, 86%) !important;
         gap: 14px !important;
+        padding-right: 16px !important;
     }
 
     .home .front-section[aria-labelledby="live-reviews-heading"] .live-review-card {
-        width: min(86vw, 520px) !important;
-        min-width: min(86vw, 520px) !important;
-        max-width: min(86vw, 520px) !important;
+        flex-basis: clamp(250px, 82vw, 360px) !important;
+        width: clamp(250px, 82vw, 360px) !important;
+        min-width: clamp(250px, 82vw, 360px) !important;
+        max-width: clamp(250px, 82vw, 360px) !important;
+    }
+}
+
+/* Explore companies/topics: slimmer cards and a tighter handoff into the next section. */
+.home .front-section[aria-labelledby="category-strip-heading"] {
+    padding-bottom: 32px !important;
+}
+
+.home .front-section[aria-labelledby="category-strip-heading"] + .front-section {
+    padding-top: 32px !important;
+}
+
+.home .front-section[aria-labelledby="category-strip-heading"] .post-carousel > .post-card.post-card--category {
+    flex: 0 0 clamp(190px, 22vw, 250px) !important;
+    width: clamp(190px, 22vw, 250px) !important;
+    min-width: clamp(190px, 22vw, 250px) !important;
+    max-width: clamp(190px, 22vw, 250px) !important;
+}
+
+@media (max-width: 640px) {
+    .home .front-section[aria-labelledby="category-strip-heading"] .post-carousel > .post-card.post-card--category {
+        flex-basis: clamp(170px, 54vw, 220px) !important;
+        width: clamp(170px, 54vw, 220px) !important;
+        min-width: clamp(170px, 54vw, 220px) !important;
+        max-width: clamp(170px, 54vw, 220px) !important;
     }
 }
