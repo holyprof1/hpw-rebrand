@@ -98,7 +98,7 @@ get_header();
                         <div class="single-header-actions">
                             <?php if ( $is_biography_post ) : ?>
                             <a href="<?php echo esc_url( add_query_arg( array( 'submit_category' => 'biography', 'submit_name' => $decoded_title, 'mode' => 'suggest-edit' ), home_url( '/submit/' ) ) ); ?>" class="single-action-btn single-action-btn--alt"><?php esc_html_e( 'Suggest Edit', 'holyprofweb' ); ?></a>
-                            <a href="<?php echo esc_url( add_query_arg( array( 'submit_category' => 'biography', 'submit_name' => $decoded_title, 'mode' => 'add-information' ), home_url( '/submit/' ) ) ); ?>" class="single-action-btn"><?php esc_html_e( 'Add Information', 'holyprofweb' ); ?></a>
+                            <a href="#write-review" class="single-action-btn"><?php esc_html_e( 'Have Information About This Person?', 'holyprofweb' ); ?></a>
                             <?php else : ?>
                             <?php if ( $source_url ) : ?>
                             <a href="<?php echo esc_url( $source_url ); ?>" class="single-action-btn single-action-btn--alt" target="_blank" rel="nofollow sponsored noopener"><?php esc_html_e( 'Visit Website', 'holyprofweb' ); ?></a>
@@ -261,8 +261,8 @@ get_header();
 
                 <!-- Email capture -->
                 <div class="email-capture-box">
-                    <p class="email-capture-title">Preparing for an interview or evaluating this platform?</p>
-                    <p class="email-capture-sub">Get updates on salaries, reviews and reports &mdash; straight to your inbox.</p>
+                    <p class="email-capture-title"><?php echo $is_company_post ? esc_html__( 'Preparing for an interview or checking this company properly?', 'holyprofweb' ) : ( $is_biography_post ? esc_html__( 'Want updates about this person?', 'holyprofweb' ) : esc_html__( 'Evaluating this platform properly?', 'holyprofweb' ) ); ?></p>
+                    <p class="email-capture-sub"><?php echo $is_company_post ? esc_html__( 'Get company reviews, interview signals, salary context and reports straight to your inbox.', 'holyprofweb' ) : ( $is_biography_post ? esc_html__( 'Get profile updates, biography corrections and related stories straight to your inbox.', 'holyprofweb' ) : esc_html__( 'Get reviews, salary signals and reports straight to your inbox.', 'holyprofweb' ) ); ?></p>
                     <form class="email-capture-form" novalidate>
                         <input type="email" class="email-capture-input"
                                placeholder="you@example.com" autocomplete="email" required />
@@ -543,8 +543,8 @@ get_header();
                 </section>
                 <?php else : ?>
                 <section class="review-form-wrap review-form-wrap--switch biography-contribution-box" id="write-review">
-                    <h3 class="review-form-title"><?php esc_html_e( 'Help Improve This Biography', 'holyprofweb' ); ?></h3>
-                    <p class="review-form-sub"><?php esc_html_e( 'Send corrections, missing background, achievements, or timeline updates for editorial review.', 'holyprofweb' ); ?></p>
+                    <h3 class="review-form-title"><?php esc_html_e( 'Have Information About This Person?', 'holyprofweb' ); ?></h3>
+                    <p class="review-form-sub"><?php esc_html_e( 'Share corrections, missing background, achievements, timeline updates, or any useful context for editorial review.', 'holyprofweb' ); ?></p>
                     <div class="single-header-actions">
                         <a href="<?php echo esc_url( add_query_arg( array( 'submit_category' => 'biography', 'submit_name' => $decoded_title, 'mode' => 'suggest-edit' ), home_url( '/submit/' ) ) ); ?>" class="single-action-btn single-action-btn--alt"><?php esc_html_e( 'Suggest Edit', 'holyprofweb' ); ?></a>
                         <a href="<?php echo esc_url( add_query_arg( array( 'submit_category' => 'biography', 'submit_name' => $decoded_title, 'mode' => 'add-information' ), home_url( '/submit/' ) ) ); ?>" class="single-action-btn"><?php esc_html_e( 'Add Information', 'holyprofweb' ); ?></a>
@@ -661,7 +661,7 @@ get_header();
 
                         <?php if ( $is_company_post && $tips_links->have_posts() ) : ?>
                         <div>
-                            <h3 class="related-posts-title">Interview Tips</h3>
+                            <h3 class="related-posts-title">Preparing For Interview</h3>
                             <div class="related-grid">
                                 <?php while ( $tips_links->have_posts() ) : $tips_links->the_post(); ?>
                                 <article class="related-card">
