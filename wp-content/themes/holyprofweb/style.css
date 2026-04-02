@@ -6153,10 +6153,12 @@ a.auto-link {
 }
 
 .single-featured-image--inline .post-image--generated {
-    object-fit: cover !important;
+    object-fit: contain !important;
     object-position: center center !important;
-    padding: 0;
-    background: none;
+    padding: 14px;
+    background:
+        radial-gradient(circle at top right, rgba(184, 134, 11, 0.14), transparent 32%),
+        linear-gradient(135deg, #111827 0%, #1f2937 100%);
 }
 
 .category-biography .single-header--refined,
@@ -8012,7 +8014,7 @@ a.auto-link {
     border-radius: 18px !important;
     overflow: hidden !important;
     border: 1px solid rgba(15, 23, 42, 0.08) !important;
-    background: var(--color-surface-2) !important;
+    background: #182131 !important;
 }
 
 .salary-card-logo {
@@ -8022,10 +8024,11 @@ a.auto-link {
 }
 
 .salary-card-logo.post-image--generated {
-    object-fit: cover !important;
+    object-fit: contain !important;
     object-position: center center !important;
-    background: none !important;
-    padding: 0 !important;
+    background: linear-gradient(180deg, #1b2435 0%, #141c2a 100%) !important;
+    padding: 6px !important;
+    box-sizing: border-box !important;
 }
 
 .salary-card-body {
