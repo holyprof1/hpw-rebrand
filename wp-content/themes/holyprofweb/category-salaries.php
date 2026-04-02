@@ -65,13 +65,13 @@ $fallback  = new WP_Query( array(
                 ?>
             <article class="salary-card">
                 <a href="<?php the_permalink(); ?>" class="salary-card-logo-wrap">
-                    <img src="<?php echo esc_url( $thumb ); ?>" alt="<?php echo esc_attr( $company ); ?>" class="salary-card-logo" loading="lazy" />
+                    <img src="<?php echo esc_url( $thumb ); ?>" alt="<?php echo esc_attr( $company ); ?>" class="<?php echo esc_attr( holyprofweb_get_post_image_class( $pid, 'salary-card-logo' ) ); ?>" loading="lazy" />
                 </a>
                 <div class="salary-card-body">
                     <div class="salary-card-top">
                         <div>
                             <p class="salary-card-title"><a href="<?php the_permalink(); ?>"><?php echo esc_html( $company ); ?></a></p>
-                            <span class="salary-card-role-label"><?php echo esc_html( $role ); ?></span>
+                            <?php if ( $role ) : ?><span class="salary-card-role-label"><?php echo esc_html( $role ); ?></span><?php endif; ?>
                         </div>
                         <div class="salary-card-score-wrap">
                             <?php if ( $rating > 0 ) : ?>
@@ -100,11 +100,10 @@ $fallback  = new WP_Query( array(
                     </div>
 
                     <div class="salary-card-badges">
-                        <span class="salary-badge"><?php esc_html_e( 'Company', 'holyprofweb' ); ?>: <?php echo esc_html( $company ); ?></span>
                         <span class="salary-badge"><?php esc_html_e( 'Currency', 'holyprofweb' ); ?>: <?php echo esc_html( $sal_curr ); ?></span>
                         <?php if ( $work_score ) : ?><span class="salary-badge"><?php esc_html_e( 'Work-Life', 'holyprofweb' ); ?>: <?php echo esc_html( number_format_i18n( (float) $work_score, 1 ) ); ?>/5</span><?php endif; ?>
-                        <?php if ( $excerpt ) : ?><span class="salary-badge salary-badge--excerpt"><?php echo esc_html( wp_trim_words( $excerpt, 18, '...' ) ); ?></span><?php endif; ?>
                     </div>
+                    <?php if ( $excerpt ) : ?><p class="salary-card-excerpt"><?php echo esc_html( wp_trim_words( $excerpt, 16, '...' ) ); ?></p><?php endif; ?>
                 </div>
                 <div class="salary-card-cta">
                     <a href="<?php the_permalink(); ?>" class="salary-card-view"><?php esc_html_e( 'View Page', 'holyprofweb' ); ?></a>
