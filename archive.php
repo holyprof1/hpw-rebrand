@@ -5,6 +5,8 @@
  */
 
 get_header();
+
+$card_size = holyprofweb_get_image_size_dimensions( 'holyprofweb-card' );
 ?>
 
 <div class="platform-wrap">
@@ -66,7 +68,7 @@ get_header();
                 <!-- Logo / thumbnail — always shown -->
                 <img src="<?php echo esc_url( $thumb ); ?>"
                      alt="<?php echo esc_attr( holyprofweb_get_decoded_post_title() ); ?>"
-                     class="<?php echo esc_attr( holyprofweb_get_post_image_class( get_the_ID(), 'tp-logo' ) ); ?>" loading="lazy" />
+                     class="<?php echo esc_attr( holyprofweb_get_post_image_class( get_the_ID(), 'tp-logo' ) ); ?>" loading="lazy" width="<?php echo esc_attr( $card_size['width'] ); ?>" height="<?php echo esc_attr( $card_size['height'] ); ?>" />
 
                 <!-- Body -->
                 <div class="tp-body">

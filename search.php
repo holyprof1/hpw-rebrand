@@ -7,6 +7,7 @@ get_header();
 
 $search_term = get_search_query();
 $found_posts = (int) $GLOBALS['wp_query']->found_posts;
+$card_size   = holyprofweb_get_image_size_dimensions( 'holyprofweb-card' );
 $latest      = new WP_Query( array(
     'posts_per_page' => 6,
     'post_status'    => 'publish',
@@ -66,7 +67,7 @@ if ( 0 === $found_posts && ! empty( $search_term ) ) {
                 ?>
             <article class="tp-card">
                 <a href="<?php the_permalink(); ?>" class="tp-logo-wrap">
-                    <img src="<?php echo esc_url( $thumb ); ?>" alt="<?php echo esc_attr( holyprofweb_get_decoded_post_title() ); ?>" class="tp-logo" loading="lazy" />
+                    <img src="<?php echo esc_url( $thumb ); ?>" alt="<?php echo esc_attr( holyprofweb_get_decoded_post_title() ); ?>" class="tp-logo" loading="lazy" width="<?php echo esc_attr( $card_size['width'] ); ?>" height="<?php echo esc_attr( $card_size['height'] ); ?>" />
                 </a>
                 <div class="tp-body">
                     <div class="tp-rating-row">
@@ -95,7 +96,7 @@ if ( 0 === $found_posts && ! empty( $search_term ) ) {
                 <?php if ( $latest->have_posts() ) : while ( $latest->have_posts() ) : $latest->the_post(); ?>
                 <article class="post-card">
                     <a href="<?php the_permalink(); ?>" class="post-card-thumb-link">
-                        <img src="<?php echo esc_url( holyprofweb_get_post_image_url( get_the_ID() ) ); ?>" alt="<?php echo esc_attr( holyprofweb_get_decoded_post_title() ); ?>" loading="lazy" class="<?php echo esc_attr( holyprofweb_get_post_image_class( get_the_ID() ) ); ?>" />
+                        <img src="<?php echo esc_url( holyprofweb_get_post_image_url( get_the_ID() ) ); ?>" alt="<?php echo esc_attr( holyprofweb_get_decoded_post_title() ); ?>" loading="lazy" width="<?php echo esc_attr( $card_size['width'] ); ?>" height="<?php echo esc_attr( $card_size['height'] ); ?>" class="<?php echo esc_attr( holyprofweb_get_post_image_class( get_the_ID() ) ); ?>" />
                     </a>
                     <div class="post-card-body">
                         <h3 class="post-card-title"><a href="<?php the_permalink(); ?>"><?php holyprofweb_the_decoded_title(); ?></a></h3>

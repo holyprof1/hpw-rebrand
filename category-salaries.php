@@ -8,12 +8,18 @@ get_header();
 $term      = get_queried_object();
 $term_name = $term ? $term->name : __( 'Salaries', 'holyprofweb' );
 $found     = (int) $GLOBALS['wp_query']->found_posts;
-$fallback  = new WP_Query( array(
-    'posts_per_page' => 6,
-    'post_status'    => 'publish',
-    'category_name'  => 'salaries',
-    'no_found_rows'  => true,
-) );
+$salary_focus_label = $term instanceof WP_Term && $term->description
+    ? wp_strip_all_tags( $term->description )
+    : __( 'Local, remote, and role-specific pay signals', 'holyprofweb' );
+$card_size = holyprofweb_get_image_size_dimensions( 'holyprofweb-card' );
+$fallback  = new WP_Query(
+    array(
+        'posts_per_page' => 6,
+        'post_status'    => 'publish',
+        'category_name'  => 'salaries',
+        'no_found_rows'  => true,
+    )
+);
 ?>
 
 <div class="platform-wrap">
@@ -22,7 +28,7 @@ $fallback  = new WP_Query( array(
     <main id="primary" class="site-main platform-main">
         <header class="archive-header archive-header--salary">
             <div class="archive-header-eyebrow">
-                <span class="archive-header-icon" aria-hidden="true">💰</span>
+                <span class="archive-header-icon" aria-hidden="true">&#128176;</span>
                 <span class="archive-header-category-label"><?php esc_html_e( 'Salary Intelligence', 'holyprofweb' ); ?></span>
             </div>
             <h1 class="archive-title"><?php echo esc_html( $term_name ); ?></h1>
@@ -37,7 +43,7 @@ $fallback  = new WP_Query( array(
                 <span class="archive-header-stat">
                     <strong><?php esc_html_e( 'Updated regularly', 'holyprofweb' ); ?></strong>
                 </span>
-                <span class="archive-header-stat archive-header-stat--tag"><?php esc_html_e( 'Nigeria · Remote · Tech Roles', 'holyprofweb' ); ?></span>
+                <span class="archive-header-stat archive-header-stat--tag"><?php echo esc_html( $salary_focus_label ); ?></span>
             </div>
         </header>
 
@@ -59,13 +65,13 @@ $fallback  = new WP_Query( array(
                 $role       = get_post_meta( $pid, '_hpw_salary_role', true ) ?: trim( preg_replace( '/\s+salary.*$/i', '', $company ) );
                 $sal_min    = get_post_meta( $pid, '_hpw_salary_min', true );
                 $sal_max    = get_post_meta( $pid, '_hpw_salary_max', true );
-                $sal_curr   = get_post_meta( $pid, '_hpw_salary_currency', true ) ?: '₦';
+                $sal_curr   = get_post_meta( $pid, '_hpw_salary_currency', true ) ?: 'NGN';
                 $sal_period = get_post_meta( $pid, '_hpw_salary_period', true );
                 $work_score = get_post_meta( $pid, '_hpw_work_score', true );
                 ?>
             <article class="salary-card">
                 <a href="<?php the_permalink(); ?>" class="salary-card-logo-wrap">
-                    <img src="<?php echo esc_url( $thumb ); ?>" alt="<?php echo esc_attr( $company ); ?>" class="<?php echo esc_attr( holyprofweb_get_post_image_class( $pid, 'salary-card-logo' ) ); ?>" loading="lazy" />
+                    <img src="<?php echo esc_url( $thumb ); ?>" alt="<?php echo esc_attr( $company ); ?>" class="<?php echo esc_attr( holyprofweb_get_post_image_class( $pid, 'salary-card-logo' ) ); ?>" loading="lazy" width="<?php echo esc_attr( $card_size['width'] ); ?>" height="<?php echo esc_attr( $card_size['height'] ); ?>" />
                 </a>
                 <div class="salary-card-body">
                     <div class="salary-card-top">
@@ -86,11 +92,11 @@ $fallback  = new WP_Query( array(
                     <div class="salary-card-range-row">
                         <span class="salary-card-range">
                             <?php
-                            if ( $sal_min && $sal_max ) {
+                            if ( '' !== (string) $sal_min && '' !== (string) $sal_max ) {
                                 echo esc_html( $sal_curr . number_format_i18n( $sal_min ) . ' - ' . $sal_curr . number_format_i18n( $sal_max ) . $sal_period );
-                            } elseif ( $sal_min ) {
+                            } elseif ( '' !== (string) $sal_min ) {
                                 echo esc_html( $sal_curr . number_format_i18n( $sal_min ) . $sal_period );
-                            } elseif ( $sal_max ) {
+                            } elseif ( '' !== (string) $sal_max ) {
                                 echo esc_html( $sal_curr . number_format_i18n( $sal_max ) . $sal_period );
                             } else {
                                 esc_html_e( 'Salary range pending update', 'holyprofweb' );
@@ -121,7 +127,7 @@ $fallback  = new WP_Query( array(
                 <?php if ( $fallback->have_posts() ) : while ( $fallback->have_posts() ) : $fallback->the_post(); ?>
                 <article class="post-card">
                     <a href="<?php the_permalink(); ?>" class="post-card-thumb-link">
-                        <img src="<?php echo esc_url( holyprofweb_get_post_image_url( get_the_ID() ) ); ?>" alt="<?php echo esc_attr( holyprofweb_get_decoded_post_title() ); ?>" loading="lazy" />
+                        <img src="<?php echo esc_url( holyprofweb_get_post_image_url( get_the_ID() ) ); ?>" alt="<?php echo esc_attr( holyprofweb_get_decoded_post_title() ); ?>" loading="lazy" width="<?php echo esc_attr( $card_size['width'] ); ?>" height="<?php echo esc_attr( $card_size['height'] ); ?>" />
                     </a>
                     <div class="post-card-body">
                         <h3 class="post-card-title"><a href="<?php the_permalink(); ?>"><?php holyprofweb_the_decoded_title(); ?></a></h3>
@@ -130,7 +136,7 @@ $fallback  = new WP_Query( array(
                 </article>
                 <?php endwhile; wp_reset_postdata(); else : ?>
                 <div class="post-card post-card--demo">
-                    <div class="post-card-thumb"><img src="<?php echo esc_url( holyprofweb_placeholder_url() ); ?>" alt="" loading="lazy" /></div>
+                    <div class="post-card-thumb"><img src="<?php echo esc_url( holyprofweb_placeholder_url() ); ?>" alt="" loading="lazy" width="<?php echo esc_attr( $card_size['width'] ); ?>" height="<?php echo esc_attr( $card_size['height'] ); ?>" /></div>
                     <div class="post-card-body">
                         <h3 class="post-card-title"><?php esc_html_e( 'Salary pages will appear here once content is published.', 'holyprofweb' ); ?></h3>
                     </div>

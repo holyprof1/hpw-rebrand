@@ -28,12 +28,16 @@ if ( isset( $_POST['hpw_contact_nonce'] ) ) {
 
         if ( empty( $errors ) ) {
             $to      = get_option( 'hpw_contact_email', get_option( 'admin_email' ) );
-            $subject_line = '[HPW Contact] ' . $subject;
+            $safe_name = trim( preg_replace( '/[\r\n]+/', ' ', $name ) );
+            $safe_email = sanitize_email( $email );
+            $subject_line = '[HPW Contact] ' . trim( preg_replace( '/[\r\n]+/', ' ', $subject ) );
             $body    = "Name: {$name}\nEmail: {$email}\n\nMessage:\n{$message}";
             $headers = array(
                 'Content-Type: text/plain; charset=UTF-8',
-                'Reply-To: ' . $name . ' <' . $email . '>',
             );
+            if ( $safe_name && is_email( $safe_email ) ) {
+                $headers[] = sprintf( 'Reply-To: %s <%s>', $safe_name, $safe_email );
+            }
 
             $success = wp_mail( $to, $subject_line, $body, $headers );
             if ( ! $success ) {

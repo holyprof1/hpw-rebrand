@@ -130,6 +130,30 @@ function holyprofweb_get_hreflang_urls() {
     return $deduped;
 }
 
+function holyprofweb_get_archive_share_image( $context = null ) {
+    if ( is_category() ) {
+        $term = $context instanceof WP_Term ? $context : get_queried_object();
+        if ( $term instanceof WP_Term ) {
+            $posts = get_posts(
+                array(
+                    'post_type'      => 'post',
+                    'post_status'    => 'publish',
+                    'posts_per_page' => 1,
+                    'category__in'   => array( (int) $term->term_id ),
+                    'fields'         => 'ids',
+                    'no_found_rows'  => true,
+                )
+            );
+
+            if ( ! empty( $posts ) ) {
+                return holyprofweb_get_post_image_url( (int) $posts[0], 'full' );
+            }
+        }
+    }
+
+    return holyprofweb_placeholder_url();
+}
+
 function holyprofweb_seo_head() {
     if ( is_admin() ) return;
 
@@ -150,17 +174,17 @@ function holyprofweb_seo_head() {
         $raw_desc = $post->description ?: sprintf( '%s listings on %s', $post->name, $site_name );
         $og_title = sprintf( '%s — %s', $post->name, $site_name );
         $og_url   = get_category_link( $post->term_id );
-        $og_img   = ''; $rating = 0; $r_count = 0;
+        $og_img   = holyprofweb_get_archive_share_image( $post ); $rating = 0; $r_count = 0;
     } elseif ( is_search() ) {
         $raw_desc = sprintf( 'Search results for "%s" on %s', get_search_query(), $site_name );
         $og_title = sprintf( 'Search: %s — %s', get_search_query(), $site_name );
         $og_url   = get_search_link( get_search_query() );
-        $og_img   = ''; $rating = 0; $r_count = 0;
+        $og_img   = holyprofweb_placeholder_url(); $rating = 0; $r_count = 0;
     } else {
         $raw_desc = get_bloginfo( 'description' );
         $og_title = $site_name;
         $og_url   = $site_url;
-        $og_img   = ''; $rating = 0; $r_count = 0;
+        $og_img   = holyprofweb_placeholder_url(); $rating = 0; $r_count = 0;
     }
 
     $description = esc_attr( mb_substr( wp_strip_all_tags( $raw_desc ), 0, 160 ) );
@@ -299,9 +323,7 @@ function holyprofweb_seo_head() {
         echo '<script type="application/ld+json">' . wp_json_encode( $breadcrumb, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE ) . '</script>' . "\n";
     }
 
-    if ( is_singular() ) {
-        echo '<link rel="canonical" href="' . esc_url( get_permalink() ) . '" />' . "\n";
-    }
+    echo '<link rel="canonical" href="' . esc_url( holyprofweb_get_current_seo_url() ) . '" />' . "\n";
     foreach ( $hreflangs as $entry ) {
         echo '<link rel="alternate" hreflang="' . esc_attr( $entry['hreflang'] ) . '" href="' . esc_url( $entry['url'] ) . '" />' . "\n";
     }

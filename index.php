@@ -10,6 +10,7 @@ $is_blog_archive    = (bool) get_query_var( 'hpw_blog_archive' );
 $is_reports_archive = (bool) get_query_var( 'hpw_reports_archive' );
 $is_virtual_archive = $is_blog_archive || $is_reports_archive;
 $found_posts        = (int) $GLOBALS['wp_query']->found_posts;
+$card_size          = holyprofweb_get_image_size_dimensions( 'holyprofweb-card' );
 
 if ( $is_blog_archive ) {
     $archive_title       = __( 'Blog', 'holyprofweb' );
@@ -70,7 +71,7 @@ if ( $is_blog_archive ) {
                 <img src="<?php echo esc_url( $thumb ); ?>"
                     alt="<?php echo esc_attr( holyprofweb_get_decoded_post_title() ); ?>"
                     class="<?php echo esc_attr( holyprofweb_get_post_image_class( get_the_ID(), 'tp-logo' ) ); ?>"
-                    loading="lazy" />
+                    loading="lazy" width="<?php echo esc_attr( $card_size['width'] ); ?>" height="<?php echo esc_attr( $card_size['height'] ); ?>" />
 
                 <div class="tp-body">
                     <p class="tp-title"><?php holyprofweb_the_decoded_title(); ?></p>

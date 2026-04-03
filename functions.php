@@ -487,6 +487,27 @@ function holyprofweb_thumbnail( $size = 'holyprofweb-card', $link = true ) {
     echo $link ? '</a>' : '</div>';
 }
 
+function holyprofweb_get_image_size_dimensions( $size = 'holyprofweb-card' ) {
+    $registered = function_exists( 'wp_get_registered_image_subsizes' ) ? wp_get_registered_image_subsizes() : array();
+
+    if ( isset( $registered[ $size ] ) ) {
+        return array(
+            'width'  => max( 1, (int) $registered[ $size ]['width'] ),
+            'height' => max( 1, (int) $registered[ $size ]['height'] ),
+        );
+    }
+
+    switch ( $size ) {
+        case 'holyprofweb-thumb':
+            return array( 'width' => 360, 'height' => 360 );
+        case 'full':
+            return array( 'width' => 1200, 'height' => 630 );
+        case 'holyprofweb-card':
+        default:
+            return array( 'width' => 640, 'height' => 480 );
+    }
+}
+
 
 // =========================================
 // PERFORMANCE — CLEAN UP HEAD

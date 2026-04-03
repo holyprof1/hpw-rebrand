@@ -10,6 +10,7 @@ $total_reviews    = (int) get_comments( array( 'type' => 'review', 'status' => '
 $companies_term   = get_term_by( 'slug', 'companies', 'category' );
 $total_companies  = $companies_term && ! is_wp_error( $companies_term ) ? (int) $companies_term->count : 0;
 $trending_searches = holyprofweb_get_trending_searches( 8 );
+$card_size        = holyprofweb_get_image_size_dimensions( 'holyprofweb-card' );
 
 $latest_query = new WP_Query( array(
     'posts_per_page' => 8,
@@ -147,7 +148,7 @@ $topic_descriptions = array(
                 ?>
                 <article class="post-card post-card--carousel">
                     <a href="<?php the_permalink(); ?>" class="post-card-thumb-link">
-                        <img src="<?php echo esc_url( holyprofweb_get_post_card_image_url( get_the_ID() ) ); ?>" alt="<?php echo esc_attr( holyprofweb_get_decoded_post_title() ); ?>" loading="lazy" class="<?php echo esc_attr( holyprofweb_get_post_image_class( get_the_ID() ) ); ?>" />
+                        <img src="<?php echo esc_url( holyprofweb_get_post_card_image_url( get_the_ID() ) ); ?>" alt="<?php echo esc_attr( holyprofweb_get_decoded_post_title() ); ?>" loading="lazy" width="<?php echo esc_attr( $card_size['width'] ); ?>" height="<?php echo esc_attr( $card_size['height'] ); ?>" class="<?php echo esc_attr( holyprofweb_get_post_image_class( get_the_ID() ) ); ?>" />
                     </a>
                     <div class="post-card-body">
                         <?php if ( ! empty( $cats ) ) : ?>
@@ -167,7 +168,7 @@ $topic_descriptions = array(
                     ) as $fallback ) :
                 ?>
                 <article class="post-card post-card--carousel post-card--demo">
-                    <div class="post-card-thumb"><img src="<?php echo esc_url( holyprofweb_placeholder_url() ); ?>" alt="" loading="lazy" /></div>
+                    <div class="post-card-thumb"><img src="<?php echo esc_url( holyprofweb_placeholder_url() ); ?>" alt="" loading="lazy" width="<?php echo esc_attr( $card_size['width'] ); ?>" height="<?php echo esc_attr( $card_size['height'] ); ?>" /></div>
                     <div class="post-card-body">
                         <span class="post-card-category"><?php echo esc_html( $fallback['category'] ); ?></span>
                         <h3 class="post-card-title"><?php echo esc_html( $fallback['title'] ); ?></h3>
@@ -223,7 +224,7 @@ $topic_descriptions = array(
                 ?>
                 <article class="post-card">
                     <a href="<?php the_permalink(); ?>" class="post-card-thumb-link">
-                        <img src="<?php echo esc_url( holyprofweb_get_post_card_image_url( get_the_ID() ) ); ?>" alt="<?php echo esc_attr( holyprofweb_get_decoded_post_title() ); ?>" loading="lazy" class="<?php echo esc_attr( holyprofweb_get_post_image_class( get_the_ID() ) ); ?>" />
+                        <img src="<?php echo esc_url( holyprofweb_get_post_card_image_url( get_the_ID() ) ); ?>" alt="<?php echo esc_attr( holyprofweb_get_decoded_post_title() ); ?>" loading="lazy" width="<?php echo esc_attr( $card_size['width'] ); ?>" height="<?php echo esc_attr( $card_size['height'] ); ?>" class="<?php echo esc_attr( holyprofweb_get_post_image_class( get_the_ID() ) ); ?>" />
                     </a>
                     <div class="post-card-body">
                         <div class="post-card-meta">
@@ -313,7 +314,7 @@ $topic_descriptions = array(
                 ?>
                 <article class="post-card">
                     <a href="<?php the_permalink(); ?>" class="post-card-thumb-link">
-                        <img src="<?php echo esc_url( holyprofweb_get_post_card_image_url( get_the_ID() ) ); ?>" alt="<?php echo esc_attr( holyprofweb_get_decoded_post_title() ); ?>" loading="lazy" class="<?php echo esc_attr( holyprofweb_get_post_image_class( get_the_ID() ) ); ?>" />
+                        <img src="<?php echo esc_url( holyprofweb_get_post_card_image_url( get_the_ID() ) ); ?>" alt="<?php echo esc_attr( holyprofweb_get_decoded_post_title() ); ?>" loading="lazy" width="<?php echo esc_attr( $card_size['width'] ); ?>" height="<?php echo esc_attr( $card_size['height'] ); ?>" class="<?php echo esc_attr( holyprofweb_get_post_image_class( get_the_ID() ) ); ?>" />
                     </a>
                     <div class="post-card-body">
                         <span class="post-card-category"><?php esc_html_e( 'Reports', 'holyprofweb' ); ?></span>
@@ -325,24 +326,24 @@ $topic_descriptions = array(
                     endwhile;
                     wp_reset_postdata();
                 else :
-                    $fallback_posts = new WP_Query( array(
+                    $fallback_posts = get_posts( array(
                         'posts_per_page' => 4,
                         'post_status'    => 'publish',
                         'no_found_rows'  => true,
                     ) );
-                    while ( $fallback_posts->have_posts() ) :
-                        $fallback_posts->the_post();
+                    foreach ( $fallback_posts as $post ) :
+                        setup_postdata( $post );
                 ?>
                 <article class="post-card">
                     <a href="<?php the_permalink(); ?>" class="post-card-thumb-link">
-                        <img src="<?php echo esc_url( holyprofweb_get_post_card_image_url( get_the_ID() ) ); ?>" alt="<?php echo esc_attr( holyprofweb_get_decoded_post_title() ); ?>" loading="lazy" class="<?php echo esc_attr( holyprofweb_get_post_image_class( get_the_ID() ) ); ?>" />
+                        <img src="<?php echo esc_url( holyprofweb_get_post_card_image_url( get_the_ID() ) ); ?>" alt="<?php echo esc_attr( holyprofweb_get_decoded_post_title() ); ?>" loading="lazy" width="<?php echo esc_attr( $card_size['width'] ); ?>" height="<?php echo esc_attr( $card_size['height'] ); ?>" class="<?php echo esc_attr( holyprofweb_get_post_image_class( get_the_ID() ) ); ?>" />
                     </a>
                     <div class="post-card-body">
                         <span class="post-card-category"><?php esc_html_e( 'Latest', 'holyprofweb' ); ?></span>
                         <h3 class="post-card-title"><a href="<?php the_permalink(); ?>"><?php holyprofweb_the_decoded_title(); ?></a></h3>
                     </div>
                 </article>
-                <?php endwhile; wp_reset_postdata(); endif; ?>
+                <?php endforeach; wp_reset_postdata(); endif; ?>
             </div>
         </section>
 

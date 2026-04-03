@@ -9,9 +9,21 @@ get_header();
 $submitted   = false;
 $error       = '';
 $nonce_field = 'holyprofweb_submit_review';
+$allowed_prefill_categories = array( 'reviews', 'companies', 'reports' );
+$allowed_prefill_modes      = array( 'report', 'listing' );
 $prefill_category = isset( $_GET['submit_category'] ) ? sanitize_key( wp_unslash( $_GET['submit_category'] ) ) : '';
 $prefill_name     = isset( $_GET['submit_name'] ) ? sanitize_text_field( wp_unslash( $_GET['submit_name'] ) ) : '';
 $prefill_mode     = isset( $_GET['mode'] ) ? sanitize_key( wp_unslash( $_GET['mode'] ) ) : '';
+
+if ( ! in_array( $prefill_category, $allowed_prefill_categories, true ) ) {
+    $prefill_category = '';
+}
+
+if ( ! in_array( $prefill_mode, $allowed_prefill_modes, true ) ) {
+    $prefill_mode = '';
+}
+
+$prefill_name = mb_substr( trim( $prefill_name ), 0, 120 );
 
 if ( isset( $_POST[ $nonce_field ] ) && wp_verify_nonce(
     sanitize_text_field( wp_unslash( $_POST[ $nonce_field ] ) ),
