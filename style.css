@@ -10540,13 +10540,22 @@ html[data-theme="light"] .platform-wrap--single .single-header-copy {
     }
 }
 
-/* Final homepage image lock: use full visual area while remote-image upgrades run. */
+/* Final homepage card image cleanup: match the safe related-card behavior. */
+.home .front-section[aria-labelledby="trending-now-heading"] .post-carousel > .post-card,
+.home .front-section[aria-labelledby="just-added-heading"] .post-carousel > .post-card,
+.home .front-section[aria-labelledby="guides-heading"] .post-grid--compact > .post-card {
+    overflow: hidden !important;
+    contain: paint;
+}
+
 .home .front-section[aria-labelledby="trending-now-heading"] .post-card-thumb-link,
 .home .front-section[aria-labelledby="trending-now-heading"] .post-card-thumb,
 .home .front-section[aria-labelledby="just-added-heading"] .post-card-thumb-link,
 .home .front-section[aria-labelledby="just-added-heading"] .post-card-thumb,
 .home .front-section[aria-labelledby="guides-heading"] .post-card-thumb-link,
 .home .front-section[aria-labelledby="guides-heading"] .post-card-thumb {
+    display: block !important;
+    overflow: hidden !important;
     background: #182131 !important;
 }
 
@@ -10556,7 +10565,9 @@ html[data-theme="light"] .platform-wrap--single .single-header-copy {
 .home .front-section[aria-labelledby="just-added-heading"] .post-card-thumb img,
 .home .front-section[aria-labelledby="guides-heading"] .post-card-thumb-link img,
 .home .front-section[aria-labelledby="guides-heading"] .post-card-thumb img {
+    display: block !important;
     width: 100% !important;
+    max-width: 100% !important;
     height: 100% !important;
     object-fit: cover !important;
     object-position: center center !important;
@@ -10570,7 +10581,6 @@ html[data-theme="light"] .platform-wrap--single .single-header-copy {
 .home .front-section[aria-labelledby="just-added-heading"] .post-card-thumb img.post-image--generated,
 .home .front-section[aria-labelledby="guides-heading"] .post-card-thumb-link img.post-image--generated,
 .home .front-section[aria-labelledby="guides-heading"] .post-card-thumb img.post-image--generated {
-    object-fit: cover !important;
     object-position: center top !important;
 }
 
