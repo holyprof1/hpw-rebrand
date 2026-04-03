@@ -3680,6 +3680,33 @@ function holyprofweb_brand_attachment_image( $attachment_id ) {
 /**
  * On save_post: if no thumbnail, try OG image > Clearbit logo > generated image.
  */
+function holyprofweb_should_defer_featured_image_generation() {
+    return defined( 'REST_REQUEST' ) && REST_REQUEST;
+}
+
+function holyprofweb_schedule_featured_image_generation( $post_id ) {
+    $post_id = (int) $post_id;
+    if ( $post_id <= 0 ) {
+        return;
+    }
+
+    if ( wp_next_scheduled( 'holyprofweb_generate_featured_image_async', array( $post_id ) ) ) {
+        return;
+    }
+
+    wp_schedule_single_event( time() + 15, 'holyprofweb_generate_featured_image_async', array( $post_id ) );
+}
+
+function holyprofweb_run_scheduled_featured_image_generation( $post_id ) {
+    $post = get_post( $post_id );
+    if ( ! $post instanceof WP_Post ) {
+        return;
+    }
+
+    holyprofweb_auto_featured_image( (int) $post_id, $post, true );
+}
+add_action( 'holyprofweb_generate_featured_image_async', 'holyprofweb_run_scheduled_featured_image_generation' );
+
 function holyprofweb_auto_featured_image( $post_id, $post, $update ) {
     // Guards: skip revisions, autosaves, non-posts, already has thumbnail
     if ( wp_is_post_revision( $post_id ) || wp_is_post_autosave( $post_id ) ) return;
@@ -3691,6 +3718,11 @@ function holyprofweb_auto_featured_image( $post_id, $post, $update ) {
     $cached_remote = get_post_meta( $post_id, '_holyprofweb_remote_image_url', true );
     $cached_gen    = get_post_meta( $post_id, '_holyprofweb_gen_image_url', true );
     if ( $cached_remote || $cached_gen ) return;
+
+    if ( holyprofweb_should_defer_featured_image_generation() ) {
+        holyprofweb_schedule_featured_image_generation( $post_id );
+        return;
+    }
 
     $image_url = holyprofweb_maybe_get_remote_post_image( $post_id, $post );
     if ( $image_url ) {

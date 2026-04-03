@@ -468,7 +468,7 @@ get_header();
                             <div class="review-form-row">
                                 <div class="review-form-field">
                                     <label class="review-form-label" for="reviewer-name">Your Name <span class="review-required">*</span></label>
-                                    <input type="text" id="reviewer-name" name="reviewer_name" class="review-form-input" placeholder="e.g. John D." autocomplete="name" required />
+                                    <input type="text" id="reviewer-name" name="reviewer_name" class="review-form-input" placeholder="David Mark" autocomplete="name" required />
                                 </div>
                                 <div class="review-form-field">
                                     <label class="review-form-label" for="reviewer-email">Email <span class="review-required">*</span></label>
