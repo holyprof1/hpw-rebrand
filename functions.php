@@ -3059,12 +3059,27 @@ function holyprofweb_is_placeholder_post( $post_id ) {
     return (bool) get_post_meta( $post_id, '_hpw_placeholder_post', true );
 }
 
+function holyprofweb_post_has_generated_thumbnail_attachment( $post_id ) {
+    $thumbnail_id = (int) get_post_thumbnail_id( $post_id );
+    if ( $thumbnail_id <= 0 ) {
+        return false;
+    }
+
+    $file = (string) get_post_meta( $thumbnail_id, '_wp_attached_file', true );
+    if ( $file && false !== stripos( wp_basename( $file ), 'hpw-generated-' ) ) {
+        return true;
+    }
+
+    $url = wp_get_attachment_url( $thumbnail_id );
+    return $url && false !== stripos( $url, 'hpw-generated-' );
+}
+
 function holyprofweb_post_uses_generated_image_fallback( $post_id ) {
     if ( holyprofweb_is_placeholder_post( $post_id ) ) {
         return true;
     }
 
-    if ( ! get_post_meta( $post_id, '_holyprofweb_gen_image_url', true ) ) {
+    if ( ! get_post_meta( $post_id, '_holyprofweb_gen_image_url', true ) && ! holyprofweb_post_has_generated_thumbnail_attachment( $post_id ) ) {
         return false;
     }
 
@@ -3123,6 +3138,13 @@ function holyprofweb_get_post_card_image_url( $post_id ) {
         return esc_url_raw( $remote_cached );
     }
 
+    if ( holyprofweb_post_has_generated_thumbnail_attachment( $post_id ) ) {
+        $full_thumb_url = get_the_post_thumbnail_url( $post_id, 'full' );
+        if ( $full_thumb_url ) {
+            return esc_url_raw( $full_thumb_url );
+        }
+    }
+
     if ( $generated_url && $post && function_exists( 'imagecreatetruecolor' ) && holyprofweb_generated_image_version() !== $generated_ver ) {
         holyprofweb_generate_post_image_modern( $post_id, $post );
         $generated_url = get_post_meta( $post_id, '_holyprofweb_gen_image_url', true );
@@ -3154,7 +3176,7 @@ function holyprofweb_get_post_image_url( $post_id, $size = 'holyprofweb-card' ) 
     }
 
     $image_size = $size;
-    if ( $generated_url || holyprofweb_is_placeholder_post( $post_id ) ) {
+    if ( $generated_url || holyprofweb_is_placeholder_post( $post_id ) || holyprofweb_post_has_generated_thumbnail_attachment( $post_id ) ) {
         $image_size = 'full';
     }
 
