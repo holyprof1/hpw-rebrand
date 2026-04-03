@@ -10660,6 +10660,18 @@ html[data-theme="light"] .platform-wrap--single .single-header-copy {
     display: block !important;
 }
 
+.home .front-section[aria-labelledby="trending-now-heading"] .post-card-thumb-link img.post-image--generated,
+.home .front-section[aria-labelledby="trending-now-heading"] .post-card-thumb img.post-image--generated,
+.home .front-section[aria-labelledby="just-added-heading"] .post-card-thumb-link img.post-image--generated,
+.home .front-section[aria-labelledby="just-added-heading"] .post-card-thumb img.post-image--generated {
+    object-fit: contain !important;
+    object-position: center center !important;
+    padding: 12px !important;
+    background:
+        radial-gradient(circle at top right, rgba(184, 134, 11, 0.12), transparent 32%),
+        linear-gradient(135deg, #111827 0%, #1f2937 100%) !important;
+}
+
 .home .front-section[aria-labelledby="trending-now-heading"] .post-card-body,
 .home .front-section[aria-labelledby="just-added-heading"] .post-card-body {
     display: grid !important;
