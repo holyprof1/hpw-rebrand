@@ -3534,6 +3534,30 @@ function holyprofweb_pick_working_remote_image_url( $candidates ) {
     return '';
 }
 
+function holyprofweb_get_apple_touch_icon_url( $domain ) {
+    if ( ! $domain || ! get_option( 'hpw_enable_remote_image_fetch', 1 ) ) {
+        return '';
+    }
+
+    $candidates = array(
+        'https://' . $domain . '/apple-touch-icon.png',
+        'https://' . $domain . '/apple-touch-icon-precomposed.png',
+        'https://' . $domain . '/apple-app-site-association',
+    );
+
+    foreach ( $candidates as $url ) {
+        $response = wp_remote_head( $url, array( 'timeout' => 5, 'redirection' => 3 ) );
+        if ( ! is_wp_error( $response ) && 200 === (int) wp_remote_retrieve_response_code( $response ) ) {
+            $content_type = wp_remote_retrieve_header( $response, 'content-type' );
+            if ( strpos( $content_type, 'image' ) !== false || strpos( $url, '.png' ) !== false ) {
+                return $url;
+            }
+        }
+    }
+
+    return '';
+}
+
 function holyprofweb_get_clearbit_logo_url( $domain ) {
     if ( ! $domain || ! get_option( 'hpw_enable_remote_image_fetch', 1 ) ) {
         return '';
@@ -3567,16 +3591,19 @@ function holyprofweb_maybe_get_remote_post_image( $post_id, $post = null ) {
     $image_url  = apply_filters( 'holyprofweb_automation_image_url', '', $post_id, $post, $domain, $source_url );
 
     if ( ! $image_url && $source_url ) {
-        $image_url = holyprofweb_pick_working_remote_image_url( holyprofweb_get_site_visual_candidates( $source_url ) );
-    }
-    if ( ! $image_url && $source_url ) {
         $image_url = holyprofweb_fetch_og_image_url( $source_url );
     }
     if ( ! $image_url && $source_url ) {
-        $image_url = holyprofweb_get_landing_page_capture_url( $source_url );
+        $image_url = holyprofweb_pick_working_remote_image_url( holyprofweb_get_site_visual_candidates( $source_url ) );
+    }
+    if ( ! $image_url && $domain ) {
+        $image_url = holyprofweb_get_apple_touch_icon_url( $domain );
     }
     if ( ! $image_url && $domain ) {
         $image_url = holyprofweb_get_clearbit_logo_url( $domain );
+    }
+    if ( ! $image_url && $source_url ) {
+        $image_url = holyprofweb_get_landing_page_capture_url( $source_url );
     }
 
     if ( $image_url ) {
@@ -3692,6 +3719,15 @@ function holyprofweb_auto_featured_image( $post_id, $post, $update ) {
     $cached_gen    = get_post_meta( $post_id, '_holyprofweb_gen_image_url', true );
     if ( $cached_remote || $cached_gen ) return;
 
+    // During a REST API request (Gutenberg publish), defer image work so the
+    // JSON response is never corrupted by slow HTTP calls or PHP output.
+    if ( defined( 'REST_REQUEST' ) && REST_REQUEST ) {
+        if ( ! wp_next_scheduled( 'holyprofweb_deferred_auto_image', array( $post_id ) ) ) {
+            wp_schedule_single_event( time() + 5, 'holyprofweb_deferred_auto_image', array( $post_id ) );
+        }
+        return;
+    }
+
     $image_url = holyprofweb_maybe_get_remote_post_image( $post_id, $post );
     if ( $image_url ) {
         holyprofweb_attach_remote_image_to_post( $image_url, $post_id, $post->post_title );
@@ -3702,6 +3738,22 @@ function holyprofweb_auto_featured_image( $post_id, $post, $update ) {
     }
 }
 add_action( 'save_post', 'holyprofweb_auto_featured_image', 20, 3 );
+
+function holyprofweb_run_deferred_auto_image( $post_id ) {
+    $post = get_post( $post_id );
+    if ( ! $post || has_post_thumbnail( $post_id ) ) return;
+    if ( get_post_meta( $post_id, '_holyprofweb_no_autothumb', true ) ) return;
+
+    $image_url = holyprofweb_maybe_get_remote_post_image( $post_id, $post );
+    if ( $image_url ) {
+        holyprofweb_attach_remote_image_to_post( $image_url, $post_id, $post->post_title );
+    }
+
+    if ( ! has_post_thumbnail( $post_id ) ) {
+        holyprofweb_generate_post_image_modern( $post_id, $post );
+    }
+}
+add_action( 'holyprofweb_deferred_auto_image', 'holyprofweb_run_deferred_auto_image' );
 
 /**
  * GD fallback: generate a branded image with title + category text.
