@@ -9307,3 +9307,135 @@ body.hpw-no-copy label {
         max-width: clamp(170px, 54vw, 220px) !important;
     }
 }
+
+/* Local stabilization: blog cards should stay vertical on desktop instead of collapsing into a tiny thumb + text row */
+.home .front-section[aria-labelledby="guides-heading"] .post-grid--compact {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 22px !important;
+}
+
+.home .front-section[aria-labelledby="guides-heading"] .post-card {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 0 !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+    border-radius: 26px !important;
+}
+
+.home .front-section[aria-labelledby="guides-heading"] .post-card-thumb-link,
+.home .front-section[aria-labelledby="guides-heading"] .post-card-thumb {
+    display: block !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    height: 214px !important;
+    min-height: 214px !important;
+    border-radius: 0 !important;
+    overflow: hidden !important;
+    background:
+        radial-gradient(circle at top right, rgba(196, 145, 0, 0.16), transparent 32%),
+        linear-gradient(180deg, #231725 0%, #1a1320 100%) !important;
+}
+
+.home .front-section[aria-labelledby="guides-heading"] .post-card-thumb-link img,
+.home .front-section[aria-labelledby="guides-heading"] .post-card-thumb img,
+.home .front-section[aria-labelledby="guides-heading"] .post-card-thumb-link img.post-image--generated,
+.home .front-section[aria-labelledby="guides-heading"] .post-card-thumb img.post-image--generated {
+    display: block !important;
+    width: 100% !important;
+    height: 100% !important;
+    min-height: 100% !important;
+    object-fit: cover !important;
+    object-position: center top !important;
+    background: transparent !important;
+    padding: 0 !important;
+    border-radius: 0 !important;
+}
+
+.home .front-section[aria-labelledby="guides-heading"] .post-card-body {
+    display: grid !important;
+    gap: 14px !important;
+    padding: 18px 20px 22px !important;
+    min-width: 0 !important;
+}
+
+.home .front-section[aria-labelledby="guides-heading"] .post-card-title {
+    margin: 0 !important;
+    font-size: clamp(1.1rem, 1.7vw, 1.35rem) !important;
+    line-height: 1.28 !important;
+}
+
+.home .front-section[aria-labelledby="guides-heading"] .post-card-title a {
+    display: -webkit-box !important;
+    -webkit-box-orient: vertical !important;
+    -webkit-line-clamp: 2 !important;
+    overflow: hidden !important;
+}
+
+.home .front-section[aria-labelledby="guides-heading"] .post-card-excerpt {
+    display: -webkit-box !important;
+    -webkit-box-orient: vertical !important;
+    -webkit-line-clamp: 3 !important;
+    overflow: hidden !important;
+    margin: 0 !important;
+    line-height: 1.6 !important;
+}
+
+@media (max-width: 900px) {
+    .home .front-section[aria-labelledby="guides-heading"] .post-grid--compact {
+        grid-template-columns: 1fr !important;
+        gap: 16px !important;
+    }
+
+    .home .front-section[aria-labelledby="guides-heading"] .post-card {
+        display: grid !important;
+        grid-template-columns: 118px minmax(0, 1fr) !important;
+        gap: 14px !important;
+        padding: 14px !important;
+    }
+
+    .home .front-section[aria-labelledby="guides-heading"] .post-card-thumb-link,
+    .home .front-section[aria-labelledby="guides-heading"] .post-card-thumb {
+        width: 118px !important;
+        min-width: 118px !important;
+        height: 92px !important;
+        min-height: 92px !important;
+        border-radius: 16px !important;
+    }
+
+    .home .front-section[aria-labelledby="guides-heading"] .post-card-body {
+        gap: 10px !important;
+        padding: 0 !important;
+    }
+
+    .home .front-section[aria-labelledby="guides-heading"] .post-card-title {
+        font-size: 1rem !important;
+        line-height: 1.32 !important;
+    }
+
+    .home .front-section[aria-labelledby="guides-heading"] .post-card-excerpt {
+        -webkit-line-clamp: 2 !important;
+    }
+}
+
+@media (max-width: 520px) {
+    .home .front-section[aria-labelledby="guides-heading"] .post-card {
+        grid-template-columns: 96px minmax(0, 1fr) !important;
+        gap: 12px !important;
+        padding: 12px !important;
+    }
+
+    .home .front-section[aria-labelledby="guides-heading"] .post-card-thumb-link,
+    .home .front-section[aria-labelledby="guides-heading"] .post-card-thumb {
+        width: 96px !important;
+        min-width: 96px !important;
+        height: 84px !important;
+        min-height: 84px !important;
+        border-radius: 14px !important;
+    }
+
+    .home .front-section[aria-labelledby="guides-heading"] .post-card-title {
+        font-size: 0.96rem !important;
+    }
+}
