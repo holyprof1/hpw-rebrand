@@ -3040,7 +3040,7 @@ function holyprofweb_enable_post_image_controls() {
 add_action( 'init', 'holyprofweb_enable_post_image_controls' );
 
 function holyprofweb_generated_image_version() {
-    return '6';
+    return '8';
 }
 
 function holyprofweb_is_local_environment() {
@@ -4016,6 +4016,53 @@ function holyprofweb_get_post_source_url( $post_id, $post = null ) {
     return '';
 }
 
+function holyprofweb_backfill_source_url_meta( $post_id, $post = null ) {
+    $post_id = (int) $post_id;
+    if ( $post_id <= 0 ) {
+        return '';
+    }
+
+    $saved = (string) get_post_meta( $post_id, '_hpw_source_url', true );
+    if ( $saved && filter_var( $saved, FILTER_VALIDATE_URL ) ) {
+        return esc_url_raw( $saved );
+    }
+
+    $post       = $post ?: get_post( $post_id );
+    $source_url = holyprofweb_get_post_source_url( $post_id, $post );
+
+    if ( $source_url ) {
+        update_post_meta( $post_id, '_hpw_source_url', esc_url_raw( $source_url ) );
+    }
+
+    return $source_url ? esc_url_raw( $source_url ) : '';
+}
+
+function holyprofweb_get_post_source_status( $post_id ) {
+    $saved = (string) get_post_meta( $post_id, '_hpw_source_url', true );
+    if ( $saved && filter_var( $saved, FILTER_VALIDATE_URL ) ) {
+        return array(
+            'status' => 'saved',
+            'url'    => esc_url_raw( $saved ),
+            'label'  => __( 'Saved', 'holyprofweb' ),
+        );
+    }
+
+    $detected = holyprofweb_get_post_source_url( $post_id );
+    if ( $detected ) {
+        return array(
+            'status' => 'inferred',
+            'url'    => esc_url_raw( $detected ),
+            'label'  => __( 'Detected', 'holyprofweb' ),
+        );
+    }
+
+    return array(
+        'status' => 'missing',
+        'url'    => '',
+        'label'  => __( 'Missing', 'holyprofweb' ),
+    );
+}
+
 function holyprofweb_get_review_verdict( $post_id ) {
     $override = trim( (string) get_post_meta( $post_id, '_hpw_verdict_override', true ) );
     if ( $override ) {
@@ -4260,7 +4307,7 @@ function holyprofweb_maybe_get_remote_post_image( $post_id, $post = null ) {
     }
 
     $post       = $post ?: get_post( $post_id );
-    $source_url = holyprofweb_get_post_source_url( $post_id, $post );
+    $source_url = holyprofweb_backfill_source_url_meta( $post_id, $post );
     $domain     = holyprofweb_extract_domain( $source_url );
     $image_url  = apply_filters( 'holyprofweb_automation_image_url', '', $post_id, $post, $domain, $source_url );
 
@@ -4591,14 +4638,14 @@ function holyprofweb_generate_post_image_modern( $post_id, $post ) {
     $cat_slug = ! empty( $cats ) ? $cats[0]->slug : '';
     $cat_name = ! empty( $cats ) ? $cats[0]->name : 'General';
     $palettes = array(
-        'reviews'   => array( 'bg' => array( 13, 24, 46 ), 'mid' => array( 26, 53, 92 ), 'accent' => array( 59, 130, 246 ) ),
-        'companies' => array( 'bg' => array( 10, 32, 24 ), 'mid' => array( 18, 55, 40 ), 'accent' => array( 34, 197, 94 ) ),
-        'salaries'  => array( 'bg' => array( 41, 21, 8 ), 'mid' => array( 88, 47, 14 ), 'accent' => array( 251, 146, 60 ) ),
-        'biography' => array( 'bg' => array( 32, 12, 40 ), 'mid' => array( 63, 28, 84 ), 'accent' => array( 168, 85, 247 ) ),
-        'reports'   => array( 'bg' => array( 42, 12, 14 ), 'mid' => array( 88, 24, 28 ), 'accent' => array( 239, 68, 68 ) ),
+        'reviews'   => array( 'bg' => array( 9, 17, 39 ), 'mid' => array( 22, 56, 118 ), 'accent' => array( 96, 165, 250 ) ),
+        'companies' => array( 'bg' => array( 9, 28, 26 ), 'mid' => array( 14, 76, 60 ), 'accent' => array( 52, 211, 153 ) ),
+        'salaries'  => array( 'bg' => array( 43, 22, 7 ), 'mid' => array( 122, 57, 13 ), 'accent' => array( 251, 191, 36 ) ),
+        'biography' => array( 'bg' => array( 29, 11, 44 ), 'mid' => array( 88, 28, 135 ), 'accent' => array( 196, 181, 253 ) ),
+        'reports'   => array( 'bg' => array( 53, 14, 20 ), 'mid' => array( 127, 29, 29 ), 'accent' => array( 252, 165, 165 ) ),
     );
 
-    $palette = array( 'bg' => array( 19, 19, 24 ), 'mid' => array( 46, 46, 58 ), 'accent' => array( 184, 134, 11 ) );
+    $palette = array( 'bg' => array( 15, 18, 28 ), 'mid' => array( 49, 46, 73 ), 'accent' => array( 240, 184, 74 ) );
     foreach ( $palettes as $key => $candidate ) {
         if ( false !== strpos( $cat_slug, $key ) ) {
             $palette = $candidate;
@@ -4606,19 +4653,24 @@ function holyprofweb_generate_post_image_modern( $post_id, $post ) {
         }
     }
 
-    $width  = 1200;
-    $height = 630;
+    $width  = 1600;
+    $height = 900;
     $img    = imagecreatetruecolor( $width, $height );
     imagealphablending( $img, true );
     imagesavealpha( $img, false );
 
     $accent       = imagecolorallocate( $img, $palette['accent'][0], $palette['accent'][1], $palette['accent'][2] );
-    $accent_soft  = imagecolorallocatealpha( $img, $palette['accent'][0], $palette['accent'][1], $palette['accent'][2], 88 );
-    $white        = imagecolorallocate( $img, 245, 244, 240 );
-    $muted        = imagecolorallocate( $img, 191, 187, 178 );
-    $dark         = imagecolorallocate( $img, 13, 14, 18 );
-    $panel        = imagecolorallocatealpha( $img, 255, 255, 255, 112 );
-    $panel_border = imagecolorallocatealpha( $img, 255, 255, 255, 92 );
+    $accent_soft  = imagecolorallocatealpha( $img, $palette['accent'][0], $palette['accent'][1], $palette['accent'][2], 94 );
+    $accent_glow  = imagecolorallocatealpha( $img, $palette['accent'][0], $palette['accent'][1], $palette['accent'][2], 110 );
+    $white        = imagecolorallocate( $img, 247, 248, 251 );
+    $muted        = imagecolorallocate( $img, 189, 198, 214 );
+    $dark         = imagecolorallocate( $img, 11, 15, 23 );
+    $panel        = imagecolorallocatealpha( $img, 7, 11, 19, 24 );
+    $panel_border = imagecolorallocatealpha( $img, 255, 255, 255, 108 );
+    $grid         = imagecolorallocatealpha( $img, 255, 255, 255, 122 );
+    $card_fill    = imagecolorallocatealpha( $img, 8, 12, 19, 18 );
+    $card_shadow  = imagecolorallocatealpha( $img, 0, 0, 0, 112 );
+    $footer_panel = imagecolorallocatealpha( $img, 7, 11, 19, 58 );
 
     for ( $y = 0; $y < $height; $y++ ) {
         $mix = $y / max( 1, $height - 1 );
@@ -4628,19 +4680,27 @@ function holyprofweb_generate_post_image_modern( $post_id, $post ) {
         imageline( $img, 0, $y, $width, $y, imagecolorallocate( $img, $r, $g, $b ) );
     }
 
-    imagefilledellipse( $img, 1000, 100, 360, 360, $accent_soft );
-    imagefilledellipse( $img, 120, 560, 220, 220, imagecolorallocatealpha( $img, 255, 255, 255, 118 ) );
-    imagefilledrectangle( $img, 0, 0, 10, $height, $accent );
-    imagefilledrectangle( $img, 26, 26, $width - 26, $height - 26, $panel );
-    imagerectangle( $img, 26, 26, $width - 26, $height - 26, $panel_border );
-    imagefilledrectangle( $img, 26, $height - 82, $width - 26, $height - 26, imagecolorallocatealpha( $img, 10, 10, 14, 18 ) );
+    imagefilledellipse( $img, 1280, 120, 540, 540, $accent_soft );
+    imagefilledellipse( $img, 1420, 700, 560, 560, $accent_glow );
+    imagefilledellipse( $img, 210, 120, 240, 240, imagecolorallocatealpha( $img, 255, 255, 255, 120 ) );
 
-    $badge_w = (int) ( strlen( $cat_name ) * 14 + 50 );
-    holyprofweb_image_filled_rounded_rectangle( $img, 68, 68, 68 + $badge_w, 114, $accent, 18 );
+    for ( $x = 0; $x < $width; $x += 96 ) {
+        imageline( $img, $x, 0, $x - 280, $height, $grid );
+    }
+
+    imagefilledrectangle( $img, 0, 0, 14, $height, $accent );
+    holyprofweb_image_filled_rounded_rectangle( $img, 72, 66, $width - 72, $height - 66, $panel, 30 );
+    imagerectangle( $img, 72, 66, $width - 72, $height - 66, $panel_border );
+    holyprofweb_image_filled_rounded_rectangle( $img, 110, 144, 1040, 712, $card_shadow, 30 );
+    holyprofweb_image_filled_rounded_rectangle( $img, 102, 132, 1032, 700, $card_fill, 30 );
+    holyprofweb_image_filled_rounded_rectangle( $img, 110, 740, $width - 110, 810, $footer_panel, 18 );
+
+    $badge_w = (int) ( strlen( $cat_name ) * 18 + 86 );
+    holyprofweb_image_filled_rounded_rectangle( $img, 152, 162, 152 + $badge_w, 224, $accent, 24 );
 
     $font_file = holyprofweb_get_image_font_file();
     $title     = trim( preg_replace( '/\s+/', ' ', wp_strip_all_tags( holyprofweb_get_decoded_post_title( $post_id ) ) ) );
-    $wrapped   = holyprofweb_wrap_image_text( $title, 2, 22 );
+    $wrapped   = holyprofweb_wrap_image_text( $title, 3, 20 );
     $excerpt   = trim( preg_replace( '/\s+/', ' ', wp_strip_all_tags( holyprofweb_get_decoded_post_excerpt( $post_id ) ) ) );
     $search_hook_map = array(
         'reviews'   => 'Is it legit? Fees, features, complaints, and user feedback.',
@@ -4651,55 +4711,57 @@ function holyprofweb_generate_post_image_modern( $post_id, $post ) {
     );
     $search_hook = isset( $search_hook_map[ $cat_slug ] ) ? $search_hook_map[ $cat_slug ] : 'Reviews, research, warning signs, pricing, and key facts.';
     $deck_source = $excerpt ?: $search_hook;
-    if ( $excerpt && mb_strlen( $excerpt ) < 44 ) {
+    if ( $excerpt && mb_strlen( $excerpt ) < 72 ) {
         $deck_source = $excerpt . ' | ' . $search_hook;
     }
-    $deck = holyprofweb_wrap_image_text( $deck_source, 2, 52 );
+    $deck = holyprofweb_wrap_image_text( $deck_source, 2, 56 );
 
     if ( $font_file && function_exists( 'imagettftext' ) ) {
-        imagettftext( $img, 16, 0, 88, 98, $dark, $font_file, strtoupper( $cat_name ) );
+        imagettftext( $img, 20, 0, 186, 202, $dark, $font_file, strtoupper( $cat_name ) );
 
-        $title_size  = mb_strlen( $title ) > 40 ? 50 : 58;
-        $line_gap    = $title_size + 8;
+        $title_size  = mb_strlen( $title ) > 58 ? 56 : 68;
+        $line_gap    = $title_size + 16;
         $lines_count = count( $wrapped );
         $block_h     = max( 1, $lines_count ) * $line_gap;
-        $start_y     = 198;
+        $start_y     = 342;
 
         foreach ( $wrapped as $index => $line ) {
-            imagettftext( $img, $title_size, 0, 68, $start_y + ( $index * $line_gap ), $white, $font_file, $line );
+            imagettftext( $img, $title_size, 0, 160, $start_y + ( $index * $line_gap ), $white, $font_file, $line );
         }
 
         if ( ! empty( $deck ) ) {
-            $deck_y = $start_y + $block_h + 14;
+            $deck_y = $start_y + $block_h + 34;
             foreach ( $deck as $index => $line ) {
-                imagettftext( $img, 21, 0, 70, $deck_y + ( $index * 30 ), $muted, $font_file, $line );
+                imagettftext( $img, 24, 0, 162, $deck_y + ( $index * 38 ), $muted, $font_file, $line );
             }
         }
 
-        imagettftext( $img, 15, 0, 70, $height - 44, $muted, $font_file, 'holyprofweb.com' );
+        imagettftext( $img, 18, 0, 152, 787, $muted, $font_file, 'holyprofweb.com' );
+        imagettftext( $img, 18, 0, 1176, 787, $muted, $font_file, 'Research first. Decide with confidence.' );
     } else {
         $badge_label = strtoupper( $cat_name );
-        imagestring( $img, 5, 86, 82, $badge_label, $dark );
+        imagestring( $img, 5, 172, 180, $badge_label, $dark );
 
-        $y = 190;
+        $y = 324;
         foreach ( $wrapped as $line ) {
-            imagestring( $img, 5, 68, $y, $line, $white );
-            $y += 36;
+            imagestring( $img, 5, 158, $y, $line, $white );
+            $y += 56;
         }
 
         if ( ! empty( $deck ) ) {
             foreach ( $deck as $line ) {
-                imagestring( $img, 4, 70, $y + 8, $line, $muted );
-                $y += 24;
+                imagestring( $img, 4, 160, $y + 16, $line, $muted );
+                $y += 34;
             }
         }
 
-        imagestring( $img, 3, 70, $height - 54, 'holyprofweb.com', $muted );
+        imagestring( $img, 3, 152, 772, 'holyprofweb.com', $muted );
+        imagestring( $img, 3, 1064, 772, 'Research first. Decide with confidence.', $muted );
     }
 
     holyprofweb_overlay_brand_logo( $img, $width, $height );
 
-    imagejpeg( $img, $filepath, 92 );
+    imagejpeg( $img, $filepath, 94 );
     imagedestroy( $img );
 
     if ( ! file_exists( $filepath ) ) return;
@@ -5159,15 +5221,66 @@ function holyprofweb_save_salary_meta( $post_id ) {
     }
 
     if ( isset( $_POST['hpw_post_ops_meta_nonce'] ) && wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['hpw_post_ops_meta_nonce'] ) ), 'hpw_save_post_ops_meta' ) ) {
-        update_post_meta( $post_id, '_hpw_source_url', isset( $_POST['hpw_source_url'] ) ? esc_url_raw( wp_unslash( $_POST['hpw_source_url'] ) ) : '' );
+        $posted_source_url = isset( $_POST['hpw_source_url'] ) ? esc_url_raw( wp_unslash( $_POST['hpw_source_url'] ) ) : '';
+        update_post_meta( $post_id, '_hpw_source_url', $posted_source_url );
         update_post_meta( $post_id, 'external_image', isset( $_POST['hpw_external_image'] ) ? esc_url_raw( wp_unslash( $_POST['hpw_external_image'] ) ) : '' );
         update_post_meta( $post_id, '_hpw_country_focus', isset( $_POST['hpw_country_focus'] ) ? sanitize_text_field( wp_unslash( $_POST['hpw_country_focus'] ) ) : '' );
         update_post_meta( $post_id, '_hpw_verdict_override', isset( $_POST['hpw_verdict_override'] ) ? sanitize_key( wp_unslash( $_POST['hpw_verdict_override'] ) ) : '' );
         $rating_override = isset( $_POST['hpw_rating_override'] ) ? trim( (string) wp_unslash( $_POST['hpw_rating_override'] ) ) : '';
         update_post_meta( $post_id, '_hpw_rating_override', ( '' !== $rating_override && is_numeric( $rating_override ) ) ? round( max( 0, min( 5, (float) $rating_override ) ), 1 ) : '' );
+
+        if ( ! $posted_source_url ) {
+            holyprofweb_backfill_source_url_meta( $post_id );
+        }
     }
 }
 add_action( 'save_post', 'holyprofweb_save_salary_meta' );
+
+function holyprofweb_add_source_status_admin_column( $columns ) {
+    $updated = array();
+
+    foreach ( $columns as $key => $label ) {
+        $updated[ $key ] = $label;
+        if ( 'title' === $key ) {
+            $updated['hpw_source_status'] = __( 'Source URL', 'holyprofweb' );
+        }
+    }
+
+    if ( ! isset( $updated['hpw_source_status'] ) ) {
+        $updated['hpw_source_status'] = __( 'Source URL', 'holyprofweb' );
+    }
+
+    return $updated;
+}
+add_filter( 'manage_post_posts_columns', 'holyprofweb_add_source_status_admin_column' );
+
+function holyprofweb_render_source_status_admin_column( $column, $post_id ) {
+    if ( 'hpw_source_status' !== $column ) {
+        return;
+    }
+
+    $status = holyprofweb_get_post_source_status( $post_id );
+    $domain = $status['url'] ? holyprofweb_extract_domain( $status['url'] ) : '';
+    $color  = '#d63638';
+
+    if ( 'saved' === $status['status'] ) {
+        $color = '#1a7f37';
+    } elseif ( 'inferred' === $status['status'] ) {
+        $color = '#b8860b';
+    }
+
+    echo '<span style="display:inline-flex;align-items:center;gap:6px;font-weight:600;">';
+    echo '<span aria-hidden="true" style="width:10px;height:10px;border-radius:999px;background:' . esc_attr( $color ) . ';display:inline-block;"></span>';
+    echo esc_html( $status['label'] );
+    echo '</span>';
+
+    if ( $domain ) {
+        echo '<div style="margin-top:4px;color:#50575e;font-size:12px;line-height:1.4;">' . esc_html( $domain ) . '</div>';
+    } else {
+        echo '<div style="margin-top:4px;color:#50575e;font-size:12px;line-height:1.4;">' . esc_html__( 'Add Reviewed Site URL in the HPW meta box.', 'holyprofweb' ) . '</div>';
+    }
+}
+add_action( 'manage_post_posts_custom_column', 'holyprofweb_render_source_status_admin_column', 10, 2 );
 
 
 // =========================================

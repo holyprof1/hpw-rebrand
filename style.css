@@ -9964,11 +9964,18 @@ html[data-theme="dark"] .theme-toggle {
 
 html[data-theme="dark"] .header-cta,
 html[data-theme="dark"] .single-action-btn,
-html[data-theme="dark"] .post-card-readmore,
 html[data-theme="dark"] .button,
 html[data-theme="dark"] button[type="submit"],
 html[data-theme="dark"] input[type="submit"] {
     color: #111;
+}
+
+html[data-theme="dark"] .post-card-readmore {
+    color: var(--color-accent) !important;
+}
+
+html[data-theme="dark"] .post-card-readmore:hover {
+    color: var(--color-accent-hover) !important;
 }
 
 html[data-theme="dark"] .left-sidebar,
@@ -10401,24 +10408,21 @@ html[data-theme="dark"] .comment-form textarea::placeholder {
 
 html[data-theme="dark"] .review-form-submit,
 html[data-theme="dark"] .email-capture-btn {
-    color: #111 !important;
+    color: #fff !important;
 }
 
 html[data-theme="dark"] .single-featured-image--inline .post-image--generated,
 html[data-theme="dark"] .single-featured-image .post-image--generated {
-    background:
-        radial-gradient(circle at top right, rgba(240, 184, 74, 0.12), transparent 34%),
-        linear-gradient(135deg, #121925 0%, #1a2431 100%) !important;
+    background: none !important;
 }
 
 .single-featured-image--inline .post-image--generated,
 .single-featured-image .post-image--generated {
-    object-fit: contain !important;
+    object-fit: cover !important;
     object-position: center center !important;
-    padding: 14px !important;
-    background:
-        radial-gradient(circle at top right, rgba(184, 134, 11, 0.12), transparent 32%),
-        linear-gradient(135deg, #111827 0%, #1f2937 100%) !important;
+    padding: 0 !important;
+    background: none !important;
+    filter: saturate(1.03) contrast(1.02);
 }
 
 html[data-theme="dark"] .review-star-label {
