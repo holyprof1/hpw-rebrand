@@ -3103,6 +3103,52 @@ function holyprofweb_regenerate_generated_images_batch() {
     return $processed;
 }
 
+function holyprofweb_reset_generated_images_batch() {
+    $posts = get_posts( array(
+        'post_type'      => 'post',
+        'post_status'    => array( 'publish', 'draft', 'pending', 'future' ),
+        'posts_per_page' => -1,
+        'fields'         => 'ids',
+        'meta_query'     => array(
+            'relation' => 'OR',
+            array(
+                'key'     => '_holyprofweb_gen_image_url',
+                'compare' => 'EXISTS',
+            ),
+            array(
+                'key'     => '_holyprofweb_gen_attachment_id',
+                'compare' => 'EXISTS',
+            ),
+        ),
+        'no_found_rows'  => true,
+    ) );
+
+    $processed = 0;
+
+    foreach ( $posts as $post_id ) {
+        $attachment_id = (int) get_post_meta( $post_id, '_holyprofweb_gen_attachment_id', true );
+        $thumbnail_id  = (int) get_post_thumbnail_id( $post_id );
+
+        if ( $attachment_id > 0 && get_post( $attachment_id ) ) {
+            if ( $thumbnail_id === $attachment_id ) {
+                delete_post_thumbnail( $post_id );
+            }
+            wp_delete_attachment( $attachment_id, true );
+        } elseif ( holyprofweb_post_has_generated_thumbnail_attachment( $post_id ) && $thumbnail_id > 0 ) {
+            delete_post_thumbnail( $post_id );
+            wp_delete_attachment( $thumbnail_id, true );
+        }
+
+        delete_post_meta( $post_id, '_holyprofweb_gen_attachment_id' );
+        delete_post_meta( $post_id, '_holyprofweb_gen_image_url' );
+        delete_post_meta( $post_id, '_holyprofweb_gen_image_version' );
+
+        $processed++;
+    }
+
+    return $processed;
+}
+
 function holyprofweb_enable_post_image_controls() {
     add_post_type_support( 'post', 'thumbnail' );
     add_post_type_support( 'post', 'custom-fields' );
@@ -6750,6 +6796,14 @@ function holyprofweb_settings_automation_page() {
             'updated'
         );
     }
+    if ( isset( $_GET['hpw_images_reset'] ) ) {
+        add_settings_error(
+            'hpw_messages',
+            'hpw_images_reset',
+            sprintf( __( 'Generated image cache cleared: %d post(s).', 'holyprofweb' ), absint( $_GET['hpw_images_reset'] ) ),
+            'updated'
+        );
+    }
     settings_errors( 'hpw_messages' );
 
     $generated_posts = get_posts( array(
@@ -6860,6 +6914,11 @@ function holyprofweb_settings_automation_page() {
             <?php wp_nonce_field( 'hpw_regenerate_generated_images', 'hpw_regenerate_generated_images_nonce' ); ?>
             <input type="hidden" name="hpw_action" value="regenerate_generated_images" />
             <?php submit_button( __( 'Regenerate All Generated Images Now', 'holyprofweb' ), 'secondary', 'submit', false ); ?>
+        </form>
+        <form method="post" action="<?php echo esc_url( admin_url( 'admin.php?page=hpw-settings-automation' ) ); ?>" style="margin:10px 0 0;">
+            <?php wp_nonce_field( 'hpw_reset_generated_images', 'hpw_reset_generated_images_nonce' ); ?>
+            <input type="hidden" name="hpw_action" value="reset_generated_images" />
+            <?php submit_button( __( 'Reset Generated Image Cache', 'holyprofweb' ), 'delete', 'submit', false ); ?>
         </form>
 
         <hr>
@@ -7018,6 +7077,32 @@ function holyprofweb_handle_generated_image_regeneration_action() {
     exit;
 }
 add_action( 'admin_init', 'holyprofweb_handle_generated_image_regeneration_action' );
+
+function holyprofweb_handle_generated_image_reset_action() {
+    if ( ! is_admin() || ! current_user_can( 'manage_options' ) ) {
+        return;
+    }
+
+    if ( ! isset( $_POST['hpw_action'] ) || 'reset_generated_images' !== $_POST['hpw_action'] ) {
+        return;
+    }
+
+    check_admin_referer( 'hpw_reset_generated_images', 'hpw_reset_generated_images_nonce' );
+
+    $processed = holyprofweb_reset_generated_images_batch();
+
+    wp_safe_redirect(
+        add_query_arg(
+            array(
+                'page'             => 'hpw-settings-automation',
+                'hpw_images_reset' => $processed,
+            ),
+            admin_url( 'admin.php' )
+        )
+    );
+    exit;
+}
+add_action( 'admin_init', 'holyprofweb_handle_generated_image_reset_action' );
 
 function holyprofweb_parse_redirect_rules() {
     $raw   = (string) get_option( 'hpw_redirect_rules', '' );
