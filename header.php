@@ -51,10 +51,37 @@
             </nav>
 
             <div class="header-actions">
+                <?php $language_items = holyprofweb_get_language_switcher_items(); ?>
+                <?php if ( count( $language_items ) > 1 ) : ?>
+                <details class="language-switcher">
+                    <summary class="language-switcher-summary" aria-label="<?php esc_attr_e( 'Language menu', 'holyprofweb' ); ?>">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <circle cx="12" cy="12" r="9"></circle>
+                            <path d="M3 12h18M12 3a15 15 0 0 1 0 18M12 3a15 15 0 0 0 0 18"></path>
+                        </svg>
+                    </summary>
+                    <div class="language-switcher-menu">
+                        <?php foreach ( $language_items as $language_item ) : ?>
+                            <?php if ( ! empty( $language_item['url'] ) ) : ?>
+                            <a href="<?php echo esc_url( $language_item['url'] ); ?>" class="language-switcher-item<?php echo ! empty( $language_item['current'] ) ? ' is-current' : ''; ?>"><?php echo esc_html( $language_item['label'] ); ?></a>
+                            <?php else : ?>
+                            <span class="language-switcher-item language-switcher-item--static<?php echo ! empty( $language_item['current'] ) ? ' is-current' : ''; ?>"><?php echo esc_html( $language_item['label'] ); ?></span>
+                            <?php endif; ?>
+                        <?php endforeach; ?>
+                    </div>
+                </details>
+                <?php endif; ?>
+
                 <button class="theme-toggle" id="theme-toggle"
                         type="button"
-                        aria-label="<?php esc_attr_e( 'Toggle dark mode', 'holyprofweb' ); ?>"
+                        aria-label="<?php esc_attr_e( 'Toggle theme', 'holyprofweb' ); ?>"
                         aria-pressed="false">
+                    <span class="theme-toggle-icon theme-toggle-icon--default" aria-hidden="true">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="8.5"></circle>
+                            <path d="M12 3.5v17"></path>
+                        </svg>
+                    </span>
                     <span class="theme-toggle-icon theme-toggle-icon--sun" aria-hidden="true">
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
                             <circle cx="12" cy="12" r="4.2"></circle>
@@ -66,7 +93,6 @@
                             <path d="M20.3 14.8A8.5 8.5 0 0 1 9.2 3.7a8.5 8.5 0 1 0 11.1 11.1Z"></path>
                         </svg>
                     </span>
-                    <span class="theme-toggle-label"><?php esc_html_e( 'Theme', 'holyprofweb' ); ?></span>
                 </button>
 
                 <button class="header-search-trigger" id="header-search-trigger"
@@ -132,17 +158,6 @@
                  aria-label="<?php esc_attr_e( 'Search suggestions', 'holyprofweb' ); ?>"></div>
 
             <div class="live-search-default" id="live-search-default">
-                <?php $trending = holyprofweb_get_trending_searches( 6 ); ?>
-                <?php if ( ! empty( $trending ) ) : ?>
-                <p class="live-search-label"><?php esc_html_e( 'Trending searches', 'holyprofweb' ); ?></p>
-                <div class="live-search-trending">
-                    <?php foreach ( $trending as $item ) : ?>
-                    <a href="<?php echo esc_url( home_url( '/?s=' . urlencode( $item['term'] ) ) ); ?>"
-                       class="live-search-trending-pill"><?php echo esc_html( $item['term'] ); ?></a>
-                    <?php endforeach; ?>
-                </div>
-                <?php endif; ?>
-
                 <p class="live-search-label live-search-label--cats"><?php esc_html_e( 'Browse categories', 'holyprofweb' ); ?></p>
                 <div class="live-search-cats">
                     <?php

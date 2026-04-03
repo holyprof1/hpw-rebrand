@@ -43,10 +43,12 @@ if ( isset( $_POST[ $nonce_field ] ) && wp_verify_nonce(
             . ( $submitter ? "<p><strong>Submitted by:</strong> " . esc_html( $submitter ) . "</p>\n" : '' )
             . "<p>" . nl2br( esc_html( $main_body ) ) . "</p>";
 
+        $should_publish = ( 'reports' === $category );
+
         $post_id = wp_insert_post( array(
             'post_title'     => sanitize_text_field( $name ),
             'post_content'   => $content,
-            'post_status'    => 'draft',
+            'post_status'    => $should_publish ? 'publish' : 'draft',
             'post_type'      => 'post',
             'post_category'  => $cat_ids,
             'comment_status' => 'open',
@@ -107,7 +109,10 @@ $page_subtitle = 'biography' === $selected_cat
             <div class="submit-success" role="alert">
                 <div class="submit-success-icon" aria-hidden="true">&#10003;</div>
                 <h2><?php esc_html_e( 'Submission received!', 'holyprofweb' ); ?></h2>
-                <p><?php esc_html_e( 'Your submission is now waiting in admin review.', 'holyprofweb' ); ?></p>
+                <p><?php echo 'reports' === $selected_cat ? esc_html__( 'Your report is now live and searchable on the site.', 'holyprofweb' ) : esc_html__( 'Your submission is now waiting in admin review.', 'holyprofweb' ); ?></p>
+                <?php if ( ! empty( $post_id ) && 'reports' === $selected_cat ) : ?>
+                <p><a class="submit-btn" href="<?php echo esc_url( get_permalink( $post_id ) ); ?>"><?php esc_html_e( 'View published report', 'holyprofweb' ); ?></a></p>
+                <?php endif; ?>
             </div>
             <?php else : ?>
                 <?php if ( $error ) : ?>

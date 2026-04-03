@@ -7,7 +7,6 @@ get_header();
 
 $search_term = get_search_query();
 $found_posts = (int) $GLOBALS['wp_query']->found_posts;
-$trending    = holyprofweb_get_trending_searches( 8 );
 $latest      = new WP_Query( array(
     'posts_per_page' => 6,
     'post_status'    => 'publish',
@@ -15,23 +14,26 @@ $latest      = new WP_Query( array(
 ) );
 
 if ( 0 === $found_posts && ! empty( $search_term ) ) {
-    $existing = get_posts( array(
-        'post_status'    => array( 'draft', 'publish', 'pending' ),
-        'title'          => sanitize_text_field( $search_term ),
-        'posts_per_page' => 1,
-        'fields'         => 'ids',
-        'no_found_rows'  => true,
-    ) );
+    $existing = holyprofweb_find_draft_by_title( $search_term );
+    $search_log = holyprofweb_get_search_log();
+    $search_key = md5( strtolower( trim( $search_term ) ) );
+    $search_row = isset( $search_log[ $search_key ] ) ? $search_log[ $search_key ] : null;
 
-    if ( empty( $existing ) ) {
+    if ( get_option( 'hpw_search_auto_draft', 0 ) && ! $existing && $search_row && (int) $search_row['count'] >= holyprofweb_get_search_alert_threshold() ) {
         $reviews = get_term_by( 'slug', 'reviews', 'category' );
-        wp_insert_post( array(
+        $draft_id = wp_insert_post( array(
             'post_title'    => sanitize_text_field( $search_term ),
             'post_status'   => 'draft',
             'post_type'     => 'post',
             'post_category' => $reviews ? array( (int) $reviews->term_id ) : array(),
             'post_author'   => 1,
         ) );
+
+        if ( $draft_id && ! is_wp_error( $draft_id ) ) {
+            $search_log[ $search_key ]['auto_draft_id']    = (int) $draft_id;
+            $search_log[ $search_key ]['draft_created_at'] = time();
+            update_option( 'holyprofweb_search_log', $search_log, false );
+        }
     }
 }
 ?>
@@ -84,7 +86,7 @@ if ( 0 === $found_posts && ! empty( $search_term ) ) {
             <div class="search-no-results">
                 <div class="search-no-results-inner">
                     <h2><?php esc_html_e( 'Nothing published for this search yet', 'holyprofweb' ); ?></h2>
-                    <p class="search-no-results-note"><?php esc_html_e( 'We queued your search for review. In the meantime, here are trending and latest pages visitors are checking.', 'holyprofweb' ); ?></p>
+                    <p class="search-no-results-note"><?php esc_html_e( 'We logged this search for editorial review. In the meantime, here are recent posts you can check next.', 'holyprofweb' ); ?></p>
                     <div class="search-no-results-search"><?php get_search_form(); ?></div>
                 </div>
             </div>
@@ -105,19 +107,6 @@ if ( 0 === $found_posts && ! empty( $search_term ) ) {
         </section>
         <?php endif; ?>
 
-        <?php if ( ! empty( $trending ) ) : ?>
-        <section class="search-trending-section">
-            <p class="search-trending-title"><?php esc_html_e( 'Trending Searches', 'holyprofweb' ); ?></p>
-            <div class="search-trending-grid">
-                <?php foreach ( $trending as $item ) : ?>
-                <a href="<?php echo esc_url( home_url( '/?s=' . urlencode( $item['term'] ) ) ); ?>" class="search-trending-item">
-                    <span><?php echo esc_html( $item['term'] ); ?></span>
-                    <span class="search-trending-count"><?php echo esc_html( number_format_i18n( $item['count'] ) ); ?></span>
-                </a>
-                <?php endforeach; ?>
-            </div>
-        </section>
-        <?php endif; ?>
     </main>
 </div>
 

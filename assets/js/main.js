@@ -32,22 +32,25 @@
 
     var themeToggle = document.getElementById('theme-toggle');
     var themeRoot = document.documentElement;
+    var themeOrder = ['default', 'dark', 'light'];
 
     function getActiveTheme() {
-        return themeRoot.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
+        var currentTheme = themeRoot.getAttribute('data-theme');
+        return themeOrder.indexOf(currentTheme) !== -1 ? currentTheme : 'default';
     }
 
     function syncThemeToggle(theme) {
         if (!themeToggle) return;
-        var isDark = theme === 'dark';
-        themeToggle.setAttribute('aria-pressed', String(isDark));
-        themeToggle.setAttribute('aria-label', isDark ? 'Switch to light mode' : 'Switch to dark mode');
-        themeToggle.setAttribute('title', isDark ? 'Switch to light mode' : 'Switch to dark mode');
+        var nextTheme = themeOrder[(themeOrder.indexOf(theme) + 1) % themeOrder.length];
+        themeToggle.setAttribute('aria-pressed', String(theme !== 'default'));
+        themeToggle.setAttribute('aria-label', 'Switch theme to ' + nextTheme + ' mode');
+        themeToggle.setAttribute('title', 'Theme: ' + theme + '. Click for ' + nextTheme + '.');
+        themeToggle.setAttribute('data-mode', theme);
     }
 
     function applyTheme(theme) {
         themeRoot.setAttribute('data-theme', theme);
-        themeRoot.style.colorScheme = theme;
+        themeRoot.style.colorScheme = theme === 'dark' ? 'dark' : 'light';
         syncThemeToggle(theme);
     }
 
@@ -55,7 +58,8 @@
 
     if (themeToggle) {
         themeToggle.addEventListener('click', function () {
-            var nextTheme = getActiveTheme() === 'dark' ? 'light' : 'dark';
+            var currentTheme = getActiveTheme();
+            var nextTheme = themeOrder[(themeOrder.indexOf(currentTheme) + 1) % themeOrder.length];
             applyTheme(nextTheme);
             try {
                 localStorage.setItem('hpw-theme', nextTheme);
@@ -231,13 +235,30 @@
     });
 
     document.querySelectorAll('.reaction-btn').forEach(function (button) {
+        var initBar = button.closest('.reactions-bar');
+        if (initBar) {
+            try {
+                var initPostId = initBar.getAttribute('data-post-id');
+                var savedReaction = localStorage.getItem('hpw-reaction-' + initPostId);
+                if (savedReaction && savedReaction === button.getAttribute('data-reaction')) {
+                    button.classList.add('is-active');
+                    initBar.setAttribute('data-locked', 'true');
+                }
+            } catch (storageErr) {}
+        }
+
         button.addEventListener('click', function () {
             var bar = button.closest('.reactions-bar');
             if (!bar || !config.reaction_nonce) return;
+            if (bar.getAttribute('data-locked') === 'true' && button.classList.contains('is-active')) return;
 
             var postId = bar.getAttribute('data-post-id');
             var reaction = button.getAttribute('data-reaction');
             if (!postId || !reaction) return;
+
+            bar.querySelectorAll('.reaction-btn').forEach(function (item) {
+                item.classList.add('is-loading');
+            });
 
             request(
                 'action=holyprofweb_reaction' +
@@ -245,10 +266,25 @@
                 '&reaction=' + encodeURIComponent(reaction) +
                 '&nonce=' + encodeURIComponent(config.reaction_nonce),
                 function (err, json) {
+                    bar.querySelectorAll('.reaction-btn').forEach(function (item) {
+                        item.classList.remove('is-loading');
+                    });
                     if (err || !json || !json.success) return;
-                    var count = button.querySelector('.reaction-count');
-                    if (count) count.textContent = json.data.count;
-                    button.classList.add('is-active');
+
+                    bar.querySelectorAll('.reaction-btn').forEach(function (item) {
+                        var itemReaction = item.getAttribute('data-reaction');
+                        var countNode = item.querySelector('.reaction-count');
+                        if (itemReaction === reaction) {
+                            item.classList.add('is-active');
+                            if (countNode) countNode.textContent = json.data.count > 0 ? String(json.data.count) : '';
+                        } else {
+                            item.classList.remove('is-active');
+                        }
+                    });
+                    bar.setAttribute('data-locked', json.data.locked ? 'true' : 'false');
+                    try {
+                        localStorage.setItem('hpw-reaction-' + postId, reaction);
+                    } catch (storageErr) {}
                 }
             );
         });
@@ -277,6 +313,20 @@
     (function () {
         var form = document.getElementById('review-form');
         if (!form) return;
+        var wrap = form.closest('.review-form-wrap');
+        var submittedReviewKey = 'hpw-review-submitted-' + (form.getAttribute('data-post-id') || '');
+
+        function showSubmittedState(message) {
+            if (!wrap) return;
+            wrap.innerHTML = '<div class="review-form-success"><h4>Review already sent</h4><p>' + escHTML(message) + '</p></div>';
+        }
+
+        try {
+            if (localStorage.getItem(submittedReviewKey) === '1') {
+                showSubmittedState('This browser already submitted a review for this page. If you need to update it, contact the site admin.');
+                return;
+            }
+        } catch (storageErr) {}
 
         var reviewerType = form.querySelector('[name="reviewer_type"]');
         if (!reviewerType) return;
@@ -551,6 +601,9 @@
             if (wrap) {
                 wrap.innerHTML = '<div class="review-form-success"><h4>Thank you for your review!</h4><p>' + escHTML(data.message || 'Your review was submitted.') + '</p></div>';
             }
+            try {
+                localStorage.setItem('hpw-review-submitted-' + (form.getAttribute('data-post-id') || ''), '1');
+            } catch (storageErr) {}
         }
     });
 

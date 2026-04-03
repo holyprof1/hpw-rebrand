@@ -46,12 +46,13 @@
                         'Companies' => '/category/companies/',
                         'Salaries'  => '/category/salaries/',
                         'Biography' => '/category/biography/',
-                        'Reports'   => '/category/reports/',
+                        'Blog'      => holyprofweb_get_blog_url(),
+                        'Reports'   => holyprofweb_get_reports_url(),
                     );
                     foreach ( $platform_links as $label => $path ) :
                     ?>
                     <li>
-                        <a href="<?php echo esc_url( home_url( $path ) ); ?>">
+                        <a href="<?php echo esc_url( 0 === strpos( $path, 'http' ) ? $path : home_url( $path ) ); ?>">
                             <?php echo esc_html( $label ); ?>
                         </a>
                     </li>

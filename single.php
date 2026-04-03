@@ -40,6 +40,7 @@ get_header();
                 $show_salary_module = $is_salary_post;
                 $source_url   = holyprofweb_get_post_source_url( $post_id );
                 $verdict      = holyprofweb_get_review_verdict( $post_id );
+                $reaction_prompt = sprintf( __( 'What do you think about %s?', 'holyprofweb' ), $decoded_title );
             ?>
 
             <!-- =========================================
@@ -237,13 +238,13 @@ get_header();
                 <?php if ( ! $is_biography_post && ! $is_company_post ) : ?>
                 <!-- Reactions bar -->
                 <div class="reactions-bar" data-post-id="<?php the_ID(); ?>">
-                    <p class="reactions-label">Was this helpful?</p>
+                    <p class="reactions-label"><?php echo esc_html( $reaction_prompt ); ?></p>
                     <div class="reactions-buttons">
                         <?php
                         $reaction_defs = array(
-                            'helpful' => array( 'label' => '&#128077; Helpful',     'class' => 'reaction-helpful' ),
-                            'good'    => array( 'label' => '&#10003; Accurate',     'class' => 'reaction-good' ),
-                            'scam'    => array( 'label' => '&#9888; Scam Alert',    'class' => 'reaction-scam' ),
+                            'legit'  => array( 'label' => __( 'Legit', 'holyprofweb' ),      'class' => 'reaction-legit' ),
+                            'unsure' => array( 'label' => __( 'Dunno', 'holyprofweb' ),      'class' => 'reaction-unsure' ),
+                            'scam'   => array( 'label' => __( 'Scam Alert', 'holyprofweb' ), 'class' => 'reaction-scam' ),
                         );
                         foreach ( $reaction_defs as $key => $def ) :
                             $count = $reactions[ $key ];
@@ -256,6 +257,7 @@ get_header();
                         </button>
                         <?php endforeach; ?>
                     </div>
+                    <p class="reactions-note"><?php esc_html_e( 'One quick pick per browser. You can change it later, but it only counts once.', 'holyprofweb' ); ?></p>
                 </div>
                 <?php endif; ?>
 

@@ -90,27 +90,18 @@ $topic_descriptions = array(
         <div class="hero-search-wrap">
             <?php get_search_form(); ?>
         </div>
-        <?php if ( ! empty( $trending_searches ) ) : ?>
-        <div class="hero-trending-pills">
-            <span class="hero-trending-label"><?php esc_html_e( 'Top searched:', 'holyprofweb' ); ?></span>
-            <?php foreach ( array_slice( $trending_searches, 0, 5 ) as $item ) : ?>
-            <a href="<?php echo esc_url( home_url( '/?s=' . urlencode( $item['term'] ) ) ); ?>" class="hero-trending-pill"><?php echo esc_html( $item['term'] ); ?></a>
-            <?php endforeach; ?>
-        </div>
-        <?php endif; ?>
-
-        <div class="hero-feature-grid" aria-label="<?php esc_attr_e( 'Homepage shortcuts', 'holyprofweb' ); ?>">
-            <a href="<?php echo esc_url( home_url( '/category/reviews/' ) ); ?>" class="hero-feature-card">
-                <span class="hero-feature-kicker"><?php esc_html_e( 'Reviews', 'holyprofweb' ); ?></span>
-                <strong class="hero-feature-title"><?php esc_html_e( 'See user experiences before you decide', 'holyprofweb' ); ?></strong>
+        <div class="hero-quick-links" aria-label="<?php esc_attr_e( 'Homepage quick actions', 'holyprofweb' ); ?>">
+            <a href="<?php echo esc_url( home_url( '/category/reviews/' ) ); ?>" class="hero-quick-link">
+                <span class="hero-quick-label"><?php esc_html_e( 'Browse Reviews', 'holyprofweb' ); ?></span>
+                <span class="hero-quick-copy"><?php esc_html_e( 'Real experiences from apps, platforms, and services.', 'holyprofweb' ); ?></span>
             </a>
-            <a href="<?php echo esc_url( home_url( '/category/companies/' ) ); ?>" class="hero-feature-card">
-                <span class="hero-feature-kicker"><?php esc_html_e( 'Companies', 'holyprofweb' ); ?></span>
-                <strong class="hero-feature-title"><?php esc_html_e( 'See what companies do, where they operate, pay range, and what people say about working there', 'holyprofweb' ); ?></strong>
+            <a href="<?php echo esc_url( home_url( '/category/companies/' ) ); ?>" class="hero-quick-link">
+                <span class="hero-quick-label"><?php esc_html_e( 'Browse Companies', 'holyprofweb' ); ?></span>
+                <span class="hero-quick-copy"><?php esc_html_e( 'Check salary gist, company profile, and reputation fast.', 'holyprofweb' ); ?></span>
             </a>
-            <a href="<?php echo esc_url( home_url( '/submit/' ) ); ?>" class="hero-feature-card">
-                <span class="hero-feature-kicker"><?php esc_html_e( 'Contribute', 'holyprofweb' ); ?></span>
-                <strong class="hero-feature-title"><?php esc_html_e( 'Add a review, salary range, interview question, or correction', 'holyprofweb' ); ?></strong>
+            <a href="<?php echo esc_url( home_url( '/submit/' ) ); ?>" class="hero-quick-link">
+                <span class="hero-quick-label"><?php esc_html_e( 'Submit a Report', 'holyprofweb' ); ?></span>
+                <span class="hero-quick-copy"><?php esc_html_e( 'Add a review, correction, complaint, or warning signal.', 'holyprofweb' ); ?></span>
             </a>
         </div>
     </div>
@@ -355,24 +346,6 @@ $topic_descriptions = array(
             </div>
         </section>
 
-        <section class="front-section" aria-labelledby="top-searched-heading">
-            <div class="section-header">
-                <h2 id="top-searched-heading" class="section-title"><?php esc_html_e( 'Top Searched', 'holyprofweb' ); ?></h2>
-            </div>
-
-            <div class="top-searched-grid">
-                <?php if ( ! empty( $trending_searches ) ) : ?>
-                    <?php foreach ( $trending_searches as $item ) : ?>
-                    <a href="<?php echo esc_url( home_url( '/?s=' . urlencode( $item['term'] ) ) ); ?>" class="top-searched-card">
-                        <span class="top-searched-term"><?php echo esc_html( $item['term'] ); ?></span>
-                        <span class="top-searched-count"><?php echo esc_html( number_format_i18n( $item['count'] ) ); ?></span>
-                    </a>
-                    <?php endforeach; ?>
-                <?php else : ?>
-                    <div class="top-searched-card top-searched-card--empty"><?php esc_html_e( 'Search activity will appear here once visitors start searching.', 'holyprofweb' ); ?></div>
-                <?php endif; ?>
-            </div>
-        </section>
     </main>
 </div>
 

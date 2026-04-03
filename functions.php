@@ -116,6 +116,108 @@ function holyprofweb_enqueue_assets() {
 }
 add_action( 'wp_enqueue_scripts', 'holyprofweb_enqueue_assets' );
 
+function holyprofweb_get_language_catalog() {
+    return array(
+        'en_US' => 'English (US)',
+        'en_GB' => 'English (UK)',
+        'fr_FR' => 'French (Français)',
+        'es_ES' => 'Spanish (Español)',
+        'pt_BR' => 'Portuguese (Português)',
+        'ar'    => 'Arabic (العربية) — RTL',
+        'yo'    => 'Yoruba',
+        'ig_NG' => 'Igbo',
+        'ha'    => 'Hausa',
+        'sw'    => 'Swahili',
+        'zh_CN' => 'Chinese Simplified',
+    );
+}
+
+function holyprofweb_sanitize_enabled_languages( $value ) {
+    $catalog = holyprofweb_get_language_catalog();
+    $items   = is_array( $value ) ? $value : array();
+    $items   = array_values( array_unique( array_map( 'sanitize_text_field', $items ) ) );
+
+    return array_values(
+        array_filter(
+            $items,
+            static function( $code ) use ( $catalog ) {
+                return isset( $catalog[ $code ] );
+            }
+        )
+    );
+}
+
+function holyprofweb_get_enabled_languages() {
+    $saved = get_option( 'hpw_enabled_languages', array() );
+    $saved = is_array( $saved ) ? $saved : array();
+
+    if ( empty( $saved ) ) {
+        $saved = array( get_option( 'hpw_default_language', 'en_US' ) );
+    }
+
+    return holyprofweb_sanitize_enabled_languages( $saved );
+}
+
+function holyprofweb_get_language_switcher_items() {
+    $catalog = holyprofweb_get_language_catalog();
+    $items   = array();
+
+    if ( function_exists( 'pll_the_languages' ) ) {
+        $languages = pll_the_languages(
+            array(
+                'raw'           => 1,
+                'hide_if_empty' => 0,
+            )
+        );
+
+        if ( is_array( $languages ) ) {
+            foreach ( $languages as $language ) {
+                $items[] = array(
+                    'label'   => $language['name'],
+                    'url'     => ! empty( $language['url'] ) ? $language['url'] : '',
+                    'current' => ! empty( $language['current_lang'] ),
+                );
+            }
+        }
+    } elseif ( has_filter( 'wpml_active_languages' ) ) {
+        $languages = apply_filters(
+            'wpml_active_languages',
+            null,
+            array(
+                'skip_missing' => 0,
+            )
+        );
+
+        if ( is_array( $languages ) ) {
+            foreach ( $languages as $language ) {
+                $items[] = array(
+                    'label'   => $language['translated_name'] ?? ( $language['native_name'] ?? $language['language_code'] ),
+                    'url'     => $language['url'] ?? '',
+                    'current' => ! empty( $language['active'] ),
+                );
+            }
+        }
+    }
+
+    if ( count( $items ) > 1 ) {
+        return $items;
+    }
+
+    foreach ( holyprofweb_get_enabled_languages() as $code ) {
+        if ( ! isset( $catalog[ $code ] ) ) {
+            continue;
+        }
+
+        $items[] = array(
+            'label'   => $catalog[ $code ],
+            'url'     => '',
+            'current' => $code === get_option( 'hpw_default_language', 'en_US' ),
+        );
+    }
+
+    return $items;
+}
+
 function holyprofweb_render_theme_boot_script() {
     ?>
     <script>
@@ -130,12 +232,12 @@ function holyprofweb_render_theme_boot_script() {
             savedTheme = null;
         }
 
-        if (savedTheme !== 'light' && savedTheme !== 'dark') {
-            savedTheme = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+        if (savedTheme !== 'default' && savedTheme !== 'dark' && savedTheme !== 'light') {
+            savedTheme = 'default';
         }
 
         root.setAttribute('data-theme', savedTheme);
-        root.style.colorScheme = savedTheme;
+        root.style.colorScheme = savedTheme === 'dark' ? 'dark' : 'light';
     })();
     </script>
     <?php
@@ -910,6 +1012,95 @@ add_action( 'pre_get_posts', 'holyprofweb_search_date_filter' );
  * Track search queries in wp_options.
  * Fires after main query is run but before template loads.
  */
+function holyprofweb_get_search_log_limit() {
+    return max( 100, absint( get_option( 'hpw_search_log_limit', 250 ) ) );
+}
+
+function holyprofweb_get_search_alert_threshold() {
+    return max( 2, absint( get_option( 'hpw_search_alert_threshold', 2 ) ) );
+}
+
+function holyprofweb_get_search_log() {
+    $log = get_option( 'holyprofweb_search_log', array() );
+    if ( ! is_array( $log ) ) {
+        return array();
+    }
+
+    foreach ( $log as $key => $entry ) {
+        if ( ! is_array( $entry ) ) {
+            unset( $log[ $key ] );
+            continue;
+        }
+
+        $log[ $key ] = wp_parse_args(
+            $entry,
+            array(
+                'term'            => '',
+                'count'           => 0,
+                'ts'              => 0,
+                'first_ts'        => 0,
+                'last_results'    => 0,
+                'peak_results'    => 0,
+                'last_country'    => '',
+                'countries'       => array(),
+                'last_referrer'   => '',
+                'referrers'       => array(),
+                'auto_draft_id'   => 0,
+                'draft_created_at'=> 0,
+            )
+        );
+    }
+
+    uasort(
+        $log,
+        static function( $a, $b ) {
+            if ( (int) $a['count'] === (int) $b['count'] ) {
+                return (int) $b['ts'] <=> (int) $a['ts'];
+            }
+            return (int) $b['count'] <=> (int) $a['count'];
+        }
+    );
+
+    return $log;
+}
+
+function holyprofweb_get_search_alert_rows() {
+    $threshold = holyprofweb_get_search_alert_threshold();
+    $rows      = array();
+
+    foreach ( holyprofweb_get_search_log() as $key => $entry ) {
+        if ( (int) $entry['count'] >= $threshold ) {
+            $rows[ $key ] = $entry;
+        }
+    }
+
+    return $rows;
+}
+
+function holyprofweb_find_draft_by_title( $title ) {
+    global $wpdb;
+
+    $title = sanitize_text_field( $title );
+    if ( '' === $title ) {
+        return 0;
+    }
+
+    $post_id = $wpdb->get_var(
+        $wpdb->prepare(
+            "SELECT ID
+             FROM {$wpdb->posts}
+             WHERE post_type = 'post'
+               AND post_status IN ('draft','publish','pending')
+               AND post_title = %s
+             ORDER BY FIELD(post_status,'publish','pending','draft'), ID DESC
+             LIMIT 1",
+            $title
+        )
+    );
+
+    return $post_id ? (int) $post_id : 0;
+}
+
 function holyprofweb_track_search() {
     if ( ! is_search() || is_admin() ) {
         return;
@@ -922,21 +1113,65 @@ function holyprofweb_track_search() {
 
     $log = get_option( 'holyprofweb_search_log', array() );
     $key = md5( strtolower( trim( $term ) ) );
+    $locale = holyprofweb_detect_visitor_locale();
+    $country = ! empty( $locale['country_name'] ) ? sanitize_text_field( $locale['country_name'] ) : '';
+    $referrer_host = '';
+    if ( ! empty( $_SERVER['HTTP_REFERER'] ) ) {
+        $referrer_host = (string) wp_parse_url( wp_unslash( $_SERVER['HTTP_REFERER'] ), PHP_URL_HOST );
+        $referrer_host = sanitize_text_field( preg_replace( '/^www\./i', '', $referrer_host ) );
+    }
+    $results_count = isset( $GLOBALS['wp_query']->found_posts ) ? (int) $GLOBALS['wp_query']->found_posts : 0;
 
     if ( isset( $log[ $key ] ) ) {
         $log[ $key ]['count']++;
         $log[ $key ]['ts'] = time();
     } else {
         $log[ $key ] = array(
-            'term'  => sanitize_text_field( $term ),
-            'count' => 1,
-            'ts'    => time(),
+            'term'             => sanitize_text_field( $term ),
+            'count'            => 1,
+            'ts'               => time(),
+            'first_ts'         => time(),
+            'last_results'     => 0,
+            'peak_results'     => 0,
+            'last_country'     => '',
+            'countries'        => array(),
+            'last_referrer'    => '',
+            'referrers'        => array(),
+            'auto_draft_id'    => 0,
+            'draft_created_at' => 0,
         );
+    }
+
+    $log[ $key ]['last_results'] = $results_count;
+    $log[ $key ]['peak_results'] = max( (int) $log[ $key ]['peak_results'], $results_count );
+
+    if ( $country ) {
+        $log[ $key ]['last_country'] = $country;
+        if ( empty( $log[ $key ]['countries'][ $country ] ) ) {
+            $log[ $key ]['countries'][ $country ] = 0;
+        }
+        $log[ $key ]['countries'][ $country ]++;
+        arsort( $log[ $key ]['countries'] );
+        $log[ $key ]['countries'] = array_slice( $log[ $key ]['countries'], 0, 8, true );
+    }
+
+    if ( $referrer_host ) {
+        $log[ $key ]['last_referrer'] = $referrer_host;
+        if ( empty( $log[ $key ]['referrers'][ $referrer_host ] ) ) {
+            $log[ $key ]['referrers'][ $referrer_host ] = 0;
+        }
+        $log[ $key ]['referrers'][ $referrer_host ]++;
+        arsort( $log[ $key ]['referrers'] );
+        $log[ $key ]['referrers'] = array_slice( $log[ $key ]['referrers'], 0, 8, true );
+    }
+
+    if ( empty( $log[ $key ]['auto_draft_id'] ) && ! empty( $log[ $key ]['term'] ) ) {
+        $log[ $key ]['auto_draft_id'] = holyprofweb_find_draft_by_title( $log[ $key ]['term'] );
     }
 
     // Keep the log to 200 entries, sorted by frequency
     uasort( $log, function( $a, $b ) { return $b['count'] - $a['count']; } );
-    $log = array_slice( $log, 0, 200, true );
+    $log = array_slice( $log, 0, holyprofweb_get_search_log_limit(), true );
 
     update_option( 'holyprofweb_search_log', $log, false );
 }
@@ -950,8 +1185,7 @@ add_action( 'wp', 'holyprofweb_track_search' );
  * @return array
  */
 function holyprofweb_get_trending_searches( $count = 5 ) {
-    $log = get_option( 'holyprofweb_search_log', array() );
-    uasort( $log, function( $a, $b ) { return $b['count'] - $a['count']; } );
+    $log = holyprofweb_get_search_log();
     return array_slice( $log, 0, $count, true );
 }
 
@@ -2109,16 +2343,151 @@ function holyprofweb_get_frontpage_topic_categories( $limit = 8 ) {
 }
 
 function holyprofweb_get_blog_url() {
-    $posts_page_id = (int) get_option( 'page_for_posts' );
-    if ( $posts_page_id ) {
-        $url = get_permalink( $posts_page_id );
-        if ( $url ) {
-            return $url;
-        }
+    return home_url( '/blog/' );
+}
+
+function holyprofweb_get_reports_url() {
+    return home_url( '/reports/' );
+}
+
+function holyprofweb_get_virtual_archive_request_slug() {
+    $request_uri = isset( $_SERVER['REQUEST_URI'] ) ? (string) wp_unslash( $_SERVER['REQUEST_URI'] ) : '';
+    if ( '' === $request_uri ) {
+        return '';
     }
 
-    return home_url( '/' );
+    $path = wp_parse_url( $request_uri, PHP_URL_PATH );
+    $path = is_string( $path ) ? trim( $path, '/' ) : '';
+
+    if ( '' === $path ) {
+        return '';
+    }
+
+    $site_path = wp_parse_url( home_url( '/' ), PHP_URL_PATH );
+    $site_path = is_string( $site_path ) ? trim( $site_path, '/' ) : '';
+
+    if ( $site_path && 0 === strpos( $path, $site_path . '/' ) ) {
+        $path = substr( $path, strlen( $site_path ) + 1 );
+    } elseif ( $site_path && $path === $site_path ) {
+        $path = '';
+    }
+
+    return trim( (string) $path, '/' );
 }
+
+function holyprofweb_add_virtual_archive_rewrite() {
+    add_rewrite_rule( '^blog/?$', 'index.php?hpw_blog_archive=1', 'top' );
+    add_rewrite_rule( '^blog/page/([0-9]{1,})/?$', 'index.php?hpw_blog_archive=1&paged=$matches[1]', 'top' );
+    add_rewrite_rule( '^reports/?$', 'index.php?hpw_reports_archive=1', 'top' );
+    add_rewrite_rule( '^reports/page/([0-9]{1,})/?$', 'index.php?hpw_reports_archive=1&paged=$matches[1]', 'top' );
+}
+add_action( 'init', 'holyprofweb_add_virtual_archive_rewrite' );
+
+add_filter(
+    'query_vars',
+    static function( $vars ) {
+        $vars[] = 'hpw_blog_archive';
+        $vars[] = 'hpw_reports_archive';
+        return $vars;
+    }
+);
+
+add_filter(
+    'request',
+    static function( $query_vars ) {
+        $request_slug = holyprofweb_get_virtual_archive_request_slug();
+
+        if ( preg_match( '#^blog(?:/page/([0-9]+))?$#', $request_slug, $matches ) ) {
+            $vars = array( 'hpw_blog_archive' => 1 );
+            if ( ! empty( $matches[1] ) ) {
+                $vars['paged'] = (int) $matches[1];
+            }
+            return $vars;
+        }
+
+        if ( preg_match( '#^reports(?:/page/([0-9]+))?$#', $request_slug, $matches ) ) {
+            $vars = array( 'hpw_reports_archive' => 1 );
+            if ( ! empty( $matches[1] ) ) {
+                $vars['paged'] = (int) $matches[1];
+            }
+            return $vars;
+        }
+
+        return $query_vars;
+    }
+);
+
+add_action(
+    'pre_get_posts',
+    static function( $query ) {
+        if ( is_admin() || ! $query->is_main_query() ) {
+            return;
+        }
+
+        if ( $query->get( 'hpw_blog_archive' ) ) {
+            $query->set( 'post_type', 'post' );
+            $query->set( 'post_status', 'publish' );
+            $query->set( 'posts_per_page', (int) get_option( 'posts_per_page', 10 ) );
+            $query->set( 'ignore_sticky_posts', true );
+            $query->is_home    = true;
+            $query->is_archive = true;
+            $query->is_page    = false;
+            $query->is_404     = false;
+            return;
+        }
+
+        if ( $query->get( 'hpw_reports_archive' ) ) {
+            $reports = get_term_by( 'slug', 'reports', 'category' );
+            $term_ids = array();
+            if ( $reports && ! is_wp_error( $reports ) ) {
+                $term_ids[] = (int) $reports->term_id;
+                $children = get_term_children( (int) $reports->term_id, 'category' );
+                if ( ! is_wp_error( $children ) ) {
+                    $term_ids = array_merge( $term_ids, array_map( 'intval', $children ) );
+                }
+            }
+
+            $query->set( 'post_type', 'post' );
+            $query->set( 'post_status', 'publish' );
+            $query->set( 'posts_per_page', (int) get_option( 'posts_per_page', 10 ) );
+            $query->set( 'ignore_sticky_posts', true );
+            if ( ! empty( $term_ids ) ) {
+                $query->set( 'category__in', array_values( array_unique( $term_ids ) ) );
+            }
+            $query->is_home    = false;
+            $query->is_archive = true;
+            $query->is_page    = false;
+            $query->is_404     = false;
+        }
+    }
+);
+
+add_filter(
+    'template_include',
+    static function( $template ) {
+        if ( get_query_var( 'hpw_blog_archive' ) || get_query_var( 'hpw_reports_archive' ) ) {
+            $index_template = locate_template( array( 'index.php' ) );
+            if ( $index_template ) {
+                return $index_template;
+            }
+        }
+
+        return $template;
+    }
+);
+
+add_filter(
+    'document_title_parts',
+    static function( $parts ) {
+        if ( get_query_var( 'hpw_blog_archive' ) ) {
+            $parts['title'] = __( 'Blog', 'holyprofweb' );
+        } elseif ( get_query_var( 'hpw_reports_archive' ) ) {
+            $parts['title'] = __( 'Reports', 'holyprofweb' );
+        }
+
+        return $parts;
+    }
+);
 
 function holyprofweb_post_in_category_tree( $post_id, $root_slug ) {
     $root = get_term_by( 'slug', $root_slug, 'category' );
@@ -2856,12 +3225,7 @@ function holyprofweb_live_search_ajax() {
         }
     }
 
-    // Trending suggestions
-    $raw_suggestions = holyprofweb_get_trending_searches( 5 );
-    $suggestions     = array();
-    foreach ( $raw_suggestions as $entry ) {
-        $suggestions[] = $entry['term'];
-    }
+    $suggestions = array();
 
     wp_send_json_success( compact( 'posts', 'categories', 'suggestions' ) );
 }
@@ -3287,8 +3651,12 @@ function holyprofweb_render_stars( $rating, $max = 5 ) {
 
 
 // =========================================
-// REACTIONS SYSTEM (helpful / scam / good)
+// REACTIONS SYSTEM
 // =========================================
+
+function holyprofweb_get_reaction_cookie_name( $post_id ) {
+    return 'hpw_reaction_' . (int) $post_id;
+}
 
 function holyprofweb_reaction_ajax() {
     // Verify nonce
@@ -3298,11 +3666,27 @@ function holyprofweb_reaction_ajax() {
     }
 
     $post_id  = isset( $_POST['post_id'] ) ? (int) $_POST['post_id'] : 0;
-    $reaction = isset( $_POST['reaction'] ) ? sanitize_key( $_POST['reaction'] ) : '';
-    $allowed  = array( 'helpful', 'scam', 'good' );
+    $reaction = isset( $_POST['reaction'] ) ? sanitize_key( wp_unslash( $_POST['reaction'] ) ) : '';
+    $allowed  = array( 'legit', 'unsure', 'scam' );
 
     if ( ! $post_id || ! in_array( $reaction, $allowed, true ) ) {
         wp_send_json_error( 'Invalid request' );
+    }
+
+    $cookie_name = holyprofweb_get_reaction_cookie_name( $post_id );
+    $existing    = isset( $_COOKIE[ $cookie_name ] ) ? sanitize_key( wp_unslash( $_COOKIE[ $cookie_name ] ) ) : '';
+
+    if ( $existing && in_array( $existing, $allowed, true ) ) {
+        if ( $existing === $reaction ) {
+            wp_send_json_success( array(
+                'reaction' => $reaction,
+                'count'    => (int) get_post_meta( $post_id, '_reaction_' . $reaction, true ),
+                'locked'   => true,
+            ) );
+        }
+
+        $existing_count = max( 0, (int) get_post_meta( $post_id, '_reaction_' . $existing, true ) - 1 );
+        update_post_meta( $post_id, '_reaction_' . $existing, $existing_count );
     }
 
     $meta_key = '_reaction_' . $reaction;
@@ -3310,7 +3694,10 @@ function holyprofweb_reaction_ajax() {
     $count++;
     update_post_meta( $post_id, $meta_key, $count );
 
-    wp_send_json_success( array( 'reaction' => $reaction, 'count' => $count ) );
+    setcookie( $cookie_name, $reaction, time() + YEAR_IN_SECONDS, COOKIEPATH ? COOKIEPATH : '/', COOKIE_DOMAIN, is_ssl(), true );
+    $_COOKIE[ $cookie_name ] = $reaction;
+
+    wp_send_json_success( array( 'reaction' => $reaction, 'count' => $count, 'locked' => true ) );
 }
 add_action( 'wp_ajax_holyprofweb_reaction',        'holyprofweb_reaction_ajax' );
 add_action( 'wp_ajax_nopriv_holyprofweb_reaction', 'holyprofweb_reaction_ajax' );
@@ -3323,9 +3710,9 @@ add_action( 'wp_ajax_nopriv_holyprofweb_reaction', 'holyprofweb_reaction_ajax' )
  */
 function holyprofweb_get_reactions( $post_id ) {
     return array(
-        'helpful' => (int) get_post_meta( $post_id, '_reaction_helpful', true ),
+        'legit'   => (int) get_post_meta( $post_id, '_reaction_legit', true ),
+        'unsure'  => (int) get_post_meta( $post_id, '_reaction_unsure', true ),
         'scam'    => (int) get_post_meta( $post_id, '_reaction_scam',    true ),
-        'good'    => (int) get_post_meta( $post_id, '_reaction_good',    true ),
     );
 }
 
@@ -4139,7 +4526,7 @@ function holyprofweb_left_sidebar() {
         'reviews'   => array( 'label' => 'Reviews',   'icon' => '&#9733;' ),
         'companies' => array( 'label' => 'Companies', 'icon' => '&#127970;' ),
         'biography' => array( 'label' => 'Biography', 'icon' => '&#128100;' ),
-        'reports'   => array( 'label' => 'Blog',      'icon' => '&#128203;' ),
+        'reports'   => array( 'label' => 'Reports',   'icon' => '&#128203;' ),
     );
 
     echo '<aside class="left-sidebar" id="left-sidebar" aria-label="' . esc_attr__( 'Category Navigation', 'holyprofweb' ) . '">';
@@ -4508,12 +4895,13 @@ function holyprofweb_register_settings_menu() {
         60
     );
 
-    add_submenu_page( 'hpw-settings', __( 'General',    'holyprofweb' ), __( 'General',    'holyprofweb' ), 'manage_options', 'hpw-settings',           'holyprofweb_settings_page' );
-    add_submenu_page( 'hpw-settings', __( 'Reviews',    'holyprofweb' ), __( 'Reviews',    'holyprofweb' ), 'manage_options', 'hpw-settings-reviews',   'holyprofweb_settings_reviews_page' );
-    add_submenu_page( 'hpw-settings', __( 'Ads',        'holyprofweb' ), __( 'Ads',        'holyprofweb' ), 'manage_options', 'hpw-settings-ads',       'holyprofweb_ads_admin_page' );
-    add_submenu_page( 'hpw-settings', __( 'Emails',     'holyprofweb' ), __( 'Emails',     'holyprofweb' ), 'manage_options', 'hpw-settings-emails',    'holyprofweb_settings_emails_page' );
-    add_submenu_page( 'hpw-settings', __( 'Languages',  'holyprofweb' ), __( 'Languages',  'holyprofweb' ), 'manage_options', 'hpw-settings-languages', 'holyprofweb_settings_languages_page' );
-    add_submenu_page( 'hpw-settings', __( 'Automation', 'holyprofweb' ), __( 'Automation', 'holyprofweb' ), 'manage_options', 'hpw-settings-automation', 'holyprofweb_settings_automation_page' );
+    add_submenu_page( 'hpw-settings', __( 'Site & SEO',      'holyprofweb' ), __( 'Site & SEO',      'holyprofweb' ), 'manage_options', 'hpw-settings',             'holyprofweb_settings_page' );
+    add_submenu_page( 'hpw-settings', __( 'Search & Audience','holyprofweb' ), __( 'Search & Audience','holyprofweb' ), 'manage_options', 'hpw-settings-search',      'holyprofweb_settings_search_page' );
+    add_submenu_page( 'hpw-settings', __( 'Content & Reviews','holyprofweb' ), __( 'Content & Reviews','holyprofweb' ), 'manage_options', 'hpw-settings-reviews',     'holyprofweb_settings_reviews_page' );
+    add_submenu_page( 'hpw-settings', __( 'Ads',             'holyprofweb' ), __( 'Ads',             'holyprofweb' ), 'manage_options', 'hpw-settings-ads',         'holyprofweb_ads_admin_page' );
+    add_submenu_page( 'hpw-settings', __( 'Emails',          'holyprofweb' ), __( 'Emails',          'holyprofweb' ), 'manage_options', 'hpw-settings-emails',      'holyprofweb_settings_emails_page' );
+    add_submenu_page( 'hpw-settings', __( 'Languages & Geo', 'holyprofweb' ), __( 'Languages & Geo', 'holyprofweb' ), 'manage_options', 'hpw-settings-languages',   'holyprofweb_settings_languages_page' );
+    add_submenu_page( 'hpw-settings', __( 'Automation',      'holyprofweb' ), __( 'Automation',      'holyprofweb' ), 'manage_options', 'hpw-settings-automation',  'holyprofweb_settings_automation_page' );
 }
 add_action( 'admin_menu', 'holyprofweb_register_settings_menu' );
 
@@ -4672,9 +5060,11 @@ function holyprofweb_admin_menu_badges() {
     }
 
     $counts = holyprofweb_get_admin_alert_counts();
+    $search_alerts = holyprofweb_get_search_alert_rows();
     if ( empty( $counts['total'] ) ) {
-        return;
+        $counts['total'] = 0;
     }
+    $counts['total'] += count( $search_alerts );
 
     foreach ( $menu as &$item ) {
         if ( isset( $item[2] ) && 'hpw-settings' === $item[2] ) {
@@ -4693,6 +5083,9 @@ function holyprofweb_admin_menu_badges() {
             }
             if ( 'hpw-settings-emails' === $item[2] && ! empty( $counts['recent_subscribers'] ) ) {
                 $item[0] .= ' <span class="awaiting-mod update-plugins"><span class="plugin-count">' . (int) $counts['recent_subscribers'] . '</span></span>';
+            }
+            if ( 'hpw-settings-search' === $item[2] && ! empty( $search_alerts ) ) {
+                $item[0] .= ' <span class="awaiting-mod update-plugins"><span class="plugin-count">' . (int) count( $search_alerts ) . '</span></span>';
             }
         }
     }
@@ -4714,16 +5107,18 @@ function holyprofweb_admin_alert_notice() {
     }
 
     $counts = holyprofweb_get_admin_alert_counts();
-    if ( empty( $counts['total'] ) ) {
+    $search_alerts = holyprofweb_get_search_alert_rows();
+    if ( empty( $counts['total'] ) && empty( $search_alerts ) ) {
         return;
     }
 
     echo '<div class="notice notice-info"><p><strong>HPW Alerts:</strong> ';
     echo esc_html( sprintf(
-        'Pending reviews: %d | Pending salary submissions: %d | New subscribers this week: %d',
+        'Pending reviews: %d | Pending salary submissions: %d | New subscribers this week: %d | Search terms needing attention: %d',
         (int) $counts['pending_reviews'],
         (int) $counts['pending_salary'],
-        (int) $counts['recent_subscribers']
+        (int) $counts['recent_subscribers'],
+        (int) count( $search_alerts )
     ) );
     echo '</p></div>';
 }
@@ -4736,10 +5131,16 @@ function holyprofweb_register_settings() {
     // General
     register_setting( 'hpw_general',   'hpw_site_tagline',        array( 'sanitize_callback' => 'sanitize_text_field' ) );
     register_setting( 'hpw_general',   'hpw_posts_per_page',       array( 'sanitize_callback' => 'absint' ) );
-    register_setting( 'hpw_general',   'hpw_show_trending',        array( 'sanitize_callback' => 'rest_sanitize_boolean' ) );
     register_setting( 'hpw_general',   'hpw_show_email_capture',   array( 'sanitize_callback' => 'rest_sanitize_boolean' ) );
     register_setting( 'hpw_general',   'hpw_enable_copy_protection', array( 'sanitize_callback' => 'rest_sanitize_boolean' ) );
     register_setting( 'hpw_general',   'hpw_discourage_indexing',  array( 'sanitize_callback' => 'rest_sanitize_boolean' ) );
+    register_setting( 'hpw_general',   'hpw_redirect_rules',       array( 'sanitize_callback' => 'holyprofweb_sanitize_redirect_rules' ) );
+
+    // Search & Audience
+    register_setting( 'hpw_search',    'hpw_show_trending',        array( 'sanitize_callback' => 'rest_sanitize_boolean' ) );
+    register_setting( 'hpw_search',    'hpw_search_alert_threshold', array( 'sanitize_callback' => 'absint' ) );
+    register_setting( 'hpw_search',    'hpw_search_log_limit',     array( 'sanitize_callback' => 'absint' ) );
+    register_setting( 'hpw_search',    'hpw_search_auto_draft',    array( 'sanitize_callback' => 'rest_sanitize_boolean' ) );
 
     // Reviews
     register_setting( 'hpw_reviews',   'hpw_review_auto_approve',  array( 'sanitize_callback' => 'rest_sanitize_boolean' ) );
@@ -4759,6 +5160,7 @@ function holyprofweb_register_settings() {
     register_setting( 'hpw_languages', 'hpw_multilingual_enabled', array( 'sanitize_callback' => 'rest_sanitize_boolean' ) );
     register_setting( 'hpw_languages', 'hpw_default_language',     array( 'sanitize_callback' => 'sanitize_text_field' ) );
     register_setting( 'hpw_languages', 'hpw_country_mode',         array( 'sanitize_callback' => 'sanitize_text_field' ) );
+    register_setting( 'hpw_languages', 'hpw_enabled_languages',    array( 'sanitize_callback' => 'holyprofweb_sanitize_enabled_languages' ) );
 
     // Automation
     register_setting( 'hpw_automation', 'hpw_enable_remote_image_fetch', array( 'sanitize_callback' => 'rest_sanitize_boolean' ) );
@@ -4773,11 +5175,190 @@ function holyprofweb_register_settings() {
     register_setting( 'hpw_automation', 'hpw_ai_faq_count',              array( 'sanitize_callback' => 'absint' ) );
     register_setting( 'hpw_automation', 'hpw_ai_brand_voice',            array( 'sanitize_callback' => 'sanitize_textarea_field' ) );
     register_setting( 'hpw_automation', 'hpw_ai_prompt_notes',           array( 'sanitize_callback' => 'sanitize_textarea_field' ) );
-    register_setting( 'hpw_general',    'hpw_redirect_rules',            array( 'sanitize_callback' => 'holyprofweb_sanitize_redirect_rules' ) );
 }
 add_action( 'admin_init', 'holyprofweb_register_settings' );
 
 /* ── General ──────────────────────────────────────────────────────────────── */
+
+function holyprofweb_get_search_log_summary() {
+    $log = holyprofweb_get_search_log();
+    $summary = array(
+        'tracked_terms'   => count( $log ),
+        'total_searches'  => 0,
+        'flagged_terms'   => 0,
+        'countries'       => array(),
+        'referrers'       => array(),
+    );
+
+    $threshold = holyprofweb_get_search_alert_threshold();
+
+    foreach ( $log as $entry ) {
+        $summary['total_searches'] += (int) $entry['count'];
+        if ( (int) $entry['count'] >= $threshold ) {
+            $summary['flagged_terms']++;
+        }
+
+        foreach ( (array) $entry['countries'] as $country => $count ) {
+            if ( empty( $summary['countries'][ $country ] ) ) {
+                $summary['countries'][ $country ] = 0;
+            }
+            $summary['countries'][ $country ] += (int) $count;
+        }
+
+        foreach ( (array) $entry['referrers'] as $referrer => $count ) {
+            if ( empty( $summary['referrers'][ $referrer ] ) ) {
+                $summary['referrers'][ $referrer ] = 0;
+            }
+            $summary['referrers'][ $referrer ] += (int) $count;
+        }
+    }
+
+    arsort( $summary['countries'] );
+    arsort( $summary['referrers'] );
+
+    return $summary;
+}
+
+function holyprofweb_handle_search_admin_actions() {
+    if ( ! is_admin() || ! current_user_can( 'manage_options' ) ) {
+        return;
+    }
+
+    if ( empty( $_POST['hpw_search_action'] ) || empty( $_POST['page'] ) || 'hpw-settings-search' !== $_POST['page'] ) {
+        return;
+    }
+
+    check_admin_referer( 'hpw_search_admin_action', 'hpw_search_admin_nonce' );
+
+    $action = sanitize_key( wp_unslash( $_POST['hpw_search_action'] ) );
+    if ( 'clear_search_log' === $action ) {
+        update_option( 'holyprofweb_search_log', array(), false );
+    }
+
+    wp_safe_redirect(
+        add_query_arg(
+            array(
+                'page'              => 'hpw-settings-search',
+                'hpw_search_action' => 'done',
+            ),
+            admin_url( 'admin.php' )
+        )
+    );
+    exit;
+}
+add_action( 'admin_init', 'holyprofweb_handle_search_admin_actions' );
+
+function holyprofweb_settings_search_page() {
+    if ( ! current_user_can( 'manage_options' ) ) return;
+    if ( isset( $_GET['settings-updated'] ) ) {
+        add_settings_error( 'hpw_messages', 'hpw_saved', __( 'Search settings saved.', 'holyprofweb' ), 'updated' );
+    }
+    if ( isset( $_GET['hpw_search_action'] ) && 'done' === $_GET['hpw_search_action'] ) {
+        add_settings_error( 'hpw_messages', 'hpw_search_done', __( 'Search log action completed.', 'holyprofweb' ), 'updated' );
+    }
+    settings_errors( 'hpw_messages' );
+
+    $query_filter   = isset( $_GET['hpw_search_term'] ) ? sanitize_text_field( wp_unslash( $_GET['hpw_search_term'] ) ) : '';
+    $country_filter = isset( $_GET['hpw_search_country'] ) ? sanitize_text_field( wp_unslash( $_GET['hpw_search_country'] ) ) : '';
+    $summary        = holyprofweb_get_search_log_summary();
+    $threshold      = holyprofweb_get_search_alert_threshold();
+    $rows           = holyprofweb_get_search_log();
+
+    if ( $query_filter || $country_filter ) {
+        $rows = array_filter(
+            $rows,
+            static function( $entry ) use ( $query_filter, $country_filter ) {
+                $matches_query   = '' === $query_filter || false !== stripos( (string) $entry['term'], $query_filter );
+                $matches_country = '' === $country_filter || ! empty( $entry['countries'][ $country_filter ] );
+                return $matches_query && $matches_country;
+            }
+        );
+    }
+    ?>
+    <div class="wrap">
+        <h1><?php esc_html_e( 'HPW Settings — Search & Audience', 'holyprofweb' ); ?></h1>
+        <?php holyprofweb_settings_nav( 'search' ); ?>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;margin:0 0 20px;">
+            <div style="background:#fff;border:1px solid #dcdcde;border-radius:12px;padding:16px;"><strong style="display:block;font-size:1.8rem;line-height:1;"><?php echo esc_html( number_format_i18n( $summary['tracked_terms'] ) ); ?></strong><span><?php esc_html_e( 'Tracked search terms', 'holyprofweb' ); ?></span></div>
+            <div style="background:#fff;border:1px solid #dcdcde;border-radius:12px;padding:16px;"><strong style="display:block;font-size:1.8rem;line-height:1;"><?php echo esc_html( number_format_i18n( $summary['total_searches'] ) ); ?></strong><span><?php esc_html_e( 'Total search events', 'holyprofweb' ); ?></span></div>
+            <div style="background:#fff;border:1px solid #dcdcde;border-radius:12px;padding:16px;"><strong style="display:block;font-size:1.8rem;line-height:1;"><?php echo esc_html( number_format_i18n( $summary['flagged_terms'] ) ); ?></strong><span><?php echo esc_html( sprintf( __( 'Terms searched %d+ times', 'holyprofweb' ), $threshold ) ); ?></span></div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:16px;margin:0 0 24px;">
+            <form method="post" action="options.php" style="background:#fff;border:1px solid #dcdcde;border-radius:12px;padding:18px;">
+                <h2 style="margin-top:0;"><?php esc_html_e( 'Search Controls', 'holyprofweb' ); ?></h2>
+                <p style="margin-top:0;color:#646970;"><?php esc_html_e( 'Keep search logging useful and intentional. Repeated terms can become content ideas, but silent draft creation stays off unless you explicitly enable it.', 'holyprofweb' ); ?></p>
+                <?php settings_fields( 'hpw_search' ); ?>
+                <table class="form-table" style="margin-top:0;">
+                    <tr><th><?php esc_html_e( 'Alert threshold', 'holyprofweb' ); ?></th><td><input type="number" name="hpw_search_alert_threshold" value="<?php echo esc_attr( get_option( 'hpw_search_alert_threshold', 2 ) ); ?>" min="2" max="50" class="small-text" /><p class="description"><?php esc_html_e( 'When a term reaches this many searches, it shows as an admin alert.', 'holyprofweb' ); ?></p></td></tr>
+                    <tr><th><?php esc_html_e( 'Tracked term limit', 'holyprofweb' ); ?></th><td><input type="number" name="hpw_search_log_limit" value="<?php echo esc_attr( get_option( 'hpw_search_log_limit', 250 ) ); ?>" min="100" max="1000" class="small-text" /><p class="description"><?php esc_html_e( 'Keeps the log trimmed so admin stays fast.', 'holyprofweb' ); ?></p></td></tr>
+                    <tr><th><?php esc_html_e( 'Auto-create draft from missing searches', 'holyprofweb' ); ?></th><td><label><input type="checkbox" name="hpw_search_auto_draft" value="1" <?php checked( 1, get_option( 'hpw_search_auto_draft', 0 ) ); ?> /> <?php esc_html_e( 'Allow repeated missing searches to create a draft idea automatically.', 'holyprofweb' ); ?></label><p class="description"><?php esc_html_e( 'Off by default so search does not silently create draft posts.', 'holyprofweb' ); ?></p></td></tr>
+                    <tr><th><?php esc_html_e( 'Front-end trending blocks', 'holyprofweb' ); ?></th><td><label><input type="checkbox" name="hpw_show_trending" value="1" <?php checked( 1, get_option( 'hpw_show_trending', 1 ) ); ?> /> <?php esc_html_e( 'Allow search trend blocks where the theme still uses them.', 'holyprofweb' ); ?></label></td></tr>
+                </table>
+                <?php submit_button( __( 'Save Search Settings', 'holyprofweb' ) ); ?>
+            </form>
+
+            <div style="background:#fff;border:1px solid #dcdcde;border-radius:12px;padding:18px;">
+                <h2 style="margin-top:0;"><?php esc_html_e( 'Audience Snapshot', 'holyprofweb' ); ?></h2>
+                <p style="margin-top:0;color:#646970;"><?php esc_html_e( 'See where search demand comes from so you can prioritize location-specific content, comparisons, and internal links.', 'holyprofweb' ); ?></p>
+                <div style="display:grid;gap:14px;">
+                    <div>
+                        <strong style="display:block;margin:0 0 6px;"><?php esc_html_e( 'Top search countries', 'holyprofweb' ); ?></strong>
+                        <?php if ( ! empty( $summary['countries'] ) ) : foreach ( array_slice( $summary['countries'], 0, 6, true ) as $country => $count ) : ?><div style="display:flex;justify-content:space-between;gap:10px;padding:4px 0;"><span><?php echo esc_html( $country ); ?></span><strong><?php echo esc_html( number_format_i18n( $count ) ); ?></strong></div><?php endforeach; else : ?><p><?php esc_html_e( 'No country search data yet.', 'holyprofweb' ); ?></p><?php endif; ?>
+                    </div>
+                    <div>
+                        <strong style="display:block;margin:0 0 6px;"><?php esc_html_e( 'Top search referrers', 'holyprofweb' ); ?></strong>
+                        <?php if ( ! empty( $summary['referrers'] ) ) : foreach ( array_slice( $summary['referrers'], 0, 6, true ) as $referrer => $count ) : ?><div style="display:flex;justify-content:space-between;gap:10px;padding:4px 0;"><span><?php echo esc_html( $referrer ); ?></span><strong><?php echo esc_html( number_format_i18n( $count ) ); ?></strong></div><?php endforeach; else : ?><p><?php esc_html_e( 'No search referrer data yet.', 'holyprofweb' ); ?></p><?php endif; ?>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div style="background:#fff;border:1px solid #dcdcde;border-radius:12px;padding:18px;margin:0 0 20px;">
+            <div style="display:flex;justify-content:space-between;gap:14px;align-items:flex-end;flex-wrap:wrap;">
+                <div>
+                    <h2 style="margin:0 0 6px;"><?php esc_html_e( 'Tracked Search Terms', 'holyprofweb' ); ?></h2>
+                    <p style="margin:0;color:#646970;"><?php esc_html_e( 'Filter this table by term or country to see which topics need content, local variants, or stronger internal linking.', 'holyprofweb' ); ?></p>
+                </div>
+                <form method="post" action="">
+                    <?php wp_nonce_field( 'hpw_search_admin_action', 'hpw_search_admin_nonce' ); ?>
+                    <input type="hidden" name="page" value="hpw-settings-search" />
+                    <input type="hidden" name="hpw_search_action" value="clear_search_log" />
+                    <?php submit_button( __( 'Clear Search Log', 'holyprofweb' ), 'delete', 'submit', false, array( 'onclick' => "return confirm('Clear the tracked search log?');" ) ); ?>
+                </form>
+            </div>
+
+            <form method="get" action="" style="margin:18px 0 14px;display:grid;grid-template-columns:minmax(240px,1fr) minmax(220px,300px) auto;gap:12px;align-items:end;">
+                <input type="hidden" name="page" value="hpw-settings-search" />
+                <p style="margin:0;"><label for="hpw-search-term-filter" style="display:block;font-weight:600;margin:0 0 6px;"><?php esc_html_e( 'Search term', 'holyprofweb' ); ?></label><input id="hpw-search-term-filter" type="search" name="hpw_search_term" value="<?php echo esc_attr( $query_filter ); ?>" class="regular-text" style="width:100%;max-width:none;" placeholder="<?php esc_attr_e( 'Search Moniepoint, Stripe, salary, biography...', 'holyprofweb' ); ?>" /></p>
+                <p style="margin:0;"><label for="hpw-search-country-filter" style="display:block;font-weight:600;margin:0 0 6px;"><?php esc_html_e( 'Country', 'holyprofweb' ); ?></label><select id="hpw-search-country-filter" name="hpw_search_country" style="width:100%;"><option value=""><?php esc_html_e( 'All countries', 'holyprofweb' ); ?></option><?php foreach ( array_keys( $summary['countries'] ) as $country_name ) : ?><option value="<?php echo esc_attr( $country_name ); ?>" <?php selected( $country_filter, $country_name ); ?>><?php echo esc_html( $country_name ); ?></option><?php endforeach; ?></select></p>
+                <p style="margin:0;"><?php submit_button( __( 'Filter', 'holyprofweb' ), 'secondary', 'submit', false ); ?></p>
+            </form>
+
+            <?php if ( empty( $rows ) ) : ?>
+                <p><?php esc_html_e( 'No tracked search terms match this filter yet.', 'holyprofweb' ); ?></p>
+            <?php else : ?>
+                <table class="widefat striped">
+                    <thead><tr><th><?php esc_html_e( 'Term', 'holyprofweb' ); ?></th><th><?php esc_html_e( 'Searches', 'holyprofweb' ); ?></th><th><?php esc_html_e( 'Last results', 'holyprofweb' ); ?></th><th><?php esc_html_e( 'Top country', 'holyprofweb' ); ?></th><th><?php esc_html_e( 'Last referrer', 'holyprofweb' ); ?></th><th><?php esc_html_e( 'Last seen', 'holyprofweb' ); ?></th><th><?php esc_html_e( 'Action cue', 'holyprofweb' ); ?></th></tr></thead>
+                    <tbody>
+                    <?php foreach ( $rows as $entry ) : $needs_attention = (int) $entry['count'] >= $threshold; $top_country = ! empty( $entry['countries'] ) ? (string) array_key_first( $entry['countries'] ) : ''; ?>
+                        <tr<?php echo $needs_attention ? ' style="background:#fff8e5;"' : ''; ?>>
+                            <td><strong><?php echo esc_html( $entry['term'] ); ?></strong><?php if ( ! empty( $entry['auto_draft_id'] ) ) : ?><div><a href="<?php echo esc_url( get_edit_post_link( (int) $entry['auto_draft_id'] ) ); ?>"><?php esc_html_e( 'Open related draft/post', 'holyprofweb' ); ?></a></div><?php endif; ?></td>
+                            <td><?php echo esc_html( number_format_i18n( (int) $entry['count'] ) ); ?></td>
+                            <td><?php echo esc_html( number_format_i18n( (int) $entry['last_results'] ) ); ?></td>
+                            <td><?php echo esc_html( $top_country ? $top_country : __( 'Unknown', 'holyprofweb' ) ); ?></td>
+                            <td><?php echo esc_html( ! empty( $entry['last_referrer'] ) ? $entry['last_referrer'] : __( 'Direct', 'holyprofweb' ) ); ?></td>
+                            <td><?php echo esc_html( ! empty( $entry['ts'] ) ? wp_date( 'M j, Y g:i a', (int) $entry['ts'] ) : '—' ); ?></td>
+                            <td><?php if ( $needs_attention ) { esc_html_e( 'Needs coverage or stronger internal linking', 'holyprofweb' ); } elseif ( 0 === (int) $entry['last_results'] ) { esc_html_e( 'No exact results yet', 'holyprofweb' ); } else { esc_html_e( 'Covered', 'holyprofweb' ); } ?></td>
+                        </tr>
+                    <?php endforeach; ?>
+                    </tbody>
+                </table>
+            <?php endif; ?>
+        </div>
+    </div>
+    <?php
+}
 
 function holyprofweb_settings_page() {
     if ( ! current_user_can( 'manage_options' ) ) return;
@@ -4788,7 +5369,7 @@ function holyprofweb_settings_page() {
     $counts = holyprofweb_get_admin_alert_counts();
     ?>
     <div class="wrap">
-        <h1>&#9881; <?php esc_html_e( 'HPW Settings — General', 'holyprofweb' ); ?></h1>
+        <h1>&#9881; <?php esc_html_e( 'HPW Settings — Site & SEO', 'holyprofweb' ); ?></h1>
         <?php holyprofweb_settings_nav( 'general' ); ?>
         <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;margin:0 0 20px;">
             <div style="background:#fff;border:1px solid #dcdcde;border-radius:12px;padding:16px;">
@@ -4819,10 +5400,10 @@ function holyprofweb_settings_page() {
                 <?php endforeach; else : ?><p><?php esc_html_e( 'No referrer data yet.', 'holyprofweb' ); ?></p><?php endif; ?>
             </div>
             <div style="background:#fff;border:1px solid #dcdcde;border-radius:12px;padding:16px;">
-                <h2 style="margin:0 0 10px;font-size:16px;"><?php esc_html_e( 'Top Searches', 'holyprofweb' ); ?></h2>
-                <?php foreach ( holyprofweb_get_trending_searches( 5 ) as $item ) : ?>
-                    <div style="display:flex;justify-content:space-between;gap:10px;padding:4px 0;"><span><?php echo esc_html( $item['term'] ); ?></span><strong><?php echo esc_html( number_format_i18n( $item['count'] ) ); ?></strong></div>
-                <?php endforeach; ?>
+                <h2 style="margin:0 0 10px;font-size:16px;"><?php esc_html_e( 'Site Visibility', 'holyprofweb' ); ?></h2>
+                <div style="display:flex;justify-content:space-between;gap:10px;padding:4px 0;"><span><?php esc_html_e( 'Search indexing', 'holyprofweb' ); ?></span><strong><?php echo get_option( 'hpw_discourage_indexing', 1 ) ? esc_html__( 'Discouraged', 'holyprofweb' ) : esc_html__( 'Allowed', 'holyprofweb' ); ?></strong></div>
+                <div style="display:flex;justify-content:space-between;gap:10px;padding:4px 0;"><span><?php esc_html_e( 'Copy protection', 'holyprofweb' ); ?></span><strong><?php echo get_option( 'hpw_enable_copy_protection', 0 ) ? esc_html__( 'On', 'holyprofweb' ) : esc_html__( 'Off', 'holyprofweb' ); ?></strong></div>
+                <div style="display:flex;justify-content:space-between;gap:10px;padding:4px 0;"><span><?php esc_html_e( 'Archive/search posts per page', 'holyprofweb' ); ?></span><strong><?php echo esc_html( (int) get_option( 'hpw_posts_per_page', 12 ) ); ?></strong></div>
             </div>
         </div>
         <?php
@@ -4859,6 +5440,10 @@ function holyprofweb_settings_page() {
                 </table>
             <?php endif; ?>
         </div>
+        <div class="notice notice-info inline" style="margin:0 0 16px;">
+            <p><strong><?php esc_html_e( 'Setup help:', 'holyprofweb' ); ?></strong> <?php esc_html_e( 'Use this page for launch toggles. For translations, pair the Languages tab with Polylang or WPML. For robots.txt, WordPress can serve a virtual file at /robots.txt even when no physical robots.txt file exists in the theme or site root.', 'holyprofweb' ); ?></p>
+            <p><?php echo esc_html( sprintf( __( 'Current robots.txt URL: %s', 'holyprofweb' ), home_url( '/robots.txt' ) ) ); ?></p>
+        </div>
         <form method="post" action="options.php">
             <?php settings_fields( 'hpw_general' ); ?>
             <table class="form-table">
@@ -4869,10 +5454,6 @@ function holyprofweb_settings_page() {
                 <tr>
                     <th><?php esc_html_e( 'Posts per page (archive/search)', 'holyprofweb' ); ?></th>
                     <td><input type="number" name="hpw_posts_per_page" value="<?php echo esc_attr( get_option( 'hpw_posts_per_page', 12 ) ); ?>" min="1" max="50" class="small-text" /></td>
-                </tr>
-                <tr>
-                    <th><?php esc_html_e( 'Show trending searches section', 'holyprofweb' ); ?></th>
-                    <td><label><input type="checkbox" name="hpw_show_trending" value="1" <?php checked( 1, get_option( 'hpw_show_trending', 1 ) ); ?> /> <?php esc_html_e( 'Enabled', 'holyprofweb' ); ?></label></td>
                 </tr>
                 <tr>
                     <th><?php esc_html_e( 'Show email capture widget', 'holyprofweb' ); ?></th>
@@ -4945,7 +5526,7 @@ function holyprofweb_settings_reviews_page() {
     settings_errors( 'hpw_messages' );
     ?>
     <div class="wrap">
-        <h1>&#9733; <?php esc_html_e( 'HPW Settings — Reviews', 'holyprofweb' ); ?></h1>
+        <h1>&#9733; <?php esc_html_e( 'HPW Settings — Content & Reviews', 'holyprofweb' ); ?></h1>
         <?php holyprofweb_settings_nav( 'reviews' ); ?>
         <style>
             @media (max-width: 960px) {
@@ -5324,9 +5905,11 @@ function holyprofweb_settings_languages_page() {
         'sw'    => 'Swahili',
         'zh_CN' => 'Chinese Simplified',
     );
+    $languages = holyprofweb_get_language_catalog();
+    $enabled_languages = holyprofweb_get_enabled_languages();
     ?>
     <div class="wrap">
-        <h1>&#127758; <?php esc_html_e( 'HPW Settings — Languages', 'holyprofweb' ); ?></h1>
+        <h1>&#127758; <?php esc_html_e( 'HPW Settings — Languages & Geo', 'holyprofweb' ); ?></h1>
         <?php holyprofweb_settings_nav( 'languages' ); ?>
         <form method="post" action="options.php">
             <?php settings_fields( 'hpw_languages' ); ?>
@@ -5346,6 +5929,18 @@ function holyprofweb_settings_languages_page() {
                             <option value="<?php echo esc_attr( $code ); ?>" <?php selected( get_option( 'hpw_default_language', 'en_US' ), $code ); ?>><?php echo esc_html( $label ); ?></option>
                             <?php endforeach; ?>
                         </select>
+                    </td>
+                </tr>
+                <tr>
+                    <th><?php esc_html_e( 'Languages in the globe menu', 'holyprofweb' ); ?></th>
+                    <td>
+                        <select name="hpw_enabled_languages[]" multiple size="7" style="min-width:280px;">
+                            <?php foreach ( $languages as $code => $label ) : ?>
+                            <option value="<?php echo esc_attr( $code ); ?>" <?php selected( in_array( $code, $enabled_languages, true ) ); ?>><?php echo esc_html( $label ); ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                        <p class="description"><?php esc_html_e( 'Choose the languages the header globe should show. Hold Ctrl or Cmd to pick multiple languages.', 'holyprofweb' ); ?></p>
+                        <p class="description"><?php esc_html_e( 'If Polylang or WPML is active, the globe will use real translated URLs automatically. Without a translation plugin, the theme still shows the configured language list so the interface stays launch-ready.', 'holyprofweb' ); ?></p>
                     </td>
                 </tr>
                 <tr>
@@ -5402,12 +5997,13 @@ function holyprofweb_settings_languages_page() {
 
 function holyprofweb_settings_nav( $active = 'general' ) {
     $tabs = array(
-        'general'    => array( 'label' => 'General',    'slug' => 'hpw-settings',            'icon' => '&#9881;' ),
-        'reviews'    => array( 'label' => 'Reviews',    'slug' => 'hpw-settings-reviews',    'icon' => '&#9733;' ),
-        'ads'        => array( 'label' => 'Ads',        'slug' => 'hpw-settings-ads',        'icon' => '&#128250;' ),
-        'languages'  => array( 'label' => 'Languages',  'slug' => 'hpw-settings-languages',  'icon' => '&#127758;' ),
-        'emails'     => array( 'label' => 'Emails',     'slug' => 'hpw-settings-emails',     'icon' => '&#128231;' ),
-        'automation' => array( 'label' => 'Automation', 'slug' => 'hpw-settings-automation', 'icon' => '&#9889;' ),
+        'general'    => array( 'label' => 'Site & SEO',         'slug' => 'hpw-settings',            'icon' => '&#9881;' ),
+        'search'     => array( 'label' => 'Search & Audience',  'slug' => 'hpw-settings-search',     'icon' => '&#128269;' ),
+        'reviews'    => array( 'label' => 'Content & Reviews',  'slug' => 'hpw-settings-reviews',    'icon' => '&#9733;' ),
+        'ads'        => array( 'label' => 'Ads',                'slug' => 'hpw-settings-ads',        'icon' => '&#128250;' ),
+        'languages'  => array( 'label' => 'Languages & Geo',    'slug' => 'hpw-settings-languages',  'icon' => '&#127758;' ),
+        'emails'     => array( 'label' => 'Emails',             'slug' => 'hpw-settings-emails',     'icon' => '&#128231;' ),
+        'automation' => array( 'label' => 'Automation',         'slug' => 'hpw-settings-automation', 'icon' => '&#9889;' ),
     );
     echo '<nav class="nav-tab-wrapper" style="margin-bottom:20px;">';
     foreach ( $tabs as $key => $tab ) {
@@ -5456,6 +6052,45 @@ function holyprofweb_settings_search_script() {
     <?php
 }
 add_action( 'admin_footer', 'holyprofweb_settings_search_script' );
+
+function holyprofweb_admin_editor_helpers() {
+    if ( ! is_admin() || ! current_user_can( 'edit_posts' ) ) {
+        return;
+    }
+
+    $screen = function_exists( 'get_current_screen' ) ? get_current_screen() : null;
+    if ( ! $screen || 'post' !== $screen->base || 'post' !== $screen->post_type ) {
+        return;
+    }
+    ?>
+    <script>
+    document.addEventListener('DOMContentLoaded', function () {
+        var salaryMeta = document.getElementById('hpw_salary_data');
+        if (!salaryMeta) return;
+
+        function hasCompaniesCategory() {
+            return Array.prototype.slice.call(document.querySelectorAll('input[name="post_category[]"]:checked')).some(function (input) {
+                var label = document.querySelector('label[for="' + input.id + '"]');
+                return !!(label && /companies/i.test(label.textContent || ''));
+            });
+        }
+
+        function syncSalaryMetaBox() {
+            salaryMeta.style.display = hasCompaniesCategory() ? '' : 'none';
+        }
+
+        document.addEventListener('change', function (event) {
+            if (event.target && event.target.name === 'post_category[]') {
+                syncSalaryMetaBox();
+            }
+        });
+
+        syncSalaryMetaBox();
+    });
+    </script>
+    <?php
+}
+add_action( 'admin_footer', 'holyprofweb_admin_editor_helpers', 30 );
 
 function holyprofweb_settings_automation_page() {
     if ( ! current_user_can( 'manage_options' ) ) return;
@@ -5883,6 +6518,43 @@ add_filter( 'wp_robots', function( $robots ) {
     }
     return $robots;
 } );
+
+function holyprofweb_virtual_robots_txt( $output, $public ) {
+    $lines = array(
+        'User-agent: *',
+    );
+
+    if ( get_option( 'hpw_discourage_indexing', 0 ) || ! $public ) {
+        $lines[] = 'Disallow: /';
+    } else {
+        $lines[] = 'Allow: /';
+        $lines[] = 'Sitemap: ' . esc_url_raw( home_url( '/wp-sitemap.xml' ) );
+    }
+
+    return implode( "\n", $lines ) . "\n";
+}
+add_filter( 'robots_txt', 'holyprofweb_virtual_robots_txt', 10, 2 );
+
+function holyprofweb_primary_menu_cleanup( $items, $args ) {
+    if ( empty( $args->theme_location ) || 'primary' !== $args->theme_location ) {
+        return $items;
+    }
+
+    foreach ( $items as $index => $item ) {
+        $title_slug = sanitize_title( $item->title );
+
+        if ( 'blog' === $title_slug ) {
+            $items[ $index ]->url = holyprofweb_get_blog_url();
+        }
+
+        if ( 'reports' === $title_slug ) {
+            unset( $items[ $index ] );
+        }
+    }
+
+    return array_values( $items );
+}
+add_filter( 'wp_nav_menu_objects', 'holyprofweb_primary_menu_cleanup', 10, 2 );
 
 /* ── RTL support hook ────────────────────────────────────────────────────── */
 
