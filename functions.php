@@ -3471,20 +3471,14 @@ function holyprofweb_get_site_visual_candidates( $source_url ) {
 
     $candidates = array();
 
-    if ( preg_match( '/<meta[^>]+property=["\']og:logo["\'][^>]+content=["\']([^"\']+)["\']/i', $body, $match ) ) {
-        $candidates[] = holyprofweb_resolve_remote_asset_url( $match[1], $source_url );
-    }
-    if ( preg_match( '/<meta[^>]+name=["\']twitter:image["\'][^>]+content=["\']([^"\']+)["\']/i', $body, $match ) ) {
-        $candidates[] = holyprofweb_resolve_remote_asset_url( $match[1], $source_url );
-    }
-    if ( preg_match( '/"logo"\s*:\s*"([^"]+)"/i', $body, $match ) ) {
-        $candidates[] = holyprofweb_resolve_remote_asset_url( $match[1], $source_url );
-    }
-
-    if ( preg_match_all( '/<link[^>]+rel=["\'][^"\']*(?:icon|apple-touch-icon)[^"\']*["\'][^>]+href=["\']([^"\']+)["\']/i', $body, $matches ) ) {
+    if ( preg_match_all( '/<img[^>]+(?:src|data-src)=["\']([^"\']+)["\'][^>]*(?:class|id|alt)=["\'][^"\']*(?:hero|banner|dashboard|screenshot|preview|app-shot)[^"\']*["\']/i', $body, $matches ) ) {
         foreach ( $matches[1] as $match ) {
             $candidates[] = holyprofweb_resolve_remote_asset_url( $match, $source_url );
         }
+    }
+
+    if ( preg_match( '/<meta[^>]+name=["\']twitter:image["\'][^>]+content=["\']([^"\']+)["\']/i', $body, $match ) ) {
+        $candidates[] = holyprofweb_resolve_remote_asset_url( $match[1], $source_url );
     }
 
     if ( preg_match_all( '/<img[^>]+(?:src|data-src)=["\']([^"\']+)["\'][^>]*(?:class|id|alt)=["\'][^"\']*(?:logo|brand|navbar-brand|site-logo|header-logo)[^"\']*["\']/i', $body, $matches ) ) {
@@ -3493,10 +3487,11 @@ function holyprofweb_get_site_visual_candidates( $source_url ) {
         }
     }
 
-    if ( preg_match_all( '/<img[^>]+(?:src|data-src)=["\']([^"\']+)["\'][^>]*(?:class|id|alt)=["\'][^"\']*(?:hero|banner|dashboard|screenshot|preview|app-shot)[^"\']*["\']/i', $body, $matches ) ) {
-        foreach ( $matches[1] as $match ) {
-            $candidates[] = holyprofweb_resolve_remote_asset_url( $match, $source_url );
-        }
+    if ( preg_match( '/<meta[^>]+property=["\']og:logo["\'][^>]+content=["\']([^"\']+)["\']/i', $body, $match ) ) {
+        $candidates[] = holyprofweb_resolve_remote_asset_url( $match[1], $source_url );
+    }
+    if ( preg_match( '/"logo"\s*:\s*"([^"]+)"/i', $body, $match ) ) {
+        $candidates[] = holyprofweb_resolve_remote_asset_url( $match[1], $source_url );
     }
 
     $candidates = array_values( array_filter( array_unique( $candidates ) ) );
@@ -3607,9 +3602,32 @@ function holyprofweb_attach_remote_image_to_post( $image_url, $post_id, $descrip
         return 0;
     }
 
+    if ( ! holyprofweb_validate_remote_attachment_for_featured( (int) $att_id, $post_id ) ) {
+        return 0;
+    }
+
     holyprofweb_brand_attachment_image( (int) $att_id );
     set_post_thumbnail( $post_id, $att_id );
     return (int) $att_id;
+}
+
+function holyprofweb_validate_remote_attachment_for_featured( $attachment_id, $post_id = 0 ) {
+    $meta   = wp_get_attachment_metadata( $attachment_id );
+    $width  = ! empty( $meta['width'] ) ? (int) $meta['width'] : 0;
+    $height = ! empty( $meta['height'] ) ? (int) $meta['height'] : 0;
+    $ratio  = ( $width > 0 && $height > 0 ) ? ( $width / max( 1, $height ) ) : 0;
+
+    $is_usable = $width >= 600 && $height >= 315 && $ratio >= 1.2;
+    if ( $is_usable ) {
+        return true;
+    }
+
+    wp_delete_attachment( $attachment_id, true );
+    if ( $post_id > 0 ) {
+        delete_post_meta( $post_id, '_holyprofweb_remote_image_url' );
+    }
+
+    return false;
 }
 
 function holyprofweb_brand_attachment_image( $attachment_id ) {
