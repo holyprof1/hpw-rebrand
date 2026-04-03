@@ -3186,6 +3186,70 @@ function holyprofweb_get_post_image_class( $post_id, $base = '' ) {
     return implode( ' ', $classes );
 }
 
+function holyprofweb_get_generated_card_palette( $post_id ) {
+    $cats     = get_the_category( $post_id );
+    $cat_slug = ! empty( $cats ) ? $cats[0]->slug : '';
+
+    $palettes = array(
+        'reviews'   => array( 'bg1' => '#111827', 'bg2' => '#374151', 'accent' => '#f0b84a', 'soft' => 'rgba(240,184,74,0.20)' ),
+        'companies' => array( 'bg1' => '#0f1720', 'bg2' => '#173b34', 'accent' => '#49d49d', 'soft' => 'rgba(73,212,157,0.18)' ),
+        'salaries'  => array( 'bg1' => '#17130d', 'bg2' => '#50361b', 'accent' => '#f6c15a', 'soft' => 'rgba(246,193,90,0.18)' ),
+        'biography' => array( 'bg1' => '#151320', 'bg2' => '#33214e', 'accent' => '#c8b5ff', 'soft' => 'rgba(200,181,255,0.18)' ),
+        'reports'   => array( 'bg1' => '#1a1013', 'bg2' => '#5a272d', 'accent' => '#ff8a8a', 'soft' => 'rgba(255,138,138,0.18)' ),
+    );
+
+    foreach ( $palettes as $key => $palette ) {
+        if ( false !== strpos( $cat_slug, $key ) ) {
+            return $palette;
+        }
+    }
+
+    return array( 'bg1' => '#111827', 'bg2' => '#374151', 'accent' => '#f0b84a', 'soft' => 'rgba(240,184,74,0.20)' );
+}
+
+function holyprofweb_get_generated_card_image_url( $post_id ) {
+    $title    = trim( preg_replace( '/\s+/', ' ', wp_strip_all_tags( holyprofweb_get_decoded_post_title( $post_id ) ) ) );
+    $excerpt  = trim( preg_replace( '/\s+/', ' ', wp_strip_all_tags( holyprofweb_get_decoded_post_excerpt( $post_id ) ) ) );
+    $cats     = get_the_category( $post_id );
+    $cat_name = ! empty( $cats ) ? strtoupper( $cats[0]->name ) : 'HOLYPROFWEB';
+    $palette  = holyprofweb_get_generated_card_palette( $post_id );
+    $title_lines = holyprofweb_wrap_image_text( $title, 2, 20 );
+    $deck_lines  = holyprofweb_wrap_image_text( $excerpt ?: __( 'Research-first review, company context, and practical signals.', 'holyprofweb' ), 2, 38 );
+
+    $title_svg = '';
+    foreach ( $title_lines as $index => $line ) {
+        $y = 112 + ( $index * 36 );
+        $title_svg .= '<text x="32" y="' . (int) $y . '" fill="#F8FAFC" font-size="28" font-weight="700" font-family="Inter, Segoe UI, Arial, sans-serif">' . htmlspecialchars( $line, ENT_QUOTES | ENT_XML1, 'UTF-8' ) . '</text>';
+    }
+
+    $deck_svg = '';
+    foreach ( array_slice( $deck_lines, 0, 2 ) as $index => $line ) {
+        $y = 196 + ( $index * 22 );
+        $deck_svg .= '<text x="32" y="' . (int) $y . '" fill="#CBD5E1" font-size="15" font-weight="500" font-family="Inter, Segoe UI, Arial, sans-serif">' . htmlspecialchars( $line, ENT_QUOTES | ENT_XML1, 'UTF-8' ) . '</text>';
+    }
+
+    $svg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="' . htmlspecialchars( $title, ENT_QUOTES | ENT_XML1, 'UTF-8' ) . '">'
+        . '<defs>'
+        . '<linearGradient id="hpwBg" x1="0" y1="0" x2="1" y2="1">'
+        . '<stop offset="0%" stop-color="' . $palette['bg1'] . '"/>'
+        . '<stop offset="100%" stop-color="' . $palette['bg2'] . '"/>'
+        . '</linearGradient>'
+        . '</defs>'
+        . '<rect width="640" height="400" rx="28" fill="url(#hpwBg)"/>'
+        . '<circle cx="560" cy="74" r="92" fill="' . $palette['soft'] . '"/>'
+        . '<circle cx="44" cy="354" r="38" fill="rgba(255,255,255,0.08)"/>'
+        . '<rect x="0" y="0" width="8" height="400" fill="' . $palette['accent'] . '"/>'
+        . '<rect x="32" y="34" width="160" height="28" rx="10" fill="' . $palette['accent'] . '"/>'
+        . '<text x="46" y="53" fill="#111827" font-size="13" font-weight="700" font-family="Inter, Segoe UI, Arial, sans-serif">' . htmlspecialchars( $cat_name, ENT_QUOTES | ENT_XML1, 'UTF-8' ) . '</text>'
+        . $title_svg
+        . $deck_svg
+        . '<rect x="32" y="332" width="576" height="2" fill="rgba(255,255,255,0.12)"/>'
+        . '<text x="32" y="360" fill="#CBD5E1" font-size="13" font-weight="600" font-family="Inter, Segoe UI, Arial, sans-serif">holyprofweb.com</text>'
+        . '</svg>';
+
+    return 'data:image/svg+xml;charset=UTF-8,' . rawurlencode( $svg );
+}
+
 function holyprofweb_get_post_card_image_url( $post_id ) {
     $post          = get_post( $post_id );
     $generated_url = get_post_meta( $post_id, '_holyprofweb_gen_image_url', true );
@@ -3209,10 +3273,7 @@ function holyprofweb_get_post_card_image_url( $post_id ) {
     }
 
     if ( holyprofweb_post_has_generated_thumbnail_attachment( $post_id ) ) {
-        $full_thumb_url = get_the_post_thumbnail_url( $post_id, 'full' );
-        if ( $full_thumb_url ) {
-            return esc_url_raw( $full_thumb_url );
-        }
+        return holyprofweb_get_generated_card_image_url( $post_id );
     }
 
     if ( $generated_url && $post && function_exists( 'imagecreatetruecolor' ) && holyprofweb_generated_image_version() !== $generated_ver ) {
@@ -3221,7 +3282,7 @@ function holyprofweb_get_post_card_image_url( $post_id ) {
     }
 
     if ( $generated_url ) {
-        return esc_url_raw( $generated_url );
+        return holyprofweb_get_generated_card_image_url( $post_id );
     }
 
     return holyprofweb_get_post_image_url( $post_id, 'holyprofweb-card' );
