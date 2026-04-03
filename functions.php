@@ -2477,6 +2477,25 @@ function holyprofweb_get_post_image_class( $post_id, $base = '' ) {
     return implode( ' ', $classes );
 }
 
+function holyprofweb_get_post_card_image_url( $post_id ) {
+    $post          = get_post( $post_id );
+    $generated_url = get_post_meta( $post_id, '_holyprofweb_gen_image_url', true );
+    $generated_ver = get_post_meta( $post_id, '_holyprofweb_gen_image_version', true );
+
+    if ( $post && function_exists( 'imagecreatetruecolor' ) ) {
+        if ( ! $generated_url || holyprofweb_generated_image_version() !== $generated_ver ) {
+            holyprofweb_generate_post_image_modern( $post_id, $post );
+            $generated_url = get_post_meta( $post_id, '_holyprofweb_gen_image_url', true );
+        }
+    }
+
+    if ( $generated_url ) {
+        return esc_url_raw( $generated_url );
+    }
+
+    return holyprofweb_get_post_image_url( $post_id, 'holyprofweb-card' );
+}
+
 /**
  * Always returns a usable image URL for a post.
  * Priority: real thumbnail → cached generated URL → generate now → placeholder.
@@ -5831,6 +5850,34 @@ function holyprofweb_on_post_publish( $new_status, $old_status, $post ) {
     holyprofweb_run_content_audit();
 }
 add_action( 'transition_post_status', 'holyprofweb_on_post_publish', 10, 3 );
+
+function holyprofweb_run_post_publish_pipeline_async( $post_id ) {
+    $post = get_post( $post_id );
+    if ( ! $post instanceof WP_Post || 'post' !== $post->post_type ) {
+        return;
+    }
+
+    holyprofweb_on_post_publish( 'publish', 'draft', $post );
+}
+add_action( 'holyprofweb_process_post_publish_async', 'holyprofweb_run_post_publish_pipeline_async' );
+
+function holyprofweb_on_post_publish_rest_safe( $new_status, $old_status, $post ) {
+    if ( ! ( $post instanceof WP_Post ) ) return;
+    if ( $new_status !== 'publish' ) return;
+    if ( $post->post_type !== 'post' ) return;
+    if ( wp_is_post_revision( $post->ID ) || wp_is_post_autosave( $post->ID ) ) return;
+
+    if ( defined( 'REST_REQUEST' ) && REST_REQUEST ) {
+        if ( ! wp_next_scheduled( 'holyprofweb_process_post_publish_async', array( $post->ID ) ) ) {
+            wp_schedule_single_event( time() + 15, 'holyprofweb_process_post_publish_async', array( $post->ID ) );
+        }
+        return;
+    }
+
+    holyprofweb_on_post_publish( $new_status, $old_status, $post );
+}
+remove_action( 'transition_post_status', 'holyprofweb_on_post_publish', 10 );
+add_action( 'transition_post_status', 'holyprofweb_on_post_publish_rest_safe', 10, 3 );
 
 /**
  * Auto-generate post excerpt from content (first ~155 chars, word-boundary cut).

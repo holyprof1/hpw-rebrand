@@ -141,7 +141,7 @@ $featured_topics = holyprofweb_get_frontpage_topic_categories( 8 );
                 ?>
                 <article class="post-card post-card--carousel">
                     <a href="<?php the_permalink(); ?>" class="post-card-thumb-link">
-                        <img src="<?php echo esc_url( holyprofweb_get_post_image_url( get_the_ID() ) ); ?>" alt="<?php echo esc_attr( holyprofweb_get_decoded_post_title() ); ?>" loading="lazy" class="<?php echo esc_attr( holyprofweb_get_post_image_class( get_the_ID() ) ); ?>" />
+                        <img src="<?php echo esc_url( holyprofweb_get_post_card_image_url( get_the_ID() ) ); ?>" alt="<?php echo esc_attr( holyprofweb_get_decoded_post_title() ); ?>" loading="lazy" class="<?php echo esc_attr( holyprofweb_get_post_image_class( get_the_ID() ) ); ?>" />
                     </a>
                     <div class="post-card-body">
                         <?php if ( ! empty( $cats ) ) : ?>
@@ -207,7 +207,7 @@ $featured_topics = holyprofweb_get_frontpage_topic_categories( 8 );
                 ?>
                 <article class="post-card">
                     <a href="<?php the_permalink(); ?>" class="post-card-thumb-link">
-                        <img src="<?php echo esc_url( holyprofweb_get_post_image_url( get_the_ID() ) ); ?>" alt="<?php echo esc_attr( holyprofweb_get_decoded_post_title() ); ?>" loading="lazy" class="<?php echo esc_attr( holyprofweb_get_post_image_class( get_the_ID() ) ); ?>" />
+                        <img src="<?php echo esc_url( holyprofweb_get_post_card_image_url( get_the_ID() ) ); ?>" alt="<?php echo esc_attr( holyprofweb_get_decoded_post_title() ); ?>" loading="lazy" class="<?php echo esc_attr( holyprofweb_get_post_image_class( get_the_ID() ) ); ?>" />
                     </a>
                     <div class="post-card-body">
                         <div class="post-card-meta">
@@ -297,7 +297,7 @@ $featured_topics = holyprofweb_get_frontpage_topic_categories( 8 );
                 ?>
                 <article class="post-card">
                     <a href="<?php the_permalink(); ?>" class="post-card-thumb-link">
-                        <img src="<?php echo esc_url( holyprofweb_get_post_image_url( get_the_ID() ) ); ?>" alt="<?php echo esc_attr( holyprofweb_get_decoded_post_title() ); ?>" loading="lazy" class="<?php echo esc_attr( holyprofweb_get_post_image_class( get_the_ID() ) ); ?>" />
+                        <img src="<?php echo esc_url( holyprofweb_get_post_card_image_url( get_the_ID() ) ); ?>" alt="<?php echo esc_attr( holyprofweb_get_decoded_post_title() ); ?>" loading="lazy" class="<?php echo esc_attr( holyprofweb_get_post_image_class( get_the_ID() ) ); ?>" />
                     </a>
                     <div class="post-card-body">
                         <span class="post-card-category"><?php esc_html_e( 'Reports', 'holyprofweb' ); ?></span>
@@ -319,7 +319,7 @@ $featured_topics = holyprofweb_get_frontpage_topic_categories( 8 );
                 ?>
                 <article class="post-card">
                     <a href="<?php the_permalink(); ?>" class="post-card-thumb-link">
-                        <img src="<?php echo esc_url( holyprofweb_get_post_image_url( get_the_ID() ) ); ?>" alt="<?php echo esc_attr( holyprofweb_get_decoded_post_title() ); ?>" loading="lazy" class="<?php echo esc_attr( holyprofweb_get_post_image_class( get_the_ID() ) ); ?>" />
+                        <img src="<?php echo esc_url( holyprofweb_get_post_card_image_url( get_the_ID() ) ); ?>" alt="<?php echo esc_attr( holyprofweb_get_decoded_post_title() ); ?>" loading="lazy" class="<?php echo esc_attr( holyprofweb_get_post_image_class( get_the_ID() ) ); ?>" />
                     </a>
                     <div class="post-card-body">
                         <span class="post-card-category"><?php esc_html_e( 'Latest', 'holyprofweb' ); ?></span>
