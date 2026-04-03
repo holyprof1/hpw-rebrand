@@ -9307,3 +9307,137 @@ body.hpw-no-copy label {
         max-width: clamp(170px, 54vw, 220px) !important;
     }
 }
+
+/* Homepage card cleanup: keep image proportions consistent and start carousels cleanly */
+.home .front-section[aria-labelledby="trending-now-heading"] .post-carousel,
+.home .front-section[aria-labelledby="just-added-heading"] .post-carousel,
+.home .front-section[aria-labelledby="live-reviews-heading"] .live-reviews-grid {
+    padding-left: 2px !important;
+    scroll-padding-left: 2px !important;
+}
+
+.home .front-section[aria-labelledby="trending-now-heading"] .post-carousel > .post-card,
+.home .front-section[aria-labelledby="just-added-heading"] .post-carousel > .post-card,
+.home .front-section[aria-labelledby="guides-heading"] .post-grid > .post-card {
+    overflow: hidden !important;
+    border-radius: 24px !important;
+    background: #fff !important;
+    box-shadow: 0 18px 42px rgba(15, 23, 42, 0.06) !important;
+}
+
+.home .front-section[aria-labelledby="trending-now-heading"] .post-card-thumb-link,
+.home .front-section[aria-labelledby="trending-now-heading"] .post-card-thumb,
+.home .front-section[aria-labelledby="just-added-heading"] .post-card-thumb-link,
+.home .front-section[aria-labelledby="just-added-heading"] .post-card-thumb,
+.home .front-section[aria-labelledby="guides-heading"] .post-card-thumb-link,
+.home .front-section[aria-labelledby="guides-heading"] .post-card-thumb {
+    display: block !important;
+    width: 100% !important;
+    height: 198px !important;
+    min-height: 198px !important;
+    overflow: hidden !important;
+    border-radius: 22px 22px 0 0 !important;
+    background:
+        radial-gradient(circle at top right, rgba(196, 145, 0, 0.16), transparent 32%),
+        linear-gradient(180deg, #1d2637 0%, #161e2e 100%) !important;
+}
+
+.home .front-section[aria-labelledby="trending-now-heading"] .post-card-thumb-link img,
+.home .front-section[aria-labelledby="trending-now-heading"] .post-card-thumb img,
+.home .front-section[aria-labelledby="just-added-heading"] .post-card-thumb-link img,
+.home .front-section[aria-labelledby="just-added-heading"] .post-card-thumb img,
+.home .front-section[aria-labelledby="guides-heading"] .post-card-thumb-link img,
+.home .front-section[aria-labelledby="guides-heading"] .post-card-thumb img {
+    width: 100% !important;
+    height: 100% !important;
+    display: block !important;
+}
+
+.home .front-section[aria-labelledby="trending-now-heading"] .post-card-thumb-link img.post-image--generated,
+.home .front-section[aria-labelledby="trending-now-heading"] .post-card-thumb img.post-image--generated,
+.home .front-section[aria-labelledby="just-added-heading"] .post-card-thumb-link img.post-image--generated,
+.home .front-section[aria-labelledby="just-added-heading"] .post-card-thumb img.post-image--generated,
+.home .front-section[aria-labelledby="guides-heading"] .post-card-thumb-link img.post-image--generated,
+.home .front-section[aria-labelledby="guides-heading"] .post-card-thumb img.post-image--generated {
+    object-fit: cover !important;
+    object-position: center top !important;
+    padding: 0 !important;
+    background: transparent !important;
+}
+
+.home .front-section[aria-labelledby="trending-now-heading"] .post-card-body,
+.home .front-section[aria-labelledby="just-added-heading"] .post-card-body,
+.home .front-section[aria-labelledby="guides-heading"] .post-card-body {
+    padding: 18px 18px 22px !important;
+}
+
+.home .front-section[aria-labelledby="trending-now-heading"] .post-card-title,
+.home .front-section[aria-labelledby="just-added-heading"] .post-card-title,
+.home .front-section[aria-labelledby="guides-heading"] .post-card-title {
+    font-size: clamp(1.02rem, 1.45vw, 1.22rem) !important;
+    line-height: 1.36 !important;
+}
+
+.home .front-section[aria-labelledby="live-reviews-heading"] .live-reviews-grid {
+    padding-top: 2px !important;
+}
+
+.home .front-section[aria-labelledby="live-reviews-heading"] .live-review-card {
+    border-radius: 24px !important;
+    box-shadow: 0 16px 38px rgba(15, 23, 42, 0.07) !important;
+}
+
+@media (max-width: 900px) {
+    .home .front-section[aria-labelledby="trending-now-heading"] .post-carousel,
+    .home .front-section[aria-labelledby="just-added-heading"] .post-carousel {
+        gap: 14px !important;
+        padding-right: 18px !important;
+    }
+
+    .home .front-section[aria-labelledby="trending-now-heading"] .post-carousel > .post-card,
+    .home .front-section[aria-labelledby="just-added-heading"] .post-carousel > .post-card {
+        width: min(86vw, 340px) !important;
+        min-width: min(86vw, 340px) !important;
+        max-width: min(86vw, 340px) !important;
+    }
+
+    .home .front-section[aria-labelledby="trending-now-heading"] .post-card-thumb-link,
+    .home .front-section[aria-labelledby="trending-now-heading"] .post-card-thumb,
+    .home .front-section[aria-labelledby="just-added-heading"] .post-card-thumb-link,
+    .home .front-section[aria-labelledby="just-added-heading"] .post-card-thumb,
+    .home .front-section[aria-labelledby="guides-heading"] .post-card-thumb-link,
+    .home .front-section[aria-labelledby="guides-heading"] .post-card-thumb {
+        height: 184px !important;
+        min-height: 184px !important;
+    }
+
+    .home .front-section[aria-labelledby="live-reviews-heading"] .live-reviews-grid {
+        padding-left: 0 !important;
+        scroll-padding-left: 0 !important;
+    }
+}
+
+@media (max-width: 520px) {
+    .home .front-section[aria-labelledby="trending-now-heading"] .post-carousel > .post-card,
+    .home .front-section[aria-labelledby="just-added-heading"] .post-carousel > .post-card {
+        width: min(88vw, 320px) !important;
+        min-width: min(88vw, 320px) !important;
+        max-width: min(88vw, 320px) !important;
+    }
+
+    .home .front-section[aria-labelledby="trending-now-heading"] .post-card-thumb-link,
+    .home .front-section[aria-labelledby="trending-now-heading"] .post-card-thumb,
+    .home .front-section[aria-labelledby="just-added-heading"] .post-card-thumb-link,
+    .home .front-section[aria-labelledby="just-added-heading"] .post-card-thumb,
+    .home .front-section[aria-labelledby="guides-heading"] .post-card-thumb-link,
+    .home .front-section[aria-labelledby="guides-heading"] .post-card-thumb {
+        height: 172px !important;
+        min-height: 172px !important;
+    }
+
+    .home .front-section[aria-labelledby="trending-now-heading"] .post-card-body,
+    .home .front-section[aria-labelledby="just-added-heading"] .post-card-body,
+    .home .front-section[aria-labelledby="guides-heading"] .post-card-body {
+        padding: 16px 16px 20px !important;
+    }
+}
