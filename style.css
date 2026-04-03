@@ -10539,3 +10539,72 @@ html[data-theme="light"] .platform-wrap--single .single-header-copy {
         grid-template-columns: 1fr;
     }
 }
+
+/* Final homepage image lock: use full visual area while remote-image upgrades run. */
+.home .front-section[aria-labelledby="trending-now-heading"] .post-card-thumb-link,
+.home .front-section[aria-labelledby="trending-now-heading"] .post-card-thumb,
+.home .front-section[aria-labelledby="just-added-heading"] .post-card-thumb-link,
+.home .front-section[aria-labelledby="just-added-heading"] .post-card-thumb,
+.home .front-section[aria-labelledby="guides-heading"] .post-card-thumb-link,
+.home .front-section[aria-labelledby="guides-heading"] .post-card-thumb {
+    background: #182131 !important;
+}
+
+.home .front-section[aria-labelledby="trending-now-heading"] .post-card-thumb-link img,
+.home .front-section[aria-labelledby="trending-now-heading"] .post-card-thumb img,
+.home .front-section[aria-labelledby="just-added-heading"] .post-card-thumb-link img,
+.home .front-section[aria-labelledby="just-added-heading"] .post-card-thumb img,
+.home .front-section[aria-labelledby="guides-heading"] .post-card-thumb-link img,
+.home .front-section[aria-labelledby="guides-heading"] .post-card-thumb img {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover !important;
+    object-position: center center !important;
+    padding: 0 !important;
+    background: transparent !important;
+}
+
+.home .front-section[aria-labelledby="trending-now-heading"] .post-card-thumb-link img.post-image--generated,
+.home .front-section[aria-labelledby="trending-now-heading"] .post-card-thumb img.post-image--generated,
+.home .front-section[aria-labelledby="just-added-heading"] .post-card-thumb-link img.post-image--generated,
+.home .front-section[aria-labelledby="just-added-heading"] .post-card-thumb img.post-image--generated,
+.home .front-section[aria-labelledby="guides-heading"] .post-card-thumb-link img.post-image--generated,
+.home .front-section[aria-labelledby="guides-heading"] .post-card-thumb img.post-image--generated {
+    object-fit: cover !important;
+    object-position: center top !important;
+}
+
+.home .post-card img.post-image--person,
+.archive .tp-logo.post-image--person,
+.search .tp-logo.post-image--person,
+.single .related-card-thumb img.post-image--person,
+.single-featured-image img.post-image--person,
+.single-featured-image--inline img.post-image--person {
+    object-position: center 18% !important;
+}
+
+.home .post-card img.post-image--company,
+.archive .tp-logo.post-image--company,
+.search .tp-logo.post-image--company,
+.single .related-card-thumb img.post-image--company {
+    object-position: center 24% !important;
+}
+
+.post-card-readmore,
+.home .post-card-readmore,
+.front-section .post-card-readmore,
+.post-card-footer .post-card-readmore {
+    background: linear-gradient(135deg, #f0b84a 0%, #d19a11 100%) !important;
+    color: #111111 !important;
+    border: 1px solid rgba(240, 184, 74, 0.42) !important;
+    box-shadow: 0 12px 24px rgba(209, 154, 17, 0.18) !important;
+}
+
+.post-card-readmore:hover,
+.home .post-card-readmore:hover,
+.front-section .post-card-readmore:hover,
+.post-card-footer .post-card-readmore:hover {
+    background: linear-gradient(135deg, #f5c35d 0%, #e2a71a 100%) !important;
+    color: #111111 !important;
+    border-color: rgba(240, 184, 74, 0.54) !important;
+}

@@ -1717,6 +1717,10 @@ function holyprofweb_run_content_audit() {
         if ( ! has_post_thumbnail( $post_id ) && ! get_post_meta( $post_id, 'external_image', true ) ) {
             $needs[] = 'image';
         }
+        if ( holyprofweb_post_uses_generated_image_fallback( $post_id ) ) {
+            $needs[] = 'image_upgrade';
+            holyprofweb_upgrade_generated_featured_image( $post_id, $post );
+        }
         if ( ! get_post_meta( $post_id, '_hpw_source_url', true ) ) {
             $needs[] = 'source';
         }
@@ -1983,6 +1987,29 @@ function holyprofweb_process_draft_queue() {
     update_option( 'holyprofweb_draft_publish_queue', $queue, false );
 }
 add_action( 'holyprofweb_draft_publish_audit', 'holyprofweb_process_draft_queue' );
+
+function holyprofweb_retry_generated_image_upgrades() {
+    if ( ! get_option( 'hpw_enable_remote_image_fetch', 1 ) ) {
+        return;
+    }
+
+    $limit = max( 1, min( 8, absint( get_option( 'hpw_refresh_queue_limit', 25 ) ) ) );
+    $posts = get_posts( array(
+        'post_type'      => 'post',
+        'post_status'    => 'publish',
+        'posts_per_page' => $limit,
+        'orderby'        => 'modified',
+        'order'          => 'DESC',
+        'meta_key'       => '_holyprofweb_gen_image_url',
+        'fields'         => 'all',
+        'no_found_rows'  => true,
+    ) );
+
+    foreach ( $posts as $post ) {
+        holyprofweb_upgrade_generated_featured_image( $post->ID, $post );
+    }
+}
+add_action( 'holyprofweb_draft_publish_audit', 'holyprofweb_retry_generated_image_upgrades', 20 );
 
 function holyprofweb_build_ai_prompt_template( $title = '', $post_id = 0 ) {
     $title           = trim( (string) $title );
@@ -3032,14 +3059,42 @@ function holyprofweb_is_placeholder_post( $post_id ) {
     return (bool) get_post_meta( $post_id, '_hpw_placeholder_post', true );
 }
 
+function holyprofweb_post_uses_generated_image_fallback( $post_id ) {
+    if ( holyprofweb_is_placeholder_post( $post_id ) ) {
+        return true;
+    }
+
+    if ( ! get_post_meta( $post_id, '_holyprofweb_gen_image_url', true ) ) {
+        return false;
+    }
+
+    if ( get_post_meta( $post_id, 'external_image', true ) ) {
+        return false;
+    }
+
+    if ( get_post_meta( $post_id, '_holyprofweb_remote_image_url', true ) ) {
+        return false;
+    }
+
+    return true;
+}
+
 function holyprofweb_get_post_image_class( $post_id, $base = '' ) {
     $classes = preg_split( '/\s+/', trim( (string) $base ) );
     $classes = array_filter( $classes );
 
-    if ( get_post_meta( $post_id, '_holyprofweb_gen_image_url', true ) || holyprofweb_is_placeholder_post( $post_id ) ) {
+    if ( holyprofweb_post_uses_generated_image_fallback( $post_id ) ) {
         $classes[] = 'post-image--generated';
     } else {
         $classes[] = 'post-image--photo';
+    }
+
+    if ( holyprofweb_post_in_category_tree( $post_id, 'biography' ) || holyprofweb_post_in_category_tree( $post_id, 'founders' ) || holyprofweb_post_in_category_tree( $post_id, 'influencers' ) ) {
+        $classes[] = 'post-image--person';
+    } elseif ( holyprofweb_post_in_category_tree( $post_id, 'companies' ) ) {
+        $classes[] = 'post-image--company';
+    } elseif ( holyprofweb_post_in_category_tree( $post_id, 'reports' ) ) {
+        $classes[] = 'post-image--report';
     }
 
     $classes = array_unique( array_map( 'sanitize_html_class', $classes ) );
@@ -3051,11 +3106,26 @@ function holyprofweb_get_post_card_image_url( $post_id ) {
     $generated_url = get_post_meta( $post_id, '_holyprofweb_gen_image_url', true );
     $generated_ver = get_post_meta( $post_id, '_holyprofweb_gen_image_version', true );
 
-    if ( $post && function_exists( 'imagecreatetruecolor' ) ) {
-        if ( ! $generated_url || holyprofweb_generated_image_version() !== $generated_ver ) {
-            holyprofweb_generate_post_image_modern( $post_id, $post );
-            $generated_url = get_post_meta( $post_id, '_holyprofweb_gen_image_url', true );
+    if ( has_post_thumbnail( $post_id ) && ! holyprofweb_post_uses_generated_image_fallback( $post_id ) ) {
+        $thumb_url = get_the_post_thumbnail_url( $post_id, 'holyprofweb-card' );
+        if ( $thumb_url ) {
+            return esc_url_raw( $thumb_url );
         }
+    }
+
+    $external = trim( (string) get_post_meta( $post_id, 'external_image', true ) );
+    if ( $external ) {
+        return esc_url_raw( $external );
+    }
+
+    $remote_cached = get_post_meta( $post_id, '_holyprofweb_remote_image_url', true );
+    if ( $remote_cached ) {
+        return esc_url_raw( $remote_cached );
+    }
+
+    if ( $generated_url && $post && function_exists( 'imagecreatetruecolor' ) && holyprofweb_generated_image_version() !== $generated_ver ) {
+        holyprofweb_generate_post_image_modern( $post_id, $post );
+        $generated_url = get_post_meta( $post_id, '_holyprofweb_gen_image_url', true );
     }
 
     if ( $generated_url ) {
@@ -4214,7 +4284,27 @@ function holyprofweb_attach_remote_image_to_post( $image_url, $post_id, $descrip
 
     holyprofweb_brand_attachment_image( (int) $att_id );
     set_post_thumbnail( $post_id, $att_id );
+    delete_post_meta( $post_id, '_holyprofweb_gen_image_url' );
+    delete_post_meta( $post_id, '_holyprofweb_gen_image_version' );
     return (int) $att_id;
+}
+
+function holyprofweb_upgrade_generated_featured_image( $post_id, $post = null ) {
+    $post = $post ?: get_post( $post_id );
+    if ( ! $post instanceof WP_Post || 'post' !== $post->post_type ) {
+        return false;
+    }
+
+    if ( ! holyprofweb_post_uses_generated_image_fallback( $post_id ) ) {
+        return false;
+    }
+
+    $remote = holyprofweb_maybe_get_remote_post_image( $post_id, $post );
+    if ( ! $remote ) {
+        return false;
+    }
+
+    return holyprofweb_attach_remote_image_to_post( $remote, $post_id, $post->post_title ) > 0;
 }
 
 function holyprofweb_validate_remote_attachment_for_featured( $attachment_id, $post_id = 0 ) {
@@ -4317,9 +4407,15 @@ function holyprofweb_auto_featured_image( $post_id, $post, $update ) {
     // Guards: skip revisions, autosaves, non-posts, already has thumbnail
     if ( wp_is_post_revision( $post_id ) || wp_is_post_autosave( $post_id ) ) return;
     if ( $post->post_type !== 'post' || $post->post_status === 'auto-draft' ) return;
-    if ( has_post_thumbnail( $post_id ) ) return;
     if ( get_post_meta( $post_id, '_holyprofweb_no_autothumb', true ) ) return;
     if ( get_post_meta( $post_id, 'external_image', true ) ) return;
+
+    if ( has_post_thumbnail( $post_id ) ) {
+        if ( holyprofweb_post_uses_generated_image_fallback( $post_id ) ) {
+            holyprofweb_upgrade_generated_featured_image( $post_id, $post );
+        }
+        return;
+    }
 
     $cached_remote = get_post_meta( $post_id, '_holyprofweb_remote_image_url', true );
     $cached_gen    = get_post_meta( $post_id, '_holyprofweb_gen_image_url', true );
