@@ -1189,25 +1189,154 @@ function holyprofweb_get_trending_searches( $count = 5 ) {
     return array_slice( $log, 0, $count, true );
 }
 
-function holyprofweb_detect_visitor_locale() {
-    $country_map = array(
+function holyprofweb_get_country_name_from_code( $country_code ) {
+    $country_code = strtoupper( preg_replace( '/[^A-Z]/', '', (string) $country_code ) );
+    if ( 2 !== strlen( $country_code ) ) {
+        return '';
+    }
+
+    if ( class_exists( 'Locale' ) && method_exists( 'Locale', 'getDisplayRegion' ) ) {
+        $name = \Locale::getDisplayRegion( '-' . $country_code, 'en' );
+        if ( is_string( $name ) && '' !== trim( $name ) && $name !== $country_code ) {
+            return $name;
+        }
+    }
+
+    $fallback = array(
+        'CA' => 'Canada',
+        'CN' => 'China',
+        'DE' => 'Germany',
+        'FR' => 'France',
+        'GB' => 'United Kingdom',
+        'GH' => 'Ghana',
+        'KE' => 'Kenya',
         'NG' => 'Nigeria',
         'US' => 'United States',
-        'GB' => 'United Kingdom',
-        'FR' => 'France',
-        'DE' => 'Germany',
-        'CA' => 'Canada',
         'ZA' => 'South Africa',
-        'KE' => 'Kenya',
-        'GH' => 'Ghana',
     );
 
+    return isset( $fallback[ $country_code ] ) ? $fallback[ $country_code ] : $country_code;
+}
+
+function holyprofweb_get_public_visitor_ip() {
+    $headers = array(
+        'HTTP_CF_CONNECTING_IP',
+        'HTTP_X_REAL_IP',
+        'HTTP_X_FORWARDED_FOR',
+        'HTTP_CLIENT_IP',
+        'REMOTE_ADDR',
+    );
+
+    foreach ( $headers as $header ) {
+        if ( empty( $_SERVER[ $header ] ) ) {
+            continue;
+        }
+
+        $raw = (string) wp_unslash( $_SERVER[ $header ] );
+        $candidates = 'HTTP_X_FORWARDED_FOR' === $header ? explode( ',', $raw ) : array( $raw );
+
+        foreach ( $candidates as $candidate ) {
+            $candidate = trim( $candidate );
+            if ( filter_var( $candidate, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE ) ) {
+                return $candidate;
+            }
+        }
+    }
+
+    return '';
+}
+
+function holyprofweb_lookup_geo_from_ip( $ip_address ) {
+    $ip_address = trim( (string) $ip_address );
+    if ( ! $ip_address || ! filter_var( $ip_address, FILTER_VALIDATE_IP ) ) {
+        return array();
+    }
+
+    $cache_key = 'hpw_geoip_' . md5( $ip_address );
+    $cached    = get_transient( $cache_key );
+    if ( is_array( $cached ) ) {
+        return $cached;
+    }
+
+    $result = array();
+
+    if ( function_exists( 'geoip_country_code_by_name' ) ) {
+        $code = geoip_country_code_by_name( $ip_address );
+        if ( $code ) {
+            $result = array(
+                'region'  => strtoupper( $code ),
+                'country' => holyprofweb_get_country_name_from_code( $code ),
+                'source'  => 'geoip_extension',
+            );
+        }
+    }
+
+    if ( empty( $result ) ) {
+        $providers = array(
+            'https://ipapi.co/%s/json/',
+            'https://ipwho.is/%s',
+        );
+
+        foreach ( $providers as $provider ) {
+            $response = wp_safe_remote_get(
+                sprintf( $provider, rawurlencode( $ip_address ) ),
+                array(
+                    'timeout'    => 2.5,
+                    'user-agent' => 'HolyprofWeb/1.0; geolocation fallback',
+                    'sslverify'  => true,
+                )
+            );
+
+            if ( is_wp_error( $response ) ) {
+                continue;
+            }
+
+            $body = json_decode( wp_remote_retrieve_body( $response ), true );
+            if ( ! is_array( $body ) ) {
+                continue;
+            }
+
+            $region = '';
+            $country = '';
+
+            if ( ! empty( $body['country_code'] ) ) {
+                $region = strtoupper( sanitize_text_field( (string) $body['country_code'] ) );
+            } elseif ( ! empty( $body['country'] ) && preg_match( '/^[A-Z]{2}$/i', (string) $body['country'] ) ) {
+                $region = strtoupper( sanitize_text_field( (string) $body['country'] ) );
+            }
+
+            if ( ! empty( $body['country_name'] ) ) {
+                $country = sanitize_text_field( (string) $body['country_name'] );
+            } elseif ( ! empty( $body['country'] ) && ! preg_match( '/^[A-Z]{2}$/i', (string) $body['country'] ) ) {
+                $country = sanitize_text_field( (string) $body['country'] );
+            }
+
+            if ( $region || $country ) {
+                $result = array(
+                    'region'  => $region,
+                    'country' => $country ? $country : holyprofweb_get_country_name_from_code( $region ),
+                    'source'  => 'ip_lookup',
+                );
+                break;
+            }
+        }
+    }
+
+    set_transient( $cache_key, $result, DAY_IN_SECONDS );
+    return $result;
+}
+
+function holyprofweb_detect_visitor_locale() {
     $geo_headers = array(
         'HTTP_CF_IPCOUNTRY',
         'HTTP_CLOUDFRONT_VIEWER_COUNTRY',
+        'HTTP_X_VERCEL_IP_COUNTRY',
+        'HTTP_FASTLY_COUNTRY_CODE',
+        'HTTP_X_AKAMAI_EDGESCAPE',
         'HTTP_X_COUNTRY_CODE',
         'HTTP_X_GEO_COUNTRY',
         'HTTP_X_APPENGINE_COUNTRY',
+        'HTTP_X_COUNTRY',
     );
 
     $region = '';
@@ -1218,7 +1347,13 @@ function holyprofweb_detect_visitor_locale() {
                 continue;
             }
 
-            $candidate = strtoupper( sanitize_text_field( wp_unslash( $_SERVER[ $header_key ] ) ) );
+            $raw_value = strtoupper( sanitize_text_field( wp_unslash( $_SERVER[ $header_key ] ) ) );
+            $candidate = $raw_value;
+
+            if ( 'HTTP_X_AKAMAI_EDGESCAPE' === $header_key && preg_match( '/country_code=([A-Z]{2})/', $raw_value, $matches ) ) {
+                $candidate = $matches[1];
+            }
+
             if ( preg_match( '/^[A-Z]{2}$/', $candidate ) ) {
                 $region = $candidate;
                 break;
@@ -1245,7 +1380,24 @@ function holyprofweb_detect_visitor_locale() {
         $source = 'accept_language';
     }
 
-    $country = $region && isset( $country_map[ $region ] ) ? $country_map[ $region ] : 'Unknown';
+    $country = $region ? holyprofweb_get_country_name_from_code( $region ) : '';
+
+    if ( ! $region && 'manual' !== $mode ) {
+        $ip_geo = holyprofweb_lookup_geo_from_ip( holyprofweb_get_public_visitor_ip() );
+        if ( ! empty( $ip_geo['region'] ) ) {
+            $region  = strtoupper( sanitize_text_field( $ip_geo['region'] ) );
+            $country = ! empty( $ip_geo['country'] ) ? sanitize_text_field( $ip_geo['country'] ) : holyprofweb_get_country_name_from_code( $region );
+            $source  = ! empty( $ip_geo['source'] ) ? $ip_geo['source'] : 'ip_lookup';
+        }
+    }
+
+    if ( ! $country && $region ) {
+        $country = holyprofweb_get_country_name_from_code( $region );
+    }
+
+    if ( ! $country ) {
+        $country = 'Unknown';
+    }
 
     return array(
         'language' => $language,
@@ -1308,8 +1460,8 @@ function holyprofweb_get_active_country_context( $post_id = 0 ) {
         'language'   => $locale['language'],
         'currency'   => '',
         'focus'      => $locale['country'],
-        'hook'       => '',
-        'topics'     => '',
+        'hook'       => sprintf( 'Add a %s angle with local market expectations, user trust signals, pricing context, and what readers in %s should verify first.', $locale['country'], $locale['country'] ),
+        'topics'     => sprintf( '%s reviews, companies, salaries, biographies, and report-driven topics', $locale['country'] ),
         'continents' => array(),
     );
 
@@ -2429,7 +2581,7 @@ add_action(
             $query->set( 'post_status', 'publish' );
             $query->set( 'posts_per_page', (int) get_option( 'posts_per_page', 10 ) );
             $query->set( 'ignore_sticky_posts', true );
-            $query->is_home    = true;
+            $query->is_home    = false;
             $query->is_archive = true;
             $query->is_page    = false;
             $query->is_404     = false;
@@ -6540,15 +6692,37 @@ function holyprofweb_primary_menu_cleanup( $items, $args ) {
         return $items;
     }
 
+    $is_blog_archive    = (bool) get_query_var( 'hpw_blog_archive' );
+    $is_reports_archive = (bool) get_query_var( 'hpw_reports_archive' );
+
     foreach ( $items as $index => $item ) {
         $title_slug = sanitize_title( $item->title );
 
         if ( 'blog' === $title_slug ) {
             $items[ $index ]->url = holyprofweb_get_blog_url();
+
+            if ( $is_blog_archive ) {
+                $items[ $index ]->current = true;
+                $items[ $index ]->current_item_parent = true;
+                if ( ! in_array( 'current-menu-item', $items[ $index ]->classes, true ) ) {
+                    $items[ $index ]->classes[] = 'current-menu-item';
+                }
+            }
         }
 
         if ( 'reports' === $title_slug ) {
             unset( $items[ $index ] );
+        }
+
+        if ( ( $is_blog_archive || $is_reports_archive ) && 'home' === $title_slug ) {
+            $items[ $index ]->current = false;
+            $items[ $index ]->current_item_parent = false;
+            $items[ $index ]->classes = array_values(
+                array_diff(
+                    (array) $items[ $index ]->classes,
+                    array( 'current-menu-item', 'current_page_item', 'current-menu-parent', 'current_page_parent' )
+                )
+            );
         }
     }
 

@@ -3,6 +3,133 @@
 // SEO — Meta Description, Open Graph, JSON-LD
 // =========================================
 
+function holyprofweb_get_current_seo_url() {
+    if ( is_singular() ) {
+        return get_permalink();
+    }
+
+    if ( is_category() ) {
+        $term = get_queried_object();
+        if ( $term instanceof WP_Term ) {
+            return get_category_link( $term->term_id );
+        }
+    }
+
+    if ( is_search() ) {
+        return get_search_link( get_search_query() );
+    }
+
+    if ( get_query_var( 'hpw_blog_archive' ) ) {
+        return holyprofweb_get_blog_url();
+    }
+
+    if ( get_query_var( 'hpw_reports_archive' ) ) {
+        return holyprofweb_get_reports_url();
+    }
+
+    return home_url( add_query_arg( array(), $GLOBALS['wp']->request ?? '' ) );
+}
+
+function holyprofweb_normalize_hreflang_code( $code ) {
+    $code = trim( (string) $code );
+    if ( '' === $code ) {
+        return '';
+    }
+
+    $code = str_replace( '_', '-', $code );
+    $parts = explode( '-', $code );
+    $parts[0] = strtolower( $parts[0] );
+    if ( ! empty( $parts[1] ) ) {
+        $parts[1] = strtoupper( $parts[1] );
+    }
+
+    return implode( '-', $parts );
+}
+
+function holyprofweb_get_hreflang_urls() {
+    $entries = array();
+
+    if ( function_exists( 'pll_the_languages' ) ) {
+        $languages = pll_the_languages(
+            array(
+                'raw'           => 1,
+                'hide_if_empty' => 0,
+            )
+        );
+
+        if ( is_array( $languages ) ) {
+            foreach ( $languages as $language ) {
+                if ( empty( $language['url'] ) ) {
+                    continue;
+                }
+
+                $hreflang = ! empty( $language['locale'] ) ? $language['locale'] : ( $language['slug'] ?? '' );
+                $entries[] = array(
+                    'hreflang' => holyprofweb_normalize_hreflang_code( $hreflang ),
+                    'url'      => $language['url'],
+                    'current'  => ! empty( $language['current_lang'] ),
+                );
+            }
+        }
+    } elseif ( has_filter( 'wpml_active_languages' ) ) {
+        $languages = apply_filters(
+            'wpml_active_languages',
+            null,
+            array(
+                'skip_missing' => 0,
+            )
+        );
+
+        if ( is_array( $languages ) ) {
+            foreach ( $languages as $language ) {
+                if ( empty( $language['url'] ) ) {
+                    continue;
+                }
+
+                $hreflang = $language['default_locale'] ?? ( $language['language_code'] ?? '' );
+                $entries[] = array(
+                    'hreflang' => holyprofweb_normalize_hreflang_code( $hreflang ),
+                    'url'      => $language['url'],
+                    'current'  => ! empty( $language['active'] ),
+                );
+            }
+        }
+    }
+
+    if ( empty( $entries ) ) {
+        $current_url  = holyprofweb_get_current_seo_url();
+        $default_lang = holyprofweb_normalize_hreflang_code( get_option( 'hpw_default_language', 'en_US' ) );
+        if ( ! $default_lang ) {
+            $default_lang = 'en-US';
+        }
+
+        $entries[] = array(
+            'hreflang' => $default_lang,
+            'url'      => $current_url,
+            'current'  => true,
+        );
+    }
+
+    $deduped = array();
+    foreach ( $entries as $entry ) {
+        if ( empty( $entry['hreflang'] ) || empty( $entry['url'] ) ) {
+            continue;
+        }
+        $deduped[ $entry['hreflang'] ] = $entry;
+    }
+
+    if ( ! empty( $deduped ) ) {
+        $first = reset( $deduped );
+        $deduped['x-default'] = array(
+            'hreflang' => 'x-default',
+            'url'      => $first['url'],
+            'current'  => false,
+        );
+    }
+
+    return $deduped;
+}
+
 function holyprofweb_seo_head() {
     if ( is_admin() ) return;
 
@@ -38,6 +165,17 @@ function holyprofweb_seo_head() {
 
     $description = esc_attr( mb_substr( wp_strip_all_tags( $raw_desc ), 0, 160 ) );
     $og_type     = is_singular() ? 'article' : 'website';
+    $hreflangs   = holyprofweb_get_hreflang_urls();
+    $current_hreflang = '';
+    foreach ( $hreflangs as $entry ) {
+        if ( ! empty( $entry['current'] ) && 'x-default' !== $entry['hreflang'] ) {
+            $current_hreflang = $entry['hreflang'];
+            break;
+        }
+    }
+    if ( ! $current_hreflang ) {
+        $current_hreflang = holyprofweb_normalize_hreflang_code( get_option( 'hpw_default_language', 'en_US' ) );
+    }
 
     echo "\n<!-- HPW SEO -->\n";
     echo '<meta name="description" content="' . $description . '" />' . "\n";
@@ -46,6 +184,15 @@ function holyprofweb_seo_head() {
     echo '<meta property="og:description" content="' . $description . '" />' . "\n";
     echo '<meta property="og:url"         content="' . esc_url( $og_url ) . '" />' . "\n";
     echo '<meta property="og:site_name"   content="' . esc_attr( $site_name ) . '" />' . "\n";
+    if ( $current_hreflang ) {
+        echo '<meta property="og:locale" content="' . esc_attr( str_replace( '-', '_', $current_hreflang ) ) . '" />' . "\n";
+        foreach ( $hreflangs as $entry ) {
+            if ( $entry['hreflang'] === $current_hreflang || 'x-default' === $entry['hreflang'] ) {
+                continue;
+            }
+            echo '<meta property="og:locale:alternate" content="' . esc_attr( str_replace( '-', '_', $entry['hreflang'] ) ) . '" />' . "\n";
+        }
+    }
     if ( $og_img ) {
         echo '<meta property="og:image"   content="' . esc_url( $og_img ) . '" />' . "\n";
         echo '<meta name="twitter:image"  content="' . esc_url( $og_img ) . '" />' . "\n";
@@ -154,6 +301,9 @@ function holyprofweb_seo_head() {
 
     if ( is_singular() ) {
         echo '<link rel="canonical" href="' . esc_url( get_permalink() ) . '" />' . "\n";
+    }
+    foreach ( $hreflangs as $entry ) {
+        echo '<link rel="alternate" hreflang="' . esc_attr( $entry['hreflang'] ) . '" href="' . esc_url( $entry['url'] ) . '" />' . "\n";
     }
     echo "<!-- /HPW SEO -->\n";
 }
