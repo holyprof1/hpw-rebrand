@@ -5109,11 +5109,13 @@ function holyprofweb_post_ops_meta_box_render( $post ) {
     ?>
     <p>
         <label for="hpw_source_url"><strong><?php esc_html_e( 'Reviewed Site URL', 'holyprofweb' ); ?></strong></label><br>
-        <input type="url" id="hpw_source_url" name="hpw_source_url" value="<?php echo esc_attr( $source_url ); ?>" class="widefat" />
+        <input type="url" id="hpw_source_url" name="hpw_source_url" value="<?php echo esc_attr( $source_url ); ?>" class="widefat" placeholder="https://example.com or https://play.google.com/store/apps/details?id=app" />
+        <span class="description"><?php esc_html_e( 'Add the official website, landing page, app store page, or trusted profile URL here. This is the safest way for HPW to fetch a better featured image automatically after publish.', 'holyprofweb' ); ?></span>
     </p>
     <p>
         <label for="hpw_external_image"><strong><?php esc_html_e( 'External Image URL', 'holyprofweb' ); ?></strong></label><br>
         <input type="url" id="hpw_external_image" name="hpw_external_image" value="<?php echo esc_attr( $external_image ); ?>" class="widefat" />
+        <span class="description"><?php esc_html_e( 'Optional direct image override. Use this only if you want to force a specific image instead of automatic fetching.', 'holyprofweb' ); ?></span>
     </p>
     <p>
         <label for="hpw_country_focus"><strong><?php esc_html_e( 'Country Focus', 'holyprofweb' ); ?></strong></label><br>

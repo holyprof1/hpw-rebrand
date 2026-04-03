@@ -8096,7 +8096,9 @@ html[data-theme="light"] .theme-toggle-icon--sun {
 }
 
 .home .front-section[aria-labelledby="just-added-heading"] .post-carousel .post-card-thumb-link img,
-.home .front-section[aria-labelledby="just-added-heading"] .post-carousel .post-card-thumb img {
+.home .front-section[aria-labelledby="just-added-heading"] .post-carousel .post-card-thumb img,
+.home .front-section[aria-labelledby="just-added-heading"] .post-carousel .post-card-thumb-link img.post-image--generated,
+.home .front-section[aria-labelledby="just-added-heading"] .post-carousel .post-card-thumb img.post-image--generated {
     width: 100% !important;
     height: 100% !important;
     min-height: 100% !important;
@@ -8105,16 +8107,6 @@ html[data-theme="light"] .theme-toggle-icon--sun {
     object-position: center center !important;
     background: none !important;
     padding: 0 !important;
-}
-
-.home .front-section[aria-labelledby="just-added-heading"] .post-carousel .post-card-thumb-link img.post-image--generated,
-.home .front-section[aria-labelledby="just-added-heading"] .post-carousel .post-card-thumb img.post-image--generated {
-    object-fit: contain !important;
-    object-position: center center !important;
-    background:
-        radial-gradient(circle at top right, rgba(184, 134, 11, 0.12), transparent 32%),
-        linear-gradient(135deg, #111827 0%, #1f2937 100%) !important;
-    padding: 12px !important;
 }
 
 .home .front-section[aria-labelledby="just-added-heading"] .post-carousel .post-card-body {
@@ -10548,164 +10540,3 @@ html[data-theme="light"] .platform-wrap--single .single-header-copy {
     }
 }
 
-/* Final homepage card image cleanup: match the safe related-card behavior. */
-.home .front-section[aria-labelledby="trending-now-heading"] .post-carousel > .post-card,
-.home .front-section[aria-labelledby="just-added-heading"] .post-carousel > .post-card,
-.home .front-section[aria-labelledby="guides-heading"] .post-grid--compact > .post-card {
-    overflow: hidden !important;
-    contain: paint;
-}
-
-.home .front-section[aria-labelledby="trending-now-heading"] .post-card-thumb-link,
-.home .front-section[aria-labelledby="trending-now-heading"] .post-card-thumb,
-.home .front-section[aria-labelledby="just-added-heading"] .post-card-thumb-link,
-.home .front-section[aria-labelledby="just-added-heading"] .post-card-thumb,
-.home .front-section[aria-labelledby="guides-heading"] .post-card-thumb-link,
-.home .front-section[aria-labelledby="guides-heading"] .post-card-thumb {
-    display: block !important;
-    overflow: hidden !important;
-    background: #182131 !important;
-}
-
-.home .front-section[aria-labelledby="trending-now-heading"] .post-card-thumb-link img,
-.home .front-section[aria-labelledby="trending-now-heading"] .post-card-thumb img,
-.home .front-section[aria-labelledby="just-added-heading"] .post-card-thumb-link img,
-.home .front-section[aria-labelledby="just-added-heading"] .post-card-thumb img,
-.home .front-section[aria-labelledby="guides-heading"] .post-card-thumb-link img,
-.home .front-section[aria-labelledby="guides-heading"] .post-card-thumb img {
-    display: block !important;
-    width: 100% !important;
-    max-width: 100% !important;
-    height: 100% !important;
-    object-fit: cover !important;
-    object-position: center center !important;
-    padding: 0 !important;
-    background: transparent !important;
-}
-
-.home .front-section[aria-labelledby="trending-now-heading"] .post-card-thumb-link img.post-image--generated,
-.home .front-section[aria-labelledby="trending-now-heading"] .post-card-thumb img.post-image--generated,
-.home .front-section[aria-labelledby="just-added-heading"] .post-card-thumb-link img.post-image--generated,
-.home .front-section[aria-labelledby="just-added-heading"] .post-card-thumb img.post-image--generated,
-.home .front-section[aria-labelledby="guides-heading"] .post-card-thumb-link img.post-image--generated,
-.home .front-section[aria-labelledby="guides-heading"] .post-card-thumb img.post-image--generated {
-    object-position: center top !important;
-}
-
-.home .post-card img.post-image--person,
-.archive .tp-logo.post-image--person,
-.search .tp-logo.post-image--person,
-.single .related-card-thumb img.post-image--person,
-.single-featured-image img.post-image--person,
-.single-featured-image--inline img.post-image--person {
-    object-position: center 18% !important;
-}
-
-.home .post-card img.post-image--company,
-.archive .tp-logo.post-image--company,
-.search .tp-logo.post-image--company,
-.single .related-card-thumb img.post-image--company {
-    object-position: center 24% !important;
-}
-
-.post-card-readmore,
-.home .post-card-readmore,
-.front-section .post-card-readmore,
-.post-card-footer .post-card-readmore {
-    background: linear-gradient(135deg, #f0b84a 0%, #d19a11 100%) !important;
-    color: #111111 !important;
-    border: 1px solid rgba(240, 184, 74, 0.42) !important;
-    box-shadow: 0 12px 24px rgba(209, 154, 17, 0.18) !important;
-}
-
-.post-card-readmore:hover,
-.home .post-card-readmore:hover,
-.front-section .post-card-readmore:hover,
-.post-card-footer .post-card-readmore:hover {
-    background: linear-gradient(135deg, #f5c35d 0%, #e2a71a 100%) !important;
-    color: #111111 !important;
-    border-color: rgba(240, 184, 74, 0.54) !important;
-}
-
-/* Homepage card reset: make Trending/Just Added feel like Similar Platforms. */
-.home .front-section[aria-labelledby="trending-now-heading"] .post-carousel > .post-card,
-.home .front-section[aria-labelledby="just-added-heading"] .post-carousel > .post-card {
-    display: flex !important;
-    flex-direction: column !important;
-    width: 320px !important;
-    min-width: 320px !important;
-    max-width: 320px !important;
-    padding: 0 !important;
-    gap: 0 !important;
-    overflow: hidden !important;
-    border-radius: 24px !important;
-}
-
-.home .front-section[aria-labelledby="trending-now-heading"] .post-card-thumb-link,
-.home .front-section[aria-labelledby="trending-now-heading"] .post-card-thumb,
-.home .front-section[aria-labelledby="just-added-heading"] .post-card-thumb-link,
-.home .front-section[aria-labelledby="just-added-heading"] .post-card-thumb {
-    display: block !important;
-    width: 100% !important;
-    min-width: 0 !important;
-    aspect-ratio: 16 / 9 !important;
-    height: auto !important;
-    min-height: 0 !important;
-    border-radius: 0 !important;
-    overflow: hidden !important;
-    background: #182131 !important;
-}
-
-.home .front-section[aria-labelledby="trending-now-heading"] .post-card-thumb-link img,
-.home .front-section[aria-labelledby="trending-now-heading"] .post-card-thumb img,
-.home .front-section[aria-labelledby="just-added-heading"] .post-card-thumb-link img,
-.home .front-section[aria-labelledby="just-added-heading"] .post-card-thumb img {
-    width: 100% !important;
-    height: 100% !important;
-    aspect-ratio: 16 / 9 !important;
-    object-fit: cover !important;
-    object-position: center top !important;
-    display: block !important;
-}
-
-.home .front-section[aria-labelledby="trending-now-heading"] .post-card-thumb-link img.post-image--generated,
-.home .front-section[aria-labelledby="trending-now-heading"] .post-card-thumb img.post-image--generated,
-.home .front-section[aria-labelledby="just-added-heading"] .post-card-thumb-link img.post-image--generated,
-.home .front-section[aria-labelledby="just-added-heading"] .post-card-thumb img.post-image--generated {
-    object-fit: contain !important;
-    object-position: center center !important;
-    padding: 12px !important;
-    background:
-        radial-gradient(circle at top right, rgba(184, 134, 11, 0.12), transparent 32%),
-        linear-gradient(135deg, #111827 0%, #1f2937 100%) !important;
-}
-
-.home .front-section[aria-labelledby="trending-now-heading"] .post-card-body,
-.home .front-section[aria-labelledby="just-added-heading"] .post-card-body {
-    display: grid !important;
-    gap: 12px !important;
-    padding: 16px 18px 18px !important;
-    min-width: 0 !important;
-}
-
-.home .front-section[aria-labelledby="trending-now-heading"] .post-card-title,
-.home .front-section[aria-labelledby="just-added-heading"] .post-card-title {
-    margin: 0 !important;
-    font-size: 1rem !important;
-    line-height: 1.32 !important;
-}
-
-.home .front-section[aria-labelledby="trending-now-heading"] .post-card-title a,
-.home .front-section[aria-labelledby="just-added-heading"] .post-card-title a {
-    display: -webkit-box !important;
-    -webkit-box-orient: vertical !important;
-    -webkit-line-clamp: 3 !important;
-    overflow: hidden !important;
-}
-
-.home .front-section[aria-labelledby="trending-now-heading"] .post-card-excerpt,
-.home .front-section[aria-labelledby="just-added-heading"] .post-card-excerpt,
-.home .front-section[aria-labelledby="trending-now-heading"] .post-card-footer,
-.home .front-section[aria-labelledby="just-added-heading"] .post-card-footer {
-    display: none !important;
-}
