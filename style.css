@@ -9195,36 +9195,40 @@ body.hpw-no-copy label {
     display: none !important;
 }
 
-.platform-wrap--single .single-header--refined {
-    display: flex !important;
-    flex-direction: column !important;
-    align-items: flex-start !important;
-    gap: 20px !important;
-}
-
-.platform-wrap--single .single-featured-image--inline {
-    order: 1 !important;
-    width: min(100%, 380px) !important;
-    max-width: 380px !important;
-}
-
-.platform-wrap--single .single-featured-image--inline img {
-    width: 100% !important;
-    max-width: 380px !important;
-    height: auto !important;
-}
-
-.platform-wrap--single .single-header-copy {
-    order: 2 !important;
-    width: 100% !important;
-    max-width: 100% !important;
-}
-
 .platform-wrap--single .single-header--refined .single-title {
     max-width: 100% !important;
     overflow-wrap: break-word !important;
     word-break: normal !important;
     hyphens: auto !important;
+}
+
+@media (max-width: 900px) {
+    .platform-wrap--single .single-header--refined {
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: stretch !important;
+        gap: 16px !important;
+    }
+
+    .platform-wrap--single .single-header-copy {
+        order: 1 !important;
+        width: 100% !important;
+    }
+
+    .platform-wrap--single .single-featured-image--inline {
+        order: 2 !important;
+        width: 100% !important;
+        max-width: 100% !important;
+    }
+
+    .platform-wrap--single .single-featured-image--inline img {
+        width: 100% !important;
+        max-width: 100% !important;
+        height: auto !important;
+        aspect-ratio: 16 / 9 !important;
+        object-fit: cover !important;
+        border-radius: 16px !important;
+    }
 }
 
 /* Bring the right sidebar back only on truly wide desktops. */
