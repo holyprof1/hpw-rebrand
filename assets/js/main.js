@@ -173,18 +173,20 @@
         startAutoPlay();
     });
 
-    document.body.classList.add('hpw-no-copy');
+    if (config.copy_protection_enabled) {
+        document.body.classList.add('hpw-no-copy');
 
-    function allowsSelection(target) {
-        return !!(target && target.closest('input, textarea, button, select, option, label, [contenteditable="true"], .comment-form, .review-form, .salary-form, .email-capture-form'));
-    }
+        function allowsSelection(target) {
+            return !!(target && target.closest('input, textarea, button, select, option, label, [contenteditable="true"], .comment-form, .review-form, .salary-form, .email-capture-form'));
+        }
 
-    ['copy', 'cut', 'contextmenu', 'dragstart', 'selectstart'].forEach(function (eventName) {
-        document.addEventListener(eventName, function (event) {
-            if (allowsSelection(event.target)) return;
-            event.preventDefault();
+        ['copy', 'cut', 'contextmenu', 'dragstart', 'selectstart'].forEach(function (eventName) {
+            document.addEventListener(eventName, function (event) {
+                if (allowsSelection(event.target)) return;
+                event.preventDefault();
+            });
         });
-    });
+    }
 
     document.querySelectorAll('.accordion-trigger').forEach(function (button) {
         button.addEventListener('click', function () {

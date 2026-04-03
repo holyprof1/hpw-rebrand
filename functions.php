@@ -106,6 +106,7 @@ function holyprofweb_enqueue_assets() {
             'reaction_nonce' => wp_create_nonce( 'holyprofweb_reaction' ),
             'review_nonce'   => wp_create_nonce( 'holyprofweb_submit_review' ),
             'salary_nonce'   => wp_create_nonce( 'holyprofweb_submit_salary' ),
+            'copy_protection_enabled' => (bool) get_option( 'hpw_enable_copy_protection', 1 ),
         )
     );
 
@@ -4711,6 +4712,7 @@ function holyprofweb_register_settings() {
     register_setting( 'hpw_general',   'hpw_posts_per_page',       array( 'sanitize_callback' => 'absint' ) );
     register_setting( 'hpw_general',   'hpw_show_trending',        array( 'sanitize_callback' => 'rest_sanitize_boolean' ) );
     register_setting( 'hpw_general',   'hpw_show_email_capture',   array( 'sanitize_callback' => 'rest_sanitize_boolean' ) );
+    register_setting( 'hpw_general',   'hpw_enable_copy_protection', array( 'sanitize_callback' => 'rest_sanitize_boolean' ) );
 
     // Reviews
     register_setting( 'hpw_reviews',   'hpw_review_auto_approve',  array( 'sanitize_callback' => 'rest_sanitize_boolean' ) );
@@ -4848,6 +4850,13 @@ function holyprofweb_settings_page() {
                 <tr>
                     <th><?php esc_html_e( 'Show email capture widget', 'holyprofweb' ); ?></th>
                     <td><label><input type="checkbox" name="hpw_show_email_capture" value="1" <?php checked( 1, get_option( 'hpw_show_email_capture', 1 ) ); ?> /> <?php esc_html_e( 'Enabled', 'holyprofweb' ); ?></label></td>
+                </tr>
+                <tr>
+                    <th><?php esc_html_e( 'Copy protection', 'holyprofweb' ); ?></th>
+                    <td>
+                        <label><input type="checkbox" name="hpw_enable_copy_protection" value="1" <?php checked( 1, get_option( 'hpw_enable_copy_protection', 1 ) ); ?> /> <?php esc_html_e( 'Prevent copy, right-click, and text selection on the public site', 'holyprofweb' ); ?></label>
+                        <p class="description"><?php esc_html_e( 'Turn this off anytime if you want blog posts and pages to be copyable normally.', 'holyprofweb' ); ?></p>
+                    </td>
                 </tr>
                 <tr>
                     <th><?php esc_html_e( 'Redirect rules', 'holyprofweb' ); ?></th>
