@@ -64,7 +64,22 @@ if ( ! empty( $live_reviews ) ) {
         }
     );
 }
-$featured_topics = holyprofweb_get_frontpage_topic_categories( 8 );
+$featured_topics = holyprofweb_get_frontpage_topic_categories( 6 );
+$topic_descriptions = array(
+    'companies'       => __( 'Profiles, reviews, salary gist, and what people say before you apply or buy.', 'holyprofweb' ),
+    'fintech'         => __( 'Payment apps, money tools, transfer services, and fintech trust checks.', 'holyprofweb' ),
+    'banks'           => __( 'Bank reviews, account experience, charges, and customer support signals.', 'holyprofweb' ),
+    'startups'        => __( 'Fast-growing teams, work culture clues, and early-stage company context.', 'holyprofweb' ),
+    'scam-legit'      => __( 'Quick red flags, legitimacy checks, and what to verify before you commit.', 'holyprofweb' ),
+    'app-reviews'     => __( 'App quality, user experience, complaints, and overall usefulness in one place.', 'holyprofweb' ),
+    'website-reviews' => __( 'Website trust, service quality, fees, and warning signs worth checking.', 'holyprofweb' ),
+    'loan-finance'    => __( 'Loan apps, finance platforms, interest concerns, and borrowing reality checks.', 'holyprofweb' ),
+    'shopping'        => __( 'Online store reputation, delivery stories, and whether the deals make sense.', 'holyprofweb' ),
+    'scholarship'     => __( 'Scholarship opportunities, deadlines, and practical guidance for applicants.', 'holyprofweb' ),
+    'tech'            => __( 'Tech companies, tools, products, and industry topics people keep researching.', 'holyprofweb' ),
+    'reports'         => __( 'Broader explainers, rankings, and context-driven posts from the blog side.', 'holyprofweb' ),
+    'blog-opinion'    => __( 'Analysis, commentary, and deeper takes on trends shaping decisions.', 'holyprofweb' ),
+);
 ?>
 
 <section class="hero-section hero-section--home" aria-labelledby="hero-title">
@@ -171,22 +186,32 @@ $featured_topics = holyprofweb_get_frontpage_topic_categories( 8 );
             </div>
         </section>
 
-        <section class="front-section front-section--carousel" aria-labelledby="category-strip-heading">
+        <section class="front-section front-section--topics" aria-labelledby="category-strip-heading">
             <div class="section-header">
                 <h2 id="category-strip-heading" class="section-title"><?php esc_html_e( 'Explore Companies and Topics', 'holyprofweb' ); ?></h2>
+                <?php if ( $companies_term && ! is_wp_error( $companies_term ) ) : ?>
+                <a href="<?php echo esc_url( get_category_link( $companies_term->term_id ) ); ?>" class="section-link"><?php esc_html_e( 'See all topics', 'holyprofweb' ); ?></a>
+                <?php endif; ?>
             </div>
-            <div class="post-carousel">
+            <div class="topic-hub-grid">
                 <?php
                 if ( ! empty( $featured_topics ) ) :
                     foreach ( $featured_topics as $cat ) :
+                        $topic_description = isset( $topic_descriptions[ $cat->slug ] ) ? $topic_descriptions[ $cat->slug ] : __( 'Browse the latest posts, guides, and discussions in this topic.', 'holyprofweb' );
                 ?>
-                <article class="post-card post-card--carousel post-card--category">
-                    <div class="post-card-body">
-                        <span class="post-card-category"><?php echo esc_html( holyprofweb_format_display_count( $cat->count ) ); ?> <?php esc_html_e( 'posts', 'holyprofweb' ); ?></span>
-                        <h3 class="post-card-title"><a href="<?php echo esc_url( get_category_link( $cat->term_id ) ); ?>"><?php echo esc_html( $cat->name ); ?></a></h3>
-                    </div>
+                <article class="topic-hub-card">
+                    <span class="topic-hub-count"><?php echo esc_html( holyprofweb_format_display_count( $cat->count ) ); ?> <?php esc_html_e( 'posts', 'holyprofweb' ); ?></span>
+                    <h3 class="topic-hub-title"><a href="<?php echo esc_url( get_category_link( $cat->term_id ) ); ?>"><?php echo esc_html( $cat->name ); ?></a></h3>
+                    <p class="topic-hub-description"><?php echo esc_html( $topic_description ); ?></p>
+                    <a class="topic-hub-link" href="<?php echo esc_url( get_category_link( $cat->term_id ) ); ?>"><?php esc_html_e( 'Open topic', 'holyprofweb' ); ?></a>
                 </article>
-                <?php endforeach; endif; ?>
+                <?php endforeach; else : ?>
+                <article class="topic-hub-card topic-hub-card--empty">
+                    <span class="topic-hub-count"><?php esc_html_e( 'Topics', 'holyprofweb' ); ?></span>
+                    <h3 class="topic-hub-title"><?php esc_html_e( 'Topic categories will appear here', 'holyprofweb' ); ?></h3>
+                    <p class="topic-hub-description"><?php esc_html_e( 'Add or publish categories with posts and this section will update automatically.', 'holyprofweb' ); ?></p>
+                </article>
+                <?php endif; ?>
             </div>
         </section>
 
@@ -286,7 +311,7 @@ $featured_topics = holyprofweb_get_frontpage_topic_categories( 8 );
         <section class="front-section" aria-labelledby="guides-heading">
             <div class="section-header">
                 <h2 id="guides-heading" class="section-title"><?php esc_html_e( 'From the Blog', 'holyprofweb' ); ?></h2>
-                <a href="<?php echo esc_url( home_url( '/' ) ); ?>" class="section-link"><?php esc_html_e( 'Browse all', 'holyprofweb' ); ?></a>
+                <a href="<?php echo esc_url( holyprofweb_get_blog_url() ); ?>" class="section-link"><?php esc_html_e( 'Browse all', 'holyprofweb' ); ?></a>
             </div>
 
             <div class="post-grid post-grid--compact">

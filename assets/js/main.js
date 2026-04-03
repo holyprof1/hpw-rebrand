@@ -30,6 +30,39 @@
         xhr.send(body);
     }
 
+    var themeToggle = document.getElementById('theme-toggle');
+    var themeRoot = document.documentElement;
+
+    function getActiveTheme() {
+        return themeRoot.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
+    }
+
+    function syncThemeToggle(theme) {
+        if (!themeToggle) return;
+        var isDark = theme === 'dark';
+        themeToggle.setAttribute('aria-pressed', String(isDark));
+        themeToggle.setAttribute('aria-label', isDark ? 'Switch to light mode' : 'Switch to dark mode');
+        themeToggle.setAttribute('title', isDark ? 'Switch to light mode' : 'Switch to dark mode');
+    }
+
+    function applyTheme(theme) {
+        themeRoot.setAttribute('data-theme', theme);
+        themeRoot.style.colorScheme = theme;
+        syncThemeToggle(theme);
+    }
+
+    applyTheme(getActiveTheme());
+
+    if (themeToggle) {
+        themeToggle.addEventListener('click', function () {
+            var nextTheme = getActiveTheme() === 'dark' ? 'light' : 'dark';
+            applyTheme(nextTheme);
+            try {
+                localStorage.setItem('hpw-theme', nextTheme);
+            } catch (err) {}
+        });
+    }
+
     var toggle = document.getElementById('menu-toggle');
     var nav = document.getElementById('site-navigation');
     if (toggle && nav) {

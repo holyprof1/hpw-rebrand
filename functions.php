@@ -116,6 +116,32 @@ function holyprofweb_enqueue_assets() {
 }
 add_action( 'wp_enqueue_scripts', 'holyprofweb_enqueue_assets' );
 
+function holyprofweb_render_theme_boot_script() {
+    ?>
+    <script>
+    (function () {
+        var storageKey = 'hpw-theme';
+        var root = document.documentElement;
+        var savedTheme = null;
+
+        try {
+            savedTheme = localStorage.getItem(storageKey);
+        } catch (err) {
+            savedTheme = null;
+        }
+
+        if (savedTheme !== 'light' && savedTheme !== 'dark') {
+            savedTheme = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+        }
+
+        root.setAttribute('data-theme', savedTheme);
+        root.style.colorScheme = savedTheme;
+    })();
+    </script>
+    <?php
+}
+add_action( 'wp_head', 'holyprofweb_render_theme_boot_script', 0 );
+
 
 // =========================================
 // SIDEBARS / WIDGET AREAS
@@ -4713,6 +4739,7 @@ function holyprofweb_register_settings() {
     register_setting( 'hpw_general',   'hpw_show_trending',        array( 'sanitize_callback' => 'rest_sanitize_boolean' ) );
     register_setting( 'hpw_general',   'hpw_show_email_capture',   array( 'sanitize_callback' => 'rest_sanitize_boolean' ) );
     register_setting( 'hpw_general',   'hpw_enable_copy_protection', array( 'sanitize_callback' => 'rest_sanitize_boolean' ) );
+    register_setting( 'hpw_general',   'hpw_discourage_indexing',  array( 'sanitize_callback' => 'rest_sanitize_boolean' ) );
 
     // Reviews
     register_setting( 'hpw_reviews',   'hpw_review_auto_approve',  array( 'sanitize_callback' => 'rest_sanitize_boolean' ) );
@@ -4856,6 +4883,13 @@ function holyprofweb_settings_page() {
                     <td>
                         <label><input type="checkbox" name="hpw_enable_copy_protection" value="1" <?php checked( 1, get_option( 'hpw_enable_copy_protection', 1 ) ); ?> /> <?php esc_html_e( 'Prevent copy, right-click, and text selection on the public site', 'holyprofweb' ); ?></label>
                         <p class="description"><?php esc_html_e( 'Turn this off anytime if you want blog posts and pages to be copyable normally.', 'holyprofweb' ); ?></p>
+                    </td>
+                </tr>
+                <tr>
+                    <th><?php esc_html_e( 'Discourage search indexing', 'holyprofweb' ); ?></th>
+                    <td>
+                        <label><input type="checkbox" name="hpw_discourage_indexing" value="1" <?php checked( 1, get_option( 'hpw_discourage_indexing', 0 ) ); ?> /> <?php esc_html_e( 'Send a sitewide noindex, nofollow signal while you are still updating the site.', 'holyprofweb' ); ?></label>
+                        <p class="description"><?php esc_html_e( 'Turn this off when the site is ready for Google and other search engines to crawl again.', 'holyprofweb' ); ?></p>
                     </td>
                 </tr>
                 <tr>
@@ -5837,6 +5871,12 @@ function holyprofweb_handle_redirect_rules() {
 add_action( 'template_redirect', 'holyprofweb_handle_redirect_rules', 1 );
 
 add_filter( 'wp_robots', function( $robots ) {
+    if ( get_option( 'hpw_discourage_indexing', 0 ) ) {
+        $robots['noindex']  = true;
+        $robots['nofollow'] = true;
+        return $robots;
+    }
+
     if ( is_singular( 'post' ) && holyprofweb_is_placeholder_post( get_queried_object_id() ) ) {
         $robots['noindex'] = true;
         $robots['nofollow'] = true;
