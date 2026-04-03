@@ -3607,8 +3607,56 @@ function holyprofweb_attach_remote_image_to_post( $image_url, $post_id, $descrip
         return 0;
     }
 
+    holyprofweb_brand_attachment_image( (int) $att_id );
     set_post_thumbnail( $post_id, $att_id );
     return (int) $att_id;
+}
+
+function holyprofweb_brand_attachment_image( $attachment_id ) {
+    $attachment_id = (int) $attachment_id;
+    if ( $attachment_id <= 0 ) {
+        return;
+    }
+
+    $filepath = get_attached_file( $attachment_id );
+    if ( ! $filepath || ! file_exists( $filepath ) || ! function_exists( 'imagecreatefromstring' ) ) {
+        return;
+    }
+
+    $image = holyprofweb_load_image_resource( $filepath );
+    if ( ! $image ) {
+        return;
+    }
+
+    $width  = imagesx( $image );
+    $height = imagesy( $image );
+    if ( ! $width || ! $height ) {
+        imagedestroy( $image );
+        return;
+    }
+
+    holyprofweb_overlay_brand_logo( $image, $width, $height );
+
+    $mime    = get_post_mime_type( $attachment_id );
+    $written = false;
+
+    if ( 'image/png' === $mime && function_exists( 'imagepng' ) ) {
+        imagesavealpha( $image, true );
+        $written = imagepng( $image, $filepath, 6 );
+    } elseif ( 'image/webp' === $mime && function_exists( 'imagewebp' ) ) {
+        $written = imagewebp( $image, $filepath, 90 );
+    } elseif ( function_exists( 'imagejpeg' ) ) {
+        $written = imagejpeg( $image, $filepath, 90 );
+    }
+
+    imagedestroy( $image );
+
+    if ( ! $written ) {
+        return;
+    }
+
+    require_once ABSPATH . 'wp-admin/includes/image.php';
+    wp_update_attachment_metadata( $attachment_id, wp_generate_attachment_metadata( $attachment_id, $filepath ) );
 }
 
 /**

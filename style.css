@@ -9065,56 +9065,12 @@ body.hpw-no-copy label {
     }
 }
 
-/* Final live reviews override: one-card carousel on every device */
-.home .front-section[aria-labelledby="live-reviews-heading"] .live-reviews-grid {
-    display: grid !important;
-    grid-auto-flow: column !important;
-    grid-template-columns: none !important;
-    grid-auto-columns: minmax(100%, 100%) !important;
-    gap: 18px !important;
-    overflow-x: auto !important;
-    overflow-y: hidden !important;
-    padding: 0 0 10px !important;
-    scroll-snap-type: x mandatory !important;
-    scrollbar-width: none;
-    -webkit-overflow-scrolling: touch;
-    overscroll-behavior-x: contain;
-}
-
-.home .front-section[aria-labelledby="live-reviews-heading"] .live-reviews-grid::-webkit-scrollbar {
-    display: none;
-}
-
-.home .front-section[aria-labelledby="live-reviews-heading"] .live-review-card {
-    width: 100% !important;
-    min-width: 100% !important;
-    max-width: 100% !important;
-    scroll-snap-align: start !important;
-}
-
-@media (min-width: 901px) {
-    .home .front-section[aria-labelledby="live-reviews-heading"] .live-review-card {
-        padding: 30px 34px !important;
-    }
-}
-
-/* Final header and review sizing correction */
+/* Final header sizing correction */
 .site-logo img,
 .site-logo .custom-logo,
 .site-logo-link img {
     max-width: min(100%, 360px) !important;
     height: 96px !important;
-}
-
-.home .front-section[aria-labelledby="live-reviews-heading"] .live-reviews-grid {
-    grid-auto-columns: minmax(82%, 82%) !important;
-    justify-content: start !important;
-}
-
-.home .front-section[aria-labelledby="live-reviews-heading"] .live-review-card {
-    width: min(82vw, 860px) !important;
-    min-width: min(82vw, 860px) !important;
-    max-width: min(82vw, 860px) !important;
 }
 
 @media (max-width: 900px) {
@@ -9123,17 +9079,6 @@ body.hpw-no-copy label {
     .site-logo-link img {
         max-width: min(100%, 248px) !important;
         height: 70px !important;
-    }
-
-    .home .front-section[aria-labelledby="live-reviews-heading"] .live-reviews-grid {
-        grid-auto-columns: minmax(88%, 88%) !important;
-        padding-right: 18px !important;
-    }
-
-    .home .front-section[aria-labelledby="live-reviews-heading"] .live-review-card {
-        width: min(88vw, 720px) !important;
-        min-width: min(88vw, 720px) !important;
-        max-width: min(88vw, 720px) !important;
     }
 }
 
@@ -9167,15 +9112,6 @@ body.hpw-no-copy label {
         gap: 8px !important;
     }
 
-    .home .front-section[aria-labelledby="live-reviews-heading"] .live-reviews-grid {
-        grid-auto-columns: minmax(90%, 90%) !important;
-    }
-
-    .home .front-section[aria-labelledby="live-reviews-heading"] .live-review-card {
-        width: min(90vw, 540px) !important;
-        min-width: min(90vw, 540px) !important;
-        max-width: min(90vw, 540px) !important;
-    }
 }
 
 /* Single layout cleanup and gentler review carousel width */
