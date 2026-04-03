@@ -5387,7 +5387,41 @@ function holyprofweb_settings_nav( $active = 'general' ) {
         );
     }
     echo '</nav>';
+    echo '<div class="hpw-settings-search" style="margin:0 0 18px;">';
+    echo '<label for="hpw-settings-search-input" style="display:block;font-weight:600;margin:0 0 6px;">' . esc_html__( 'Search settings', 'holyprofweb' ) . '</label>';
+    echo '<input id="hpw-settings-search-input" type="search" placeholder="' . esc_attr__( 'Type copy, email, redirect, image, review...', 'holyprofweb' ) . '" style="width:100%;max-width:420px;padding:10px 12px;border:1px solid #d0d7de;border-radius:10px;" />';
+    echo '<p style="margin:6px 0 0;color:#646970;">' . esc_html__( 'This filters the current HPW settings page only.', 'holyprofweb' ) . '</p>';
+    echo '</div>';
 }
+
+function holyprofweb_settings_search_script() {
+    if ( ! current_user_can( 'manage_options' ) ) {
+        return;
+    }
+
+    $screen = function_exists( 'get_current_screen' ) ? get_current_screen() : null;
+    if ( ! $screen || false === strpos( (string) $screen->id, 'hpw-settings' ) ) {
+        return;
+    }
+    ?>
+    <script>
+    document.addEventListener('DOMContentLoaded', function () {
+        var input = document.getElementById('hpw-settings-search-input');
+        if (!input) return;
+
+        var rows = Array.prototype.slice.call(document.querySelectorAll('.form-table tr, .widefat tr, .hpw-search-card, .hpw-search-block'));
+        input.addEventListener('input', function () {
+            var query = (input.value || '').toLowerCase().trim();
+            rows.forEach(function (row) {
+                var text = (row.textContent || '').toLowerCase();
+                row.style.display = !query || text.indexOf(query) !== -1 ? '' : 'none';
+            });
+        });
+    });
+    </script>
+    <?php
+}
+add_action( 'admin_footer', 'holyprofweb_settings_search_script' );
 
 function holyprofweb_settings_automation_page() {
     if ( ! current_user_can( 'manage_options' ) ) return;
