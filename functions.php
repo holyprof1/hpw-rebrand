@@ -3376,6 +3376,10 @@ function holyprofweb_get_generated_hero_image_url( $post_id ) {
     return holyprofweb_get_generated_svg_image_url( $post_id, 'hero' );
 }
 
+function holyprofweb_get_generic_card_image_url() {
+    return holyprofweb_placeholder_url();
+}
+
 function holyprofweb_get_post_card_image_url( $post_id ) {
     if ( holyprofweb_post_has_trusted_featured_image( $post_id ) ) {
         $thumb_url = get_the_post_thumbnail_url( $post_id, 'holyprofweb-card' );
@@ -3383,7 +3387,7 @@ function holyprofweb_get_post_card_image_url( $post_id ) {
             return esc_url_raw( $thumb_url );
         }
     }
-    return holyprofweb_get_generated_card_image_url( $post_id );
+    return holyprofweb_get_generic_card_image_url();
 }
 
 /**
@@ -3396,7 +3400,7 @@ function holyprofweb_get_post_card_image_url( $post_id ) {
  */
 function holyprofweb_get_post_image_url( $post_id, $size = 'holyprofweb-card' ) {
     if ( ! holyprofweb_post_has_trusted_featured_image( $post_id ) ) {
-        return 'full' === $size ? holyprofweb_get_generated_hero_image_url( $post_id ) : holyprofweb_get_generated_card_image_url( $post_id );
+        return 'full' === $size ? holyprofweb_get_generated_hero_image_url( $post_id ) : holyprofweb_get_generic_card_image_url();
     }
 
     $generated_url = get_post_meta( $post_id, '_holyprofweb_gen_image_url', true );

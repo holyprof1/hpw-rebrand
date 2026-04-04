@@ -61,7 +61,7 @@ $card_size = holyprofweb_get_image_size_dimensions( 'holyprofweb-card' );
                 $cats    = get_the_category();
                 $rating  = holyprofweb_get_post_rating( get_the_ID() );
                 $r_count = holyprofweb_get_review_count( get_the_ID() );
-                $thumb   = holyprofweb_get_post_image_url( get_the_ID(), 'holyprofweb-card' );
+                $thumb   = holyprofweb_get_post_card_image_url( get_the_ID() );
             ?>
             <a href="<?php the_permalink(); ?>" class="tp-card">
 

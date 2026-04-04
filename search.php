@@ -63,7 +63,7 @@ if ( 0 === $found_posts && ! empty( $search_term ) ) {
                 $cats    = get_the_category();
                 $rating  = holyprofweb_get_post_rating( get_the_ID() );
                 $r_count = holyprofweb_get_review_count( get_the_ID() );
-                $thumb   = holyprofweb_get_post_image_url( get_the_ID(), 'holyprofweb-card' );
+                $thumb   = holyprofweb_get_post_card_image_url( get_the_ID() );
                 ?>
             <article class="tp-card">
                 <a href="<?php the_permalink(); ?>" class="tp-logo-wrap">
@@ -96,7 +96,7 @@ if ( 0 === $found_posts && ! empty( $search_term ) ) {
                 <?php if ( $latest->have_posts() ) : while ( $latest->have_posts() ) : $latest->the_post(); ?>
                 <article class="post-card">
                     <a href="<?php the_permalink(); ?>" class="post-card-thumb-link">
-                        <img src="<?php echo esc_attr( holyprofweb_get_post_image_url( get_the_ID() ) ); ?>" alt="<?php echo esc_attr( holyprofweb_get_decoded_post_title() ); ?>" loading="lazy" width="<?php echo esc_attr( $card_size['width'] ); ?>" height="<?php echo esc_attr( $card_size['height'] ); ?>" class="<?php echo esc_attr( holyprofweb_get_post_image_class( get_the_ID() ) ); ?>" />
+                        <img src="<?php echo esc_attr( holyprofweb_get_post_card_image_url( get_the_ID() ) ); ?>" alt="<?php echo esc_attr( holyprofweb_get_decoded_post_title() ); ?>" loading="lazy" width="<?php echo esc_attr( $card_size['width'] ); ?>" height="<?php echo esc_attr( $card_size['height'] ); ?>" class="<?php echo esc_attr( holyprofweb_get_post_image_class( get_the_ID() ) ); ?>" />
                     </a>
                     <div class="post-card-body">
                         <h3 class="post-card-title"><a href="<?php the_permalink(); ?>"><?php holyprofweb_the_decoded_title(); ?></a></h3>

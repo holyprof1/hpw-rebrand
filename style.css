@@ -10209,9 +10209,7 @@ html[data-theme="light"] .hero-section--home .hero-feature-title {
 }
 
 html[data-theme="dark"] .hero-section--home {
-    background:
-        radial-gradient(circle at top center, rgba(240, 184, 74, 0.12), transparent 26%),
-        linear-gradient(180deg, #111824 0%, #0d141d 100%) !important;
+    background: linear-gradient(180deg, #111824 0%, #0d141d 100%) !important;
 }
 
 html[data-theme="dark"] .hero-section--home .hero-eyebrow,
@@ -10334,6 +10332,90 @@ html[data-theme="light"] .stats-bar-inner {
     background: rgba(255,255,255,0.66) !important;
     backdrop-filter: blur(16px);
     border: 1px solid rgba(184, 134, 11, 0.12);
+}
+
+.stats-bar {
+    padding: 0 24px 28px;
+    margin-top: -22px;
+    border-bottom: 0;
+    background: transparent !important;
+}
+
+.stats-bar-inner {
+    max-width: 860px;
+    padding: 14px;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 14px;
+    border-radius: 26px;
+    box-shadow: 0 18px 38px rgba(18, 24, 38, 0.12);
+}
+
+.stat-item {
+    min-width: 0;
+    padding: 18px 20px;
+    gap: 6px;
+    border-radius: 18px;
+    align-items: flex-start;
+    justify-content: center;
+}
+
+.stat-number {
+    font-size: clamp(1.55rem, 2vw, 2rem);
+}
+
+.stat-label {
+    font-size: 0.72rem;
+    letter-spacing: 0.12em;
+}
+
+.stat-divider {
+    display: none;
+}
+
+html[data-theme="light"] .stats-bar-inner {
+    background: linear-gradient(135deg, rgba(255,255,255,0.86), rgba(248,242,229,0.92)) !important;
+    border: 1px solid rgba(184, 134, 11, 0.14);
+    box-shadow: 0 20px 44px rgba(91, 70, 24, 0.12);
+}
+
+html[data-theme="light"] .stat-item {
+    background: rgba(255,255,255,0.72);
+    border: 1px solid rgba(184, 134, 11, 0.1);
+}
+
+html[data-theme="dark"] .stats-bar {
+    background: transparent !important;
+}
+
+html[data-theme="dark"] .stats-bar-inner {
+    background: linear-gradient(180deg, rgba(19, 28, 42, 0.96), rgba(11, 18, 32, 0.96)) !important;
+    border: 1px solid rgba(255,255,255,0.08);
+    box-shadow: 0 20px 42px rgba(0, 0, 0, 0.34);
+}
+
+html[data-theme="dark"] .stat-item {
+    background: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.015));
+    border: 1px solid rgba(255,255,255,0.06);
+}
+
+@media (max-width: 768px) {
+    .stats-bar {
+        padding: 0 16px 22px;
+        margin-top: -12px;
+    }
+
+    .stats-bar-inner {
+        grid-template-columns: 1fr;
+        gap: 10px;
+        padding: 12px;
+    }
+
+    .stat-item {
+        align-items: center;
+        text-align: center;
+        padding: 16px 14px;
+    }
 }
 
 html[data-theme="light"] .language-switcher-summary,
