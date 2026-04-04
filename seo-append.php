@@ -146,7 +146,8 @@ function holyprofweb_get_archive_share_image( $context = null ) {
             );
 
             if ( ! empty( $posts ) ) {
-                return holyprofweb_get_post_image_url( (int) $posts[0], 'full' );
+                $image = holyprofweb_get_post_image_url( (int) $posts[0], 'full' );
+                return 0 === strpos( (string) $image, 'data:image/' ) ? holyprofweb_placeholder_url() : $image;
             }
         }
     }
@@ -168,6 +169,9 @@ function holyprofweb_seo_head() {
         $og_title = get_the_title( $post );
         $og_url   = get_permalink( $post );
         $og_img   = holyprofweb_get_post_image_url( $post->ID, 'full' );
+        if ( 0 === strpos( (string) $og_img, 'data:image/' ) ) {
+            $og_img = holyprofweb_placeholder_url();
+        }
         $rating   = holyprofweb_get_post_rating( $post->ID );
         $r_count  = holyprofweb_get_review_count( $post->ID );
     } elseif ( is_category() && $post instanceof WP_Term ) {

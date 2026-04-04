@@ -63,7 +63,7 @@ get_header();
 
                 <header class="single-header single-header--refined">
                     <div class="single-featured-image single-featured-image--inline">
-                        <img src="<?php echo esc_url( $img_url ); ?>"
+                        <img src="<?php echo esc_attr( $img_url ); ?>"
                              alt="<?php echo esc_attr( $decoded_title ); ?>"
                              loading="eager"
                              class="<?php echo esc_attr( holyprofweb_get_post_image_class( $post_id ) ); ?>" />

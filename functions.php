@@ -3253,85 +3253,97 @@ function holyprofweb_get_generated_card_palette( $post_id ) {
     return array( 'bg1' => '#111827', 'bg2' => '#374151', 'accent' => '#f0b84a', 'soft' => 'rgba(240,184,74,0.20)' );
 }
 
-function holyprofweb_get_generated_card_image_url( $post_id ) {
+function holyprofweb_post_has_trusted_featured_image( $post_id ) {
+    return has_post_thumbnail( $post_id ) && ! holyprofweb_post_has_generated_thumbnail_attachment( $post_id );
+}
+
+function holyprofweb_get_generated_svg_image_url( $post_id, $variant = 'card' ) {
     $title    = trim( preg_replace( '/\s+/', ' ', wp_strip_all_tags( holyprofweb_get_decoded_post_title( $post_id ) ) ) );
     $excerpt  = trim( preg_replace( '/\s+/', ' ', wp_strip_all_tags( holyprofweb_get_decoded_post_excerpt( $post_id ) ) ) );
     $cats     = get_the_category( $post_id );
     $cat_name = ! empty( $cats ) ? strtoupper( $cats[0]->name ) : 'HOLYPROFWEB';
     $palette  = holyprofweb_get_generated_card_palette( $post_id );
-    $title_lines = holyprofweb_wrap_image_text( $title, 2, 20 );
-    $deck_lines  = holyprofweb_wrap_image_text( $excerpt ?: __( 'Research-first review, company context, and practical signals.', 'holyprofweb' ), 2, 38 );
+    $is_hero  = 'hero' === $variant;
+    $viewbox  = $is_hero ? '0 0 1200 675' : '0 0 640 400';
+    $width    = $is_hero ? 1200 : 640;
+    $height   = $is_hero ? 675 : 400;
+    $radius   = $is_hero ? 34 : 28;
+    $title_lines = holyprofweb_wrap_image_text( $title, $is_hero ? 3 : 2, $is_hero ? 18 : 20 );
+    $deck_lines  = holyprofweb_wrap_image_text( $excerpt ?: __( 'Research-first review, company context, and practical signals.', 'holyprofweb' ), $is_hero ? 3 : 2, $is_hero ? 46 : 38 );
+
+    $title_x      = $is_hero ? 64 : 32;
+    $title_y_base = $is_hero ? 172 : 112;
+    $title_gap    = $is_hero ? 56 : 36;
+    $title_size   = $is_hero ? 52 : 28;
+    $deck_x       = $is_hero ? 64 : 32;
+    $deck_y_base  = $is_hero ? 372 : 196;
+    $deck_gap     = $is_hero ? 30 : 22;
+    $deck_size    = $is_hero ? 22 : 15;
+    $badge_x      = $is_hero ? 64 : 32;
+    $badge_y      = $is_hero ? 54 : 34;
+    $badge_w      = $is_hero ? 220 : 160;
+    $badge_h      = $is_hero ? 38 : 28;
+    $badge_text_x = $is_hero ? 82 : 46;
+    $badge_text_y = $is_hero ? 80 : 53;
+    $footer_y     = $is_hero ? 562 : 332;
+    $site_y       = $is_hero ? 602 : 360;
+    $circle_big_x = $is_hero ? 1040 : 560;
+    $circle_big_y = $is_hero ? 112 : 74;
+    $circle_big_r = $is_hero ? 132 : 92;
+    $circle_small_x = $is_hero ? 76 : 44;
+    $circle_small_y = $is_hero ? 602 : 354;
+    $circle_small_r = $is_hero ? 54 : 38;
 
     $title_svg = '';
     foreach ( $title_lines as $index => $line ) {
-        $y = 112 + ( $index * 36 );
-        $title_svg .= '<text x="32" y="' . (int) $y . '" fill="#F8FAFC" font-size="28" font-weight="700" font-family="Inter, Segoe UI, Arial, sans-serif">' . htmlspecialchars( $line, ENT_QUOTES | ENT_XML1, 'UTF-8' ) . '</text>';
+        $y = $title_y_base + ( $index * $title_gap );
+        $title_svg .= '<text x="' . (int) $title_x . '" y="' . (int) $y . '" fill="#F8FAFC" font-size="' . (int) $title_size . '" font-weight="700" font-family="Inter, Segoe UI, Arial, sans-serif">' . htmlspecialchars( $line, ENT_QUOTES | ENT_XML1, 'UTF-8' ) . '</text>';
     }
 
     $deck_svg = '';
-    foreach ( array_slice( $deck_lines, 0, 2 ) as $index => $line ) {
-        $y = 196 + ( $index * 22 );
-        $deck_svg .= '<text x="32" y="' . (int) $y . '" fill="#CBD5E1" font-size="15" font-weight="500" font-family="Inter, Segoe UI, Arial, sans-serif">' . htmlspecialchars( $line, ENT_QUOTES | ENT_XML1, 'UTF-8' ) . '</text>';
+    foreach ( array_slice( $deck_lines, 0, $is_hero ? 3 : 2 ) as $index => $line ) {
+        $y = $deck_y_base + ( $index * $deck_gap );
+        $deck_svg .= '<text x="' . (int) $deck_x . '" y="' . (int) $y . '" fill="#CBD5E1" font-size="' . (int) $deck_size . '" font-weight="500" font-family="Inter, Segoe UI, Arial, sans-serif">' . htmlspecialchars( $line, ENT_QUOTES | ENT_XML1, 'UTF-8' ) . '</text>';
     }
 
-    $svg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="' . htmlspecialchars( $title, ENT_QUOTES | ENT_XML1, 'UTF-8' ) . '">'
+    $svg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="' . $viewbox . '" role="img" aria-label="' . htmlspecialchars( $title, ENT_QUOTES | ENT_XML1, 'UTF-8' ) . '">'
         . '<defs>'
         . '<linearGradient id="hpwBg" x1="0" y1="0" x2="1" y2="1">'
         . '<stop offset="0%" stop-color="' . $palette['bg1'] . '"/>'
         . '<stop offset="100%" stop-color="' . $palette['bg2'] . '"/>'
         . '</linearGradient>'
         . '</defs>'
-        . '<rect width="640" height="400" rx="28" fill="url(#hpwBg)"/>'
-        . '<circle cx="560" cy="74" r="92" fill="' . $palette['soft'] . '"/>'
-        . '<circle cx="44" cy="354" r="38" fill="rgba(255,255,255,0.08)"/>'
-        . '<rect x="0" y="0" width="8" height="400" fill="' . $palette['accent'] . '"/>'
-        . '<rect x="32" y="34" width="160" height="28" rx="10" fill="' . $palette['accent'] . '"/>'
-        . '<text x="46" y="53" fill="#111827" font-size="13" font-weight="700" font-family="Inter, Segoe UI, Arial, sans-serif">' . htmlspecialchars( $cat_name, ENT_QUOTES | ENT_XML1, 'UTF-8' ) . '</text>'
+        . '<rect width="' . $width . '" height="' . $height . '" rx="' . $radius . '" fill="url(#hpwBg)"/>'
+        . '<circle cx="' . $circle_big_x . '" cy="' . $circle_big_y . '" r="' . $circle_big_r . '" fill="' . $palette['soft'] . '"/>'
+        . '<circle cx="' . $circle_small_x . '" cy="' . $circle_small_y . '" r="' . $circle_small_r . '" fill="rgba(255,255,255,0.08)"/>'
+        . '<rect x="0" y="0" width="' . ( $is_hero ? 12 : 8 ) . '" height="' . $height . '" fill="' . $palette['accent'] . '"/>'
+        . '<rect x="' . $badge_x . '" y="' . $badge_y . '" width="' . $badge_w . '" height="' . $badge_h . '" rx="' . ( $is_hero ? 14 : 10 ) . '" fill="' . $palette['accent'] . '"/>'
+        . '<text x="' . $badge_text_x . '" y="' . $badge_text_y . '" fill="#111827" font-size="' . ( $is_hero ? 18 : 13 ) . '" font-weight="700" font-family="Inter, Segoe UI, Arial, sans-serif">' . htmlspecialchars( $cat_name, ENT_QUOTES | ENT_XML1, 'UTF-8' ) . '</text>'
         . $title_svg
         . $deck_svg
-        . '<rect x="32" y="332" width="576" height="2" fill="rgba(255,255,255,0.12)"/>'
-        . '<text x="32" y="360" fill="#CBD5E1" font-size="13" font-weight="600" font-family="Inter, Segoe UI, Arial, sans-serif">holyprofweb.com</text>'
+        . '<rect x="' . ( $is_hero ? 64 : 32 ) . '" y="' . $footer_y . '" width="' . ( $is_hero ? 1072 : 576 ) . '" height="2" fill="rgba(255,255,255,0.12)"/>'
+        . '<text x="' . ( $is_hero ? 64 : 32 ) . '" y="' . $site_y . '" fill="#CBD5E1" font-size="' . ( $is_hero ? 18 : 13 ) . '" font-weight="600" font-family="Inter, Segoe UI, Arial, sans-serif">holyprofweb.com</text>'
         . '</svg>';
 
     return 'data:image/svg+xml;charset=UTF-8,' . rawurlencode( $svg );
 }
 
-function holyprofweb_get_post_card_image_url( $post_id ) {
-    $post          = get_post( $post_id );
-    $generated_url = get_post_meta( $post_id, '_holyprofweb_gen_image_url', true );
-    $generated_ver = get_post_meta( $post_id, '_holyprofweb_gen_image_version', true );
+function holyprofweb_get_generated_card_image_url( $post_id ) {
+    return holyprofweb_get_generated_svg_image_url( $post_id, 'card' );
+}
 
-    if ( has_post_thumbnail( $post_id ) && ! holyprofweb_post_uses_generated_image_fallback( $post_id ) ) {
+function holyprofweb_get_generated_hero_image_url( $post_id ) {
+    return holyprofweb_get_generated_svg_image_url( $post_id, 'hero' );
+}
+
+function holyprofweb_get_post_card_image_url( $post_id ) {
+    if ( holyprofweb_post_has_trusted_featured_image( $post_id ) ) {
         $thumb_url = get_the_post_thumbnail_url( $post_id, 'holyprofweb-card' );
         if ( $thumb_url ) {
             return esc_url_raw( $thumb_url );
         }
     }
-
-    $external = trim( (string) get_post_meta( $post_id, 'external_image', true ) );
-    if ( $external ) {
-        return esc_url_raw( $external );
-    }
-
-    $remote_cached = get_post_meta( $post_id, '_holyprofweb_remote_image_url', true );
-    if ( $remote_cached ) {
-        return esc_url_raw( $remote_cached );
-    }
-
-    if ( holyprofweb_post_has_generated_thumbnail_attachment( $post_id ) ) {
-        return holyprofweb_get_generated_card_image_url( $post_id );
-    }
-
-    if ( $generated_url && $post && function_exists( 'imagecreatetruecolor' ) && holyprofweb_generated_image_version() !== $generated_ver ) {
-        holyprofweb_generate_post_image_modern( $post_id, $post );
-        $generated_url = get_post_meta( $post_id, '_holyprofweb_gen_image_url', true );
-    }
-
-    if ( $generated_url ) {
-        return holyprofweb_get_generated_card_image_url( $post_id );
-    }
-
-    return holyprofweb_get_post_image_url( $post_id, 'holyprofweb-card' );
+    return holyprofweb_get_generated_card_image_url( $post_id );
 }
 
 /**
@@ -3343,6 +3355,10 @@ function holyprofweb_get_post_card_image_url( $post_id ) {
  * @return string
  */
 function holyprofweb_get_post_image_url( $post_id, $size = 'holyprofweb-card' ) {
+    if ( ! holyprofweb_post_has_trusted_featured_image( $post_id ) ) {
+        return 'full' === $size ? holyprofweb_get_generated_hero_image_url( $post_id ) : holyprofweb_get_generated_card_image_url( $post_id );
+    }
+
     $generated_url = get_post_meta( $post_id, '_holyprofweb_gen_image_url', true );
     $generated_ver = get_post_meta( $post_id, '_holyprofweb_gen_image_version', true );
     $external      = trim( (string) get_post_meta( $post_id, 'external_image', true ) );

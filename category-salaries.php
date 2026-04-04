@@ -71,7 +71,7 @@ $fallback  = new WP_Query(
                 ?>
             <article class="salary-card">
                 <a href="<?php the_permalink(); ?>" class="salary-card-logo-wrap">
-                    <img src="<?php echo esc_url( $thumb ); ?>" alt="<?php echo esc_attr( $company ); ?>" class="<?php echo esc_attr( holyprofweb_get_post_image_class( $pid, 'salary-card-logo' ) ); ?>" loading="lazy" width="<?php echo esc_attr( $card_size['width'] ); ?>" height="<?php echo esc_attr( $card_size['height'] ); ?>" />
+                    <img src="<?php echo esc_attr( $thumb ); ?>" alt="<?php echo esc_attr( $company ); ?>" class="<?php echo esc_attr( holyprofweb_get_post_image_class( $pid, 'salary-card-logo' ) ); ?>" loading="lazy" width="<?php echo esc_attr( $card_size['width'] ); ?>" height="<?php echo esc_attr( $card_size['height'] ); ?>" />
                 </a>
                 <div class="salary-card-body">
                     <div class="salary-card-top">
@@ -127,7 +127,7 @@ $fallback  = new WP_Query(
                 <?php if ( $fallback->have_posts() ) : while ( $fallback->have_posts() ) : $fallback->the_post(); ?>
                 <article class="post-card">
                     <a href="<?php the_permalink(); ?>" class="post-card-thumb-link">
-                        <img src="<?php echo esc_url( holyprofweb_get_post_image_url( get_the_ID() ) ); ?>" alt="<?php echo esc_attr( holyprofweb_get_decoded_post_title() ); ?>" loading="lazy" width="<?php echo esc_attr( $card_size['width'] ); ?>" height="<?php echo esc_attr( $card_size['height'] ); ?>" />
+                        <img src="<?php echo esc_attr( holyprofweb_get_post_image_url( get_the_ID() ) ); ?>" alt="<?php echo esc_attr( holyprofweb_get_decoded_post_title() ); ?>" loading="lazy" width="<?php echo esc_attr( $card_size['width'] ); ?>" height="<?php echo esc_attr( $card_size['height'] ); ?>" />
                     </a>
                     <div class="post-card-body">
                         <h3 class="post-card-title"><a href="<?php the_permalink(); ?>"><?php holyprofweb_the_decoded_title(); ?></a></h3>
