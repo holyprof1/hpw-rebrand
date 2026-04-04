@@ -66,9 +66,9 @@
                 <ul>
                     <?php
                     $company_links = array(
-                        'Work with us' => '/work-with-us/',
-                        'Advertise'    => '/advertise/',
-                        'About'        => '/about/',
+                        'Work with us' => '/contact/',
+                        'Advertise'    => '/contact/',
+                        'About'        => '/contact/',
                     );
                     foreach ( $company_links as $label => $path ) :
                     ?>
@@ -87,7 +87,7 @@
                 <ul>
                     <?php
                     $legal_links = array(
-                        'Contact' => array( 'href' => 'mailto:admin@holyprofweb.com', 'external' => true ),
+                        'Contact' => array( 'href' => '/contact/', 'external' => false ),
                         'Privacy' => array( 'href' => '/privacy-policy/', 'external' => false ),
                     );
                     foreach ( $legal_links as $label => $link ) :

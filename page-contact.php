@@ -155,8 +155,8 @@ if ( isset( $_POST['hpw_contact_nonce'] ) ) {
                     <div class="contact-info-card">
                         <h3 class="contact-info-heading"><?php esc_html_e( 'Other Pages', 'holyprofweb' ); ?></h3>
                         <ul class="contact-info-list">
-                            <li><a href="<?php echo esc_url( home_url( '/about/' ) ); ?>"><?php esc_html_e( 'About HolyprofWeb', 'holyprofweb' ); ?></a></li>
-                            <li><a href="<?php echo esc_url( home_url( '/advertise/' ) ); ?>"><?php esc_html_e( 'Advertise With Us', 'holyprofweb' ); ?></a></li>
+                            <li><a href="<?php echo esc_url( home_url( '/contact/' ) ); ?>"><?php esc_html_e( 'About HolyprofWeb', 'holyprofweb' ); ?></a></li>
+                            <li><a href="<?php echo esc_url( home_url( '/contact/' ) ); ?>"><?php esc_html_e( 'Advertise With Us', 'holyprofweb' ); ?></a></li>
                             <li><a href="<?php echo esc_url( home_url( '/work-with-us/' ) ); ?>"><?php esc_html_e( 'Work With Us', 'holyprofweb' ); ?></a></li>
                         </ul>
                     </div>
