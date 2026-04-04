@@ -3423,6 +3423,10 @@ function holyprofweb_get_generic_card_image_url() {
 }
 
 function holyprofweb_get_front_page_card_image_url( $post_id ) {
+    if ( holyprofweb_post_has_trusted_featured_image( $post_id ) ) {
+        return holyprofweb_get_post_card_image_url( $post_id );
+    }
+
     return holyprofweb_get_generic_card_image_url();
 }
 
@@ -5980,6 +5984,7 @@ function holyprofweb_handle_reviews_admin_quick_update() {
     $rating_override  = isset( $_POST['hpw_rating_override'] ) ? trim( (string) wp_unslash( $_POST['hpw_rating_override'] ) ) : '';
     $verdict_override = isset( $_POST['hpw_verdict_override'] ) ? sanitize_key( wp_unslash( $_POST['hpw_verdict_override'] ) ) : '';
     $source_url       = isset( $_POST['hpw_source_url'] ) ? esc_url_raw( wp_unslash( $_POST['hpw_source_url'] ) ) : '';
+    $external_image   = isset( $_POST['hpw_external_image'] ) ? esc_url_raw( wp_unslash( $_POST['hpw_external_image'] ) ) : '';
     $country_focus    = isset( $_POST['hpw_country_focus'] ) ? sanitize_text_field( wp_unslash( $_POST['hpw_country_focus'] ) ) : '';
     if ( ! array_key_exists( $verdict_override, holyprofweb_get_verdict_options() ) ) {
         $verdict_override = '';
@@ -5988,7 +5993,22 @@ function holyprofweb_handle_reviews_admin_quick_update() {
     update_post_meta( $post_id, '_hpw_rating_override', ( '' !== $rating_override && is_numeric( $rating_override ) ) ? round( max( 0, min( 5, (float) $rating_override ) ), 1 ) : '' );
     update_post_meta( $post_id, '_hpw_verdict_override', $verdict_override );
     update_post_meta( $post_id, '_hpw_source_url', $source_url );
+    update_post_meta( $post_id, 'external_image', $external_image );
     update_post_meta( $post_id, '_hpw_country_focus', $country_focus );
+
+    if ( ! empty( $_FILES['hpw_featured_upload']['name'] ) && ! empty( $_FILES['hpw_featured_upload']['tmp_name'] ) ) {
+        require_once ABSPATH . 'wp-admin/includes/file.php';
+        require_once ABSPATH . 'wp-admin/includes/image.php';
+        require_once ABSPATH . 'wp-admin/includes/media.php';
+
+        $uploaded = media_handle_upload( 'hpw_featured_upload', $post_id );
+        if ( ! is_wp_error( $uploaded ) ) {
+            set_post_thumbnail( $post_id, (int) $uploaded );
+            delete_post_meta( $post_id, '_holyprofweb_gen_image_url' );
+            delete_post_meta( $post_id, '_holyprofweb_gen_image_version' );
+            delete_post_meta( $post_id, '_holyprofweb_remote_image_url' );
+        }
+    }
 
     $redirect = add_query_arg(
         array(
@@ -6583,9 +6603,11 @@ function holyprofweb_settings_reviews_page() {
                 $rating_override  = get_post_meta( $post_id, '_hpw_rating_override', true );
                 $verdict_override = (string) get_post_meta( $post_id, '_hpw_verdict_override', true );
                 $source_url       = (string) get_post_meta( $post_id, '_hpw_source_url', true );
+                $external_image   = (string) get_post_meta( $post_id, 'external_image', true );
                 $country_focus    = (string) get_post_meta( $post_id, '_hpw_country_focus', true );
                 $status_object    = get_post_status_object( get_post_status( $post_id ) );
                 $verdict_preview  = holyprofweb_get_review_verdict( $post_id );
+                $has_featured     = holyprofweb_post_has_trusted_featured_image( $post_id );
                 ?>
             <tr style="background:#fff;">
                 <td style="padding:18px 16px;vertical-align:top;">
@@ -6604,7 +6626,7 @@ function holyprofweb_settings_reviews_page() {
                     <span class="verdict-badge <?php echo esc_attr( $verdict_preview['class'] ); ?>" style="margin-top:8px;"><?php echo esc_html( $verdict_preview['label'] ); ?></span>
                 </td>
                 <td style="min-width:340px;padding:18px 16px;vertical-align:top;">
-                    <form method="post" action="<?php echo esc_url( admin_url( 'admin.php?page=hpw-settings-reviews' ) ); ?>" style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px 12px;padding:14px;border:1px solid #ece4d4;border-radius:18px;background:linear-gradient(180deg,#fffdfa 0%,#ffffff 100%);">
+                    <form method="post" action="<?php echo esc_url( admin_url( 'admin.php?page=hpw-settings-reviews' ) ); ?>" enctype="multipart/form-data" style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px 12px;padding:14px;border:1px solid #ece4d4;border-radius:18px;background:linear-gradient(180deg,#fffdfa 0%,#ffffff 100%);">
                         <?php wp_nonce_field( 'hpw_reviews_content_update', 'hpw_reviews_content_nonce' ); ?>
                         <input type="hidden" name="page" value="hpw-settings-reviews">
                         <input type="hidden" name="hpw_reviews_content_update" value="1">
@@ -6626,6 +6648,15 @@ function holyprofweb_settings_reviews_page() {
                         <label style="grid-column:1 / -1;">
                             <span style="display:block;font-weight:600;margin-bottom:4px;"><?php esc_html_e( 'Source URL', 'holyprofweb' ); ?></span>
                             <input type="url" name="hpw_source_url" value="<?php echo esc_attr( $source_url ); ?>" class="regular-text" style="width:100%;">
+                        </label>
+                        <label style="grid-column:1 / -1;">
+                            <span style="display:block;font-weight:600;margin-bottom:4px;"><?php esc_html_e( 'Image URL override', 'holyprofweb' ); ?></span>
+                            <input type="url" name="hpw_external_image" value="<?php echo esc_attr( $external_image ); ?>" class="regular-text" style="width:100%;">
+                        </label>
+                        <label style="grid-column:1 / -1;">
+                            <span style="display:block;font-weight:600;margin-bottom:4px;"><?php esc_html_e( 'Upload featured image', 'holyprofweb' ); ?></span>
+                            <input type="file" name="hpw_featured_upload" accept="image/*" style="width:100%;">
+                            <span style="display:block;margin-top:6px;color:#6b7280;font-size:12px;"><?php echo esc_html( $has_featured ? __( 'A real featured image is already set. Uploading here replaces it directly.', 'holyprofweb' ) : __( 'Pick an image from your device and save. It uploads directly without opening the media library.', 'holyprofweb' ) ); ?></span>
                         </label>
                         <label>
                             <span style="display:block;font-weight:600;margin-bottom:4px;"><?php esc_html_e( 'Country focus', 'holyprofweb' ); ?></span>
