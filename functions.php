@@ -1207,7 +1207,31 @@ add_action( 'wp', 'holyprofweb_track_search' );
  */
 function holyprofweb_get_trending_searches( $count = 5 ) {
     $log = holyprofweb_get_search_log();
-    return array_slice( $log, 0, $count, true );
+    $items = array();
+
+    foreach ( $log as $entry ) {
+        $term = '';
+
+        if ( is_array( $entry ) && ! empty( $entry['term'] ) ) {
+            $term = sanitize_text_field( (string) $entry['term'] );
+        }
+
+        if ( '' === $term ) {
+            continue;
+        }
+
+        if ( false !== stripos( $term, 'encodeURIComponent' ) ) {
+            continue;
+        }
+
+        $items[] = array( 'term' => $term );
+
+        if ( count( $items ) >= $count ) {
+            break;
+        }
+    }
+
+    return $items;
 }
 
 function holyprofweb_get_country_name_from_code( $country_code ) {
@@ -2938,7 +2962,9 @@ function holyprofweb_the_decoded_title( $post_id = 0 ) {
 }
 
 function holyprofweb_get_decoded_post_excerpt( $post_id = 0 ) {
-    return html_entity_decode( get_the_excerpt( $post_id ), ENT_QUOTES, get_bloginfo( 'charset' ) ?: 'UTF-8' );
+    $excerpt = html_entity_decode( get_the_excerpt( $post_id ), ENT_QUOTES, get_bloginfo( 'charset' ) ?: 'UTF-8' );
+    $excerpt = preg_replace( '/Quick Summary.*$/i', '', (string) $excerpt );
+    return trim( preg_replace( '/\s+/', ' ', (string) $excerpt ) );
 }
 
 function holyprofweb_get_post_image( $post_id, $size = 'large' ) {
@@ -3254,7 +3280,21 @@ function holyprofweb_get_generated_card_palette( $post_id ) {
 }
 
 function holyprofweb_post_has_trusted_featured_image( $post_id ) {
-    return has_post_thumbnail( $post_id ) && ! holyprofweb_post_has_generated_thumbnail_attachment( $post_id );
+    if ( ! has_post_thumbnail( $post_id ) || holyprofweb_post_has_generated_thumbnail_attachment( $post_id ) ) {
+        return false;
+    }
+
+    $thumbnail_id = (int) get_post_thumbnail_id( $post_id );
+    if ( $thumbnail_id <= 0 ) {
+        return false;
+    }
+
+    $attached_file = get_attached_file( $thumbnail_id );
+    if ( ! $attached_file || ! file_exists( $attached_file ) ) {
+        return false;
+    }
+
+    return true;
 }
 
 function holyprofweb_get_generated_svg_image_url( $post_id, $variant = 'card' ) {
@@ -4268,7 +4308,9 @@ function holyprofweb_get_review_verdict( $post_id ) {
     $cat_slugs = wp_list_pluck( get_the_category( $post_id ), 'slug' );
     $title     = strtolower( holyprofweb_get_decoded_post_title( $post_id ) );
     $excerpt   = strtolower( holyprofweb_get_decoded_post_excerpt( $post_id ) );
-    $content   = strtolower( wp_strip_all_tags( get_post_field( 'post_content', $post_id ) ) );
+    $content_raw = (string) get_post_field( 'post_content', $post_id );
+    $content_raw = preg_replace( '/<!-- HPW-AUTO-CONTENT:START -->.*?<!-- HPW-AUTO-CONTENT:END -->/si', '', $content_raw );
+    $content   = strtolower( wp_strip_all_tags( $content_raw ) );
     $haystack  = $title . ' ' . $excerpt . ' ' . $content;
 
     if ( array_intersect( array( 'reports', 'scam-reports', 'user-complaints', 'scam-legit' ), $cat_slugs ) ) {
@@ -4276,6 +4318,10 @@ function holyprofweb_get_review_verdict( $post_id ) {
             return array( 'label' => 'Scam Alert', 'class' => 'verdict-badge--scam' );
         }
         return array( 'label' => 'Caution', 'class' => 'verdict-badge--caution' );
+    }
+
+    if ( false !== strpos( $haystack, 'scam' ) || false !== strpos( $haystack, 'fraud' ) || false !== strpos( $haystack, 'fake' ) ) {
+        return array( 'label' => 'Scam Alert', 'class' => 'verdict-badge--scam' );
     }
 
     if ( false !== strpos( $haystack, 'safe' ) || false !== strpos( $haystack, 'legit' ) || false !== strpos( $haystack, 'trusted' ) ) {
@@ -5491,6 +5537,7 @@ function holyprofweb_post_ops_meta_box_render( $post ) {
     <p>
         <label for="hpw_verdict_override"><strong><?php esc_html_e( 'Verdict Badge', 'holyprofweb' ); ?></strong></label><br>
         <select id="hpw_verdict_override" name="hpw_verdict_override" class="widefat">
+            <option value="" <?php selected( $verdict_override, '' ); ?>><?php esc_html_e( 'Auto', 'holyprofweb' ); ?></option>
             <?php foreach ( $verdict_options as $value => $option ) : ?>
             <option value="<?php echo esc_attr( $value ); ?>" <?php selected( $verdict_override, $value ); ?>><?php echo esc_html( $option['label'] ); ?></option>
             <?php endforeach; ?>
@@ -7610,28 +7657,14 @@ function holyprofweb_expand_thin_post_content( $post_id, $force = false ) {
         return;
     }
 
-    $word_count = str_word_count( wp_strip_all_tags( $post->post_content ) );
-    $is_placeholder = holyprofweb_is_placeholder_post( $post_id );
-
-    if ( ! $force && $word_count >= max( 1000, absint( get_option( 'hpw_ai_minimum_words', 1000 ) ) ) && ! $is_placeholder ) {
-        return;
-    }
-
-    $extra = holyprofweb_build_longform_sections( $post_id );
-    if ( ! $extra ) {
-        return;
-    }
-
     $content = (string) $post->post_content;
     if ( false !== strpos( $content, '<!-- HPW-AUTO-CONTENT:START -->' ) ) {
         $content = preg_replace( '/<!-- HPW-AUTO-CONTENT:START -->.*?<!-- HPW-AUTO-CONTENT:END -->/si', '', $content );
+        wp_update_post( array(
+            'ID'           => $post_id,
+            'post_content' => trim( (string) $content ),
+        ) );
     }
-
-    wp_update_post( array(
-        'ID'           => $post_id,
-        'post_content' => trim( $content ) . "\n\n" . $extra,
-    ) );
-    update_post_meta( $post_id, '_hpw_content_expanded', 1 );
 }
 
 function holyprofweb_expand_existing_thin_posts_once() {
@@ -7654,6 +7687,14 @@ function holyprofweb_expand_existing_thin_posts_once() {
     update_option( 'holyprofweb_thin_content_expanded_v1', 1 );
 }
 add_action( 'init', 'holyprofweb_expand_existing_thin_posts_once', 60 );
+
+add_filter( 'the_content', function( $content ) {
+    if ( false === strpos( (string) $content, '<!-- HPW-AUTO-CONTENT:START -->' ) ) {
+        return $content;
+    }
+
+    return preg_replace( '/<!-- HPW-AUTO-CONTENT:START -->.*?<!-- HPW-AUTO-CONTENT:END -->/si', '', (string) $content );
+}, 5 );
 
 /**
  * Calculate and cache estimated reading time (minutes) from word count.
