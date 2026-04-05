@@ -3442,7 +3442,7 @@ function holyprofweb_get_post_card_image_url( $post_id ) {
             return esc_url_raw( $full_url );
         }
     }
-    return holyprofweb_get_generic_card_image_url();
+    return holyprofweb_get_generated_card_image_url( $post_id );
 }
 
 /**
