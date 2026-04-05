@@ -111,54 +111,6 @@ get_header();
                     </div>
                 </header>
 
-                <!-- Category badge -->
-                <?php if ( $primary_cat ) : ?>
-                <span class="single-category">
-                    <a href="<?php echo esc_url( get_category_link( $primary_cat->term_id ) ); ?>">
-                        <?php echo esc_html( $primary_cat->name ); ?>
-                    </a>
-                </span>
-                <?php endif; ?>
-
-                <!-- Title + Rating -->
-                <header class="single-header">
-                    <h1 class="single-title"><?php echo esc_html( $decoded_title ); ?></h1>
-
-                    <?php if ( $rating > 0 ) : ?>
-                    <div class="single-rating-display">
-                        <?php echo holyprofweb_render_stars( $rating ); ?>
-                        <a href="#reviews" class="single-rating-count">
-                            (<?php echo esc_html( $review_count ); ?> <?php echo esc_html( _n( 'review', 'reviews', $review_count, 'holyprofweb' ) ); ?>)
-                        </a>
-                    </div>
-                    <?php endif; ?>
-                </header>
-
-                <!-- Featured image — always show -->
-                <div class="single-featured-image">
-                    <img src="<?php echo esc_url( $img_url ); ?>"
-                         alt="<?php echo esc_attr( $decoded_title ); ?>"
-                         loading="eager" />
-                </div>
-
-                <!-- Meta bar -->
-                <div class="single-meta">
-                    <span>
-                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
-                        <a href="<?php echo esc_url( get_author_posts_url( get_the_author_meta( 'ID' ) ) ); ?>"><?php the_author(); ?></a>
-                    </span>
-                    <span>
-                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
-                        <time datetime="<?php echo esc_attr( get_the_date( 'c' ) ); ?>"><?php echo esc_html( get_the_date() ); ?></time>
-                    </span>
-                    <?php if ( $primary_cat ) : ?>
-                    <span>
-                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
-                        <a href="<?php echo esc_url( get_category_link( $primary_cat->term_id ) ); ?>"><?php echo esc_html( $primary_cat->name ); ?></a>
-                    </span>
-                    <?php endif; ?>
-                </div>
-
                 <!-- Quick Facts -->
                 <aside class="key-info-box<?php echo $is_biography_post ? ' key-info-box--wiki' : ''; ?>" aria-label="Key Information">
                     <p class="key-info-box-title">Quick Facts</p>

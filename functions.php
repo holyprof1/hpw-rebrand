@@ -3547,6 +3547,82 @@ function holyprofweb_generated_image_version() {
     return '9-' . holyprofweb_get_generated_image_style();
 }
 
+function holyprofweb_clear_post_image_state( $post_id, $drop_generated_attachment = false ) {
+    $post_id = (int) $post_id;
+    if ( $post_id <= 0 ) {
+        return;
+    }
+
+    delete_post_meta( $post_id, '_holyprofweb_remote_image_url' );
+    delete_post_meta( $post_id, '_holyprofweb_gen_image_url' );
+    delete_post_meta( $post_id, '_holyprofweb_gen_image_version' );
+    delete_transient( 'hpw_remote_image_retry_' . $post_id );
+
+    $attachment_id = (int) get_post_meta( $post_id, '_holyprofweb_gen_attachment_id', true );
+    if ( $attachment_id > 0 ) {
+        if ( $drop_generated_attachment ) {
+            $thumbnail_id = (int) get_post_thumbnail_id( $post_id );
+            if ( $thumbnail_id === $attachment_id ) {
+                delete_post_thumbnail( $post_id );
+            }
+            if ( get_post( $attachment_id ) ) {
+                wp_delete_attachment( $attachment_id, true );
+            }
+        }
+        delete_post_meta( $post_id, '_holyprofweb_gen_attachment_id' );
+    }
+}
+
+function holyprofweb_force_regenerate_post_image( $post_id ) {
+    $post_id = (int) $post_id;
+    $post    = get_post( $post_id );
+    if ( ! $post instanceof WP_Post || 'post' !== $post->post_type ) {
+        return false;
+    }
+
+    holyprofweb_clear_post_image_state( $post_id, true );
+
+    if ( ! holyprofweb_post_has_trusted_featured_image( $post_id ) ) {
+        $external = trim( (string) get_post_meta( $post_id, 'external_image', true ) );
+        if ( $external ) {
+            return true;
+        }
+
+        $remote = holyprofweb_maybe_get_remote_post_image( $post_id, $post );
+        if ( $remote ) {
+            holyprofweb_attach_remote_image_to_post( $remote, $post_id, $post->post_title );
+        }
+    }
+
+    if ( ! holyprofweb_post_has_trusted_featured_image( $post_id ) && ! get_post_meta( $post_id, 'external_image', true ) ) {
+        holyprofweb_generate_post_image_modern( $post_id, $post );
+    }
+
+    return true;
+}
+
+function holyprofweb_refresh_post_image_state_on_save( $post_id, $post, $update ) {
+    if ( wp_is_post_revision( $post_id ) || wp_is_post_autosave( $post_id ) ) {
+        return;
+    }
+    if ( ! $post instanceof WP_Post || 'post' !== $post->post_type || 'auto-draft' === $post->post_status ) {
+        return;
+    }
+
+    $current_version = (string) get_post_meta( $post_id, '_holyprofweb_gen_image_version', true );
+    $target_version  = holyprofweb_generated_image_version();
+    $has_generated   = holyprofweb_post_has_generated_thumbnail_attachment( $post_id )
+        || (bool) get_post_meta( $post_id, '_holyprofweb_gen_attachment_id', true )
+        || (bool) get_post_meta( $post_id, '_holyprofweb_gen_image_url', true );
+
+    if ( $has_generated && $current_version !== $target_version ) {
+        holyprofweb_clear_post_image_state( $post_id, true );
+    } elseif ( get_post_meta( $post_id, '_holyprofweb_remote_image_url', true ) && holyprofweb_get_post_source_url( $post_id, $post ) ) {
+        delete_transient( 'hpw_remote_image_retry_' . $post_id );
+    }
+}
+add_action( 'save_post_post', 'holyprofweb_refresh_post_image_state_on_save', 15, 3 );
+
 function holyprofweb_is_local_environment() {
     if ( function_exists( 'wp_get_environment_type' ) ) {
         $env = wp_get_environment_type();
@@ -7701,6 +7777,16 @@ function holyprofweb_settings_automation_page() {
     }
     $sample_title = $sample_post_id ? get_the_title( $sample_post_id ) : 'How Safe Is [Brand Name] for New Users in 2026?';
     $prompt_text  = holyprofweb_build_ai_prompt_template( $sample_title, $sample_post_id );
+    $image_search = isset( $_GET['hpw_image_search'] ) ? sanitize_text_field( wp_unslash( $_GET['hpw_image_search'] ) ) : '';
+    $image_posts  = get_posts( array(
+        'post_type'      => 'post',
+        'post_status'    => array( 'publish', 'draft', 'pending', 'future' ),
+        'posts_per_page' => 20,
+        's'              => $image_search,
+        'orderby'        => 'date',
+        'order'          => 'DESC',
+        'no_found_rows'  => true,
+    ) );
     ?>
     <div class="wrap">
         <h1>&#9889; <?php esc_html_e( 'HPW Settings — Automation', 'holyprofweb' ); ?></h1>
@@ -7793,26 +7879,54 @@ function holyprofweb_settings_automation_page() {
         </form>
 
         <hr>
-        <h2><?php esc_html_e( 'Stale Content Queue', 'holyprofweb' ); ?></h2>
-        <?php if ( empty( $refresh_queue ) ) : ?>
-            <p><?php esc_html_e( 'No posts currently flagged for refresh.', 'holyprofweb' ); ?></p>
+        <h2><?php esc_html_e( 'Posts Image Desk', 'holyprofweb' ); ?></h2>
+        <p><?php esc_html_e( 'Search posts and generate a fresh image directly from admin. Featured images stay first, manual image links stay next, and generated images only fill the gap when needed.', 'holyprofweb' ); ?></p>
+        <form id="hpw-image-desk-filter" method="get" action="" style="margin:18px 0 14px;display:grid;grid-template-columns:minmax(260px,1fr) auto;gap:12px;align-items:end;">
+            <input type="hidden" name="page" value="hpw-settings-automation" />
+            <p style="margin:0;">
+                <label for="hpw-image-search" style="display:block;font-weight:600;margin:0 0 6px;"><?php esc_html_e( 'Search posts', 'holyprofweb' ); ?></label>
+                <input id="hpw-image-search" type="search" name="hpw_image_search" value="<?php echo esc_attr( $image_search ); ?>" class="regular-text" style="width:100%;max-width:none;" placeholder="<?php esc_attr_e( 'Search by title, brand, company, website...', 'holyprofweb' ); ?>" />
+            </p>
+            <p style="margin:0;"><?php submit_button( __( 'Filter Posts', 'holyprofweb' ), 'secondary', 'submit', false ); ?></p>
+        </form>
+        <?php holyprofweb_render_admin_live_filter_script( 'hpw-image-desk-filter', 'input[type="search"]' ); ?>
+        <?php if ( empty( $image_posts ) ) : ?>
+            <p><?php esc_html_e( 'No posts matched this image search yet.', 'holyprofweb' ); ?></p>
         <?php else : ?>
             <table class="widefat striped">
                 <thead><tr>
                     <th><?php esc_html_e( 'Post', 'holyprofweb' ); ?></th>
-                    <th><?php esc_html_e( 'Word Count', 'holyprofweb' ); ?></th>
-                    <th><?php esc_html_e( 'Needs', 'holyprofweb' ); ?></th>
-                    <th><?php esc_html_e( 'Country Focus', 'holyprofweb' ); ?></th>
+                    <th><?php esc_html_e( 'Current Image Path', 'holyprofweb' ); ?></th>
+                    <th><?php esc_html_e( 'Country', 'holyprofweb' ); ?></th>
                     <th><?php esc_html_e( 'Last Modified', 'holyprofweb' ); ?></th>
+                    <th><?php esc_html_e( 'Action', 'holyprofweb' ); ?></th>
                 </tr></thead>
                 <tbody>
-                <?php foreach ( $refresh_queue as $post_id => $item ) : ?>
+                <?php foreach ( $image_posts as $image_post ) : ?>
+                    <?php
+                    $image_post_id = (int) $image_post->ID;
+                    $image_state   = holyprofweb_post_has_trusted_featured_image( $image_post_id )
+                        ? __( 'Featured image', 'holyprofweb' )
+                        : ( get_post_meta( $image_post_id, 'external_image', true )
+                            ? __( 'Manual image link', 'holyprofweb' )
+                            : ( get_post_meta( $image_post_id, '_holyprofweb_remote_image_url', true )
+                                ? __( 'Remote/site image', 'holyprofweb' )
+                                : __( 'Generated fallback', 'holyprofweb' ) ) );
+                    ?>
                     <tr>
-                        <td><a href="<?php echo esc_url( get_edit_post_link( $post_id ) ); ?>"><?php echo esc_html( $item['title'] ); ?></a></td>
-                        <td><?php echo esc_html( number_format_i18n( (int) $item['word_count'] ) ); ?></td>
-                        <td><?php echo esc_html( implode( ', ', $item['needs'] ) ); ?></td>
-                        <td><?php echo esc_html( $item['country_focus'] ? $item['country_focus'] : 'General' ); ?></td>
-                        <td><?php echo esc_html( mysql2date( 'Y-m-d', $item['modified_gmt'], false ) ); ?></td>
+                        <td><a href="<?php echo esc_url( get_edit_post_link( $image_post_id ) ); ?>"><?php echo esc_html( get_the_title( $image_post_id ) ); ?></a></td>
+                        <td><?php echo esc_html( $image_state ); ?></td>
+                        <td><?php echo esc_html( (string) get_post_meta( $image_post_id, '_hpw_country_focus', true ) ?: 'General' ); ?></td>
+                        <td><?php echo esc_html( get_the_modified_date( 'Y-m-d', $image_post_id ) ); ?></td>
+                        <td>
+                            <form method="post" action="<?php echo esc_url( admin_url( 'admin.php?page=hpw-settings-automation' ) ); ?>">
+                                <?php wp_nonce_field( 'hpw_regenerate_post_image', 'hpw_regenerate_post_image_nonce' ); ?>
+                                <input type="hidden" name="hpw_action" value="regenerate_post_image" />
+                                <input type="hidden" name="hpw_post_id" value="<?php echo esc_attr( $image_post_id ); ?>" />
+                                <input type="hidden" name="hpw_image_search" value="<?php echo esc_attr( $image_search ); ?>" />
+                                <?php submit_button( __( 'Generate', 'holyprofweb' ), 'secondary small', 'submit', false ); ?>
+                            </form>
+                        </td>
                     </tr>
                 <?php endforeach; ?>
                 </tbody>
@@ -7974,6 +8088,35 @@ function holyprofweb_handle_generated_image_reset_action() {
     exit;
 }
 add_action( 'admin_init', 'holyprofweb_handle_generated_image_reset_action' );
+
+function holyprofweb_handle_single_post_image_regeneration_action() {
+    if ( ! is_admin() || ! current_user_can( 'manage_options' ) ) {
+        return;
+    }
+
+    if ( ! isset( $_POST['hpw_action'] ) || 'regenerate_post_image' !== $_POST['hpw_action'] ) {
+        return;
+    }
+
+    check_admin_referer( 'hpw_regenerate_post_image', 'hpw_regenerate_post_image_nonce' );
+
+    $post_id = isset( $_POST['hpw_post_id'] ) ? absint( wp_unslash( $_POST['hpw_post_id'] ) ) : 0;
+    holyprofweb_force_regenerate_post_image( $post_id );
+    $image_search = isset( $_POST['hpw_image_search'] ) ? sanitize_text_field( wp_unslash( $_POST['hpw_image_search'] ) ) : '';
+
+    wp_safe_redirect(
+        add_query_arg(
+            array(
+                'page'               => 'hpw-settings-automation',
+                'hpw_image_regened'  => $post_id,
+                'hpw_image_search'   => $image_search,
+            ),
+            admin_url( 'admin.php' )
+        )
+    );
+    exit;
+}
+add_action( 'admin_init', 'holyprofweb_handle_single_post_image_regeneration_action' );
 
 function holyprofweb_parse_redirect_rules() {
     $raw   = (string) get_option( 'hpw_redirect_rules', '' );
