@@ -9,8 +9,8 @@ get_header();
 $submitted   = false;
 $error       = '';
 $nonce_field = 'holyprofweb_submit_review';
-$allowed_prefill_categories = array( 'reviews', 'companies', 'reports' );
-$allowed_prefill_modes      = array( 'report', 'listing' );
+$allowed_prefill_categories = array( 'reviews', 'companies', 'salaries', 'biography', 'reports' );
+$allowed_prefill_modes      = array( 'report', 'listing', 'suggest-edit', 'add-information' );
 $prefill_category = isset( $_GET['submit_category'] ) ? sanitize_key( wp_unslash( $_GET['submit_category'] ) ) : '';
 $prefill_name     = isset( $_GET['submit_name'] ) ? sanitize_text_field( wp_unslash( $_GET['submit_name'] ) ) : '';
 $prefill_mode     = isset( $_GET['mode'] ) ? sanitize_key( wp_unslash( $_GET['mode'] ) ) : '';
@@ -98,6 +98,9 @@ $available_cats = array(
     'reports'   => array( 'icon' => '📋', 'label' => 'Reports',   'desc' => 'Submit a report or complaint' ),
 );
 $selected_cat = isset( $_POST['submit_category'] ) ? sanitize_key( wp_unslash( $_POST['submit_category'] ) ) : ( $prefill_category ?: 'reviews' );
+$name_label   = 'biography' === $selected_cat
+    ? __( 'Person, Founder, or Public Figure Name', 'holyprofweb' )
+    : __( 'Company, App, or Site Name', 'holyprofweb' );
 $page_title   = 'biography' === $selected_cat && 'suggest-edit' === $prefill_mode
     ? __( 'Suggest an Edit', 'holyprofweb' )
     : ( 'biography' === $selected_cat ? __( 'Add Information', 'holyprofweb' ) : __( 'Submit a Company, Site, or Report', 'holyprofweb' ) );
@@ -149,7 +152,7 @@ $page_subtitle = 'biography' === $selected_cat
                     </div>
 
                     <div class="submit-form-field">
-                        <label for="submit_name" class="submit-label"><?php esc_html_e( 'Company, App, or Site Name', 'holyprofweb' ); ?> <span class="submit-required">*</span></label>
+                        <label for="submit_name" class="submit-label"><?php echo esc_html( $name_label ); ?> <span class="submit-required">*</span></label>
                         <input type="text" id="submit_name" name="submit_name" class="submit-input" value="<?php echo isset( $_POST['submit_name'] ) ? esc_attr( sanitize_text_field( wp_unslash( $_POST['submit_name'] ) ) ) : esc_attr( $prefill_name ); ?>" required />
                     </div>
 
