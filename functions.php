@@ -3292,6 +3292,15 @@ function holyprofweb_is_disallowed_source_domain( $url ) {
         return false;
     }
 
+    $site_host = wp_parse_url( home_url(), PHP_URL_HOST );
+    $site_host = $site_host ? strtolower( preg_replace( '/^www\./i', '', (string) $site_host ) ) : '';
+    if ( $site_host ) {
+        $normalized_host = strtolower( preg_replace( '/^www\./i', '', (string) $host ) );
+        if ( $normalized_host === $site_host ) {
+            return true;
+        }
+    }
+
     $blocked_hosts = array(
         'claude.ai',
         'anthropic.com',
@@ -3299,6 +3308,7 @@ function holyprofweb_is_disallowed_source_domain( $url ) {
         'openai.com',
         'perplexity.ai',
         'gemini.google.com',
+        'external-content.duckduckgo.com',
     );
 
     foreach ( $blocked_hosts as $blocked_host ) {
@@ -3765,7 +3775,7 @@ function holyprofweb_get_generated_hero_image_url( $post_id ) {
 }
 
 function holyprofweb_get_generic_card_image_url() {
-    return holyprofweb_placeholder_url();
+    return holyprofweb_get_generated_svg_image_url( 0, 'card' );
 }
 
 function holyprofweb_get_front_page_card_image_url( $post_id ) {
@@ -6633,6 +6643,54 @@ function holyprofweb_handle_search_admin_actions() {
 }
 add_action( 'admin_init', 'holyprofweb_handle_search_admin_actions' );
 
+function holyprofweb_render_admin_live_filter_script( $form_id, $field_selectors = 'input[type="search"], select' ) {
+    $form_id         = trim( (string) $form_id );
+    $field_selectors = trim( (string) $field_selectors );
+    if ( '' === $form_id || '' === $field_selectors ) {
+        return;
+    }
+    ?>
+    <script>
+    (function () {
+        var form = document.getElementById(<?php echo wp_json_encode( $form_id ); ?>);
+        if (!form) {
+            return;
+        }
+
+        var fields = form.querySelectorAll(<?php echo wp_json_encode( $field_selectors ); ?>);
+        if (!fields.length) {
+            return;
+        }
+
+        var timer = null;
+        var submitForm = function () {
+            if (timer) {
+                window.clearTimeout(timer);
+            }
+            timer = window.setTimeout(function () {
+                form.submit();
+            }, 280);
+        };
+
+        fields.forEach(function (field) {
+            var tag = (field.tagName || '').toLowerCase();
+            var eventName = tag === 'select' ? 'change' : 'input';
+
+            field.addEventListener(eventName, function () {
+                submitForm();
+            });
+
+            if (tag !== 'select') {
+                field.addEventListener('search', function () {
+                    submitForm();
+                });
+            }
+        });
+    })();
+    </script>
+    <?php
+}
+
 function holyprofweb_settings_search_page() {
     if ( ! current_user_can( 'manage_options' ) ) return;
     if ( isset( $_GET['settings-updated'] ) ) {
@@ -6713,12 +6771,13 @@ function holyprofweb_settings_search_page() {
                 </form>
             </div>
 
-            <form method="get" action="" style="margin:18px 0 14px;display:grid;grid-template-columns:minmax(240px,1fr) minmax(220px,300px) auto;gap:12px;align-items:end;">
+            <form id="hpw-search-log-filter" method="get" action="" style="margin:18px 0 14px;display:grid;grid-template-columns:minmax(240px,1fr) minmax(220px,300px) auto;gap:12px;align-items:end;">
                 <input type="hidden" name="page" value="hpw-settings-search" />
                 <p style="margin:0;"><label for="hpw-search-term-filter" style="display:block;font-weight:600;margin:0 0 6px;"><?php esc_html_e( 'Search term', 'holyprofweb' ); ?></label><input id="hpw-search-term-filter" type="search" name="hpw_search_term" value="<?php echo esc_attr( $query_filter ); ?>" class="regular-text" style="width:100%;max-width:none;" placeholder="<?php esc_attr_e( 'Search Moniepoint, Stripe, salary, biography...', 'holyprofweb' ); ?>" /></p>
                 <p style="margin:0;"><label for="hpw-search-country-filter" style="display:block;font-weight:600;margin:0 0 6px;"><?php esc_html_e( 'Country', 'holyprofweb' ); ?></label><select id="hpw-search-country-filter" name="hpw_search_country" style="width:100%;"><option value=""><?php esc_html_e( 'All countries', 'holyprofweb' ); ?></option><?php foreach ( array_keys( $summary['countries'] ) as $country_name ) : ?><option value="<?php echo esc_attr( $country_name ); ?>" <?php selected( $country_filter, $country_name ); ?>><?php echo esc_html( $country_name ); ?></option><?php endforeach; ?></select></p>
                 <p style="margin:0;"><?php submit_button( __( 'Filter', 'holyprofweb' ), 'secondary', 'submit', false ); ?></p>
             </form>
+            <?php holyprofweb_render_admin_live_filter_script( 'hpw-search-log-filter', 'input[type="search"], select' ); ?>
 
             <?php if ( empty( $rows ) ) : ?>
                 <p><?php esc_html_e( 'No tracked search terms match this filter yet.', 'holyprofweb' ); ?></p>
@@ -7078,7 +7137,7 @@ function holyprofweb_settings_reviews_page() {
                 <span class="verdict-badge verdict-badge--scam"><?php esc_html_e( 'Scam Alert', 'holyprofweb' ); ?></span>
             </div>
         </div>
-        <form method="get" action="<?php echo esc_url( admin_url( 'admin.php' ) ); ?>" style="display:grid;grid-template-columns:minmax(280px,1.4fr) minmax(180px,0.6fr) auto;gap:12px;align-items:end;margin:18px 0 20px;">
+        <form id="hpw-content-desk-filter" method="get" action="<?php echo esc_url( admin_url( 'admin.php' ) ); ?>" style="display:grid;grid-template-columns:minmax(280px,1.4fr) minmax(180px,0.6fr) auto;gap:12px;align-items:end;margin:18px 0 20px;">
             <input type="hidden" name="page" value="hpw-settings-reviews">
             <div>
                 <label for="hpw-content-search"><strong><?php esc_html_e( 'Search', 'holyprofweb' ); ?></strong></label><br>
@@ -7094,6 +7153,7 @@ function holyprofweb_settings_reviews_page() {
             </div>
             <?php submit_button( __( 'Search Content', 'holyprofweb' ), 'secondary', '', false ); ?>
         </form>
+        <?php holyprofweb_render_admin_live_filter_script( 'hpw-content-desk-filter', 'input[type="search"], select' ); ?>
         <?php if ( empty( $content_rows ) ) : ?>
         <p><?php esc_html_e( 'No tracked content matched your search yet.', 'holyprofweb' ); ?></p>
         <?php else : ?>

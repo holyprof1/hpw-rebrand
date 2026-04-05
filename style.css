@@ -10710,6 +10710,13 @@ html[data-theme="dark"] .post-tags a {
     object-position: center center !important;
 }
 
+.platform-wrap--single .single-featured-image--inline img.post-image--person,
+.platform-wrap--single .single-featured-image img.post-image--person,
+.single-featured-image--inline img.post-image--person,
+.single-featured-image img.post-image--person {
+    object-position: center top !important;
+}
+
 .platform-wrap--single .single-featured-image--inline img.post-image--generated,
 .platform-wrap--single .single-featured-image--inline .post-image--generated,
 .platform-wrap--single .single-featured-image .post-image--generated {
