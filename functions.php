@@ -2673,7 +2673,7 @@ function holyprofweb_get_frontpage_topic_categories( $limit = 8 ) {
         'biography',
         'salaries',
         'reports',
-        'founders',
+        'websites',
         'influencers',
         'fintech',
         'banks',
@@ -2682,7 +2682,6 @@ function holyprofweb_get_frontpage_topic_categories( $limit = 8 ) {
         'user-complaints',
         'loan-apps',
         'earning-platforms',
-        'websites',
         'nigeria',
         'remote',
     );
@@ -3273,17 +3272,6 @@ function holyprofweb_regenerate_generated_images_batch() {
         'post_status'    => array( 'publish', 'draft', 'pending', 'future' ),
         'posts_per_page' => -1,
         'fields'         => 'ids',
-        'meta_query'     => array(
-            'relation' => 'OR',
-            array(
-                'key'     => '_holyprofweb_gen_image_url',
-                'compare' => 'EXISTS',
-            ),
-            array(
-                'key'     => '_holyprofweb_gen_attachment_id',
-                'compare' => 'EXISTS',
-            ),
-        ),
         'no_found_rows'  => true,
     ) );
 
@@ -3292,6 +3280,15 @@ function holyprofweb_regenerate_generated_images_batch() {
     foreach ( $posts as $post_id ) {
         $post = get_post( $post_id );
         if ( ! $post ) {
+            continue;
+        }
+
+        if (
+            ! get_post_meta( $post_id, '_holyprofweb_gen_image_url', true ) &&
+            ! get_post_meta( $post_id, '_holyprofweb_gen_attachment_id', true ) &&
+            ! holyprofweb_post_has_generated_thumbnail_attachment( $post_id ) &&
+            ! holyprofweb_post_uses_generated_image_fallback( $post_id )
+        ) {
             continue;
         }
 
@@ -3308,23 +3305,21 @@ function holyprofweb_reset_generated_images_batch() {
         'post_status'    => array( 'publish', 'draft', 'pending', 'future' ),
         'posts_per_page' => -1,
         'fields'         => 'ids',
-        'meta_query'     => array(
-            'relation' => 'OR',
-            array(
-                'key'     => '_holyprofweb_gen_image_url',
-                'compare' => 'EXISTS',
-            ),
-            array(
-                'key'     => '_holyprofweb_gen_attachment_id',
-                'compare' => 'EXISTS',
-            ),
-        ),
         'no_found_rows'  => true,
     ) );
 
     $processed = 0;
 
     foreach ( $posts as $post_id ) {
+        if (
+            ! get_post_meta( $post_id, '_holyprofweb_gen_image_url', true ) &&
+            ! get_post_meta( $post_id, '_holyprofweb_gen_attachment_id', true ) &&
+            ! holyprofweb_post_has_generated_thumbnail_attachment( $post_id ) &&
+            ! holyprofweb_post_uses_generated_image_fallback( $post_id )
+        ) {
+            continue;
+        }
+
         $attachment_id = (int) get_post_meta( $post_id, '_holyprofweb_gen_attachment_id', true );
         $thumbnail_id  = (int) get_post_thumbnail_id( $post_id );
 
@@ -8506,6 +8501,10 @@ function holyprofweb_get_wikipedia_person_image( $title ) {
 add_filter( 'holyprofweb_automation_image_url', function( $image_url, $post_id, $post, $domain, $source_url ) {
     if ( $image_url ) {
         return $image_url;
+    }
+
+    if ( $source_url && holyprofweb_is_disallowed_source_domain( $source_url ) ) {
+        return '';
     }
 
     $cats      = get_the_category( $post_id );

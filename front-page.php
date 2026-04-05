@@ -127,7 +127,6 @@ $topic_descriptions = array(
     'biography'       => __( 'Founder stories, influencer profiles, background details, and why people are searching them.', 'holyprofweb' ),
     'salaries'        => __( 'Salary ranges, pay expectations, role trends, and hiring signals people actually need.', 'holyprofweb' ),
     'reports'         => __( 'Scam alerts, complaint trends, rankings, and context-driven explainers worth checking.', 'holyprofweb' ),
-    'founders'        => __( 'Profiles of founders, operators, and company builders shaping the businesses people follow.', 'holyprofweb' ),
     'influencers'     => __( 'Creator and public-figure profiles covering background, influence, and search interest.', 'holyprofweb' ),
     'fintech'         => __( 'Payment apps, money tools, transfer services, and fintech trust checks.', 'holyprofweb' ),
     'banks'           => __( 'Bank reviews, account experience, charges, and customer support signals.', 'holyprofweb' ),
