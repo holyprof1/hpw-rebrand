@@ -2668,19 +2668,23 @@ function holyprofweb_get_visible_category_count() {
 
 function holyprofweb_get_frontpage_topic_categories( $limit = 8 ) {
     $priority_slugs = array(
+        'reviews',
         'companies',
+        'biography',
+        'salaries',
+        'reports',
+        'founders',
+        'influencers',
         'fintech',
         'banks',
         'startups',
-        'scam-legit',
-        'app-reviews',
-        'website-reviews',
-        'loan-finance',
-        'shopping',
-        'scholarship',
-        'tech',
-        'reports',
-        'blog-opinion',
+        'scam-reports',
+        'user-complaints',
+        'loan-apps',
+        'earning-platforms',
+        'websites',
+        'nigeria',
+        'remote',
     );
 
     $terms = array();
@@ -3111,6 +3115,43 @@ function holyprofweb_get_post_image( $post_id, $size = 'large' ) {
     }
 
     return holyprofweb_placeholder_url();
+}
+
+function holyprofweb_is_disallowed_source_domain( $url ) {
+    $host = holyprofweb_extract_domain( $url );
+    if ( ! $host ) {
+        return false;
+    }
+
+    $blocked_hosts = array(
+        'claude.ai',
+        'anthropic.com',
+        'chatgpt.com',
+        'openai.com',
+        'perplexity.ai',
+        'gemini.google.com',
+    );
+
+    foreach ( $blocked_hosts as $blocked_host ) {
+        if ( $host === $blocked_host || preg_match( '/(?:^|\.)' . preg_quote( $blocked_host, '/' ) . '$/i', $host ) ) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+function holyprofweb_is_disallowed_remote_image_url( $url ) {
+    $url = trim( (string) $url );
+    if ( '' === $url ) {
+        return false;
+    }
+
+    if ( holyprofweb_is_disallowed_source_domain( $url ) ) {
+        return true;
+    }
+
+    return false;
 }
 
 function holyprofweb_get_raster_logo_path() {
@@ -3545,7 +3586,11 @@ function holyprofweb_get_generic_card_image_url() {
 }
 
 function holyprofweb_get_front_page_card_image_url( $post_id ) {
-    return holyprofweb_get_post_card_image_url( $post_id );
+    if ( holyprofweb_post_has_trusted_featured_image( $post_id ) ) {
+        return holyprofweb_get_post_card_image_url( $post_id );
+    }
+
+    return holyprofweb_get_generic_card_image_url();
 }
 
 function holyprofweb_get_post_card_image_url( $post_id ) {
@@ -4418,7 +4463,7 @@ function holyprofweb_get_post_source_url( $post_id, $post = null ) {
 
     foreach ( $keys as $key ) {
         $value = get_post_meta( $post_id, $key, true );
-        if ( $value && filter_var( $value, FILTER_VALIDATE_URL ) ) {
+        if ( $value && filter_var( $value, FILTER_VALIDATE_URL ) && ! holyprofweb_is_disallowed_source_domain( $value ) ) {
             return esc_url_raw( $value );
         }
     }
@@ -4428,8 +4473,12 @@ function holyprofweb_get_post_source_url( $post_id, $post = null ) {
         return '';
     }
 
-    if ( preg_match( '#https?://[^\s"\']+#i', $post->post_content, $matches ) ) {
-        return esc_url_raw( $matches[0] );
+    if ( preg_match_all( '#https?://[^\s"\']+#i', $post->post_content, $matches ) ) {
+        foreach ( (array) $matches[0] as $candidate ) {
+            if ( filter_var( $candidate, FILTER_VALIDATE_URL ) && ! holyprofweb_is_disallowed_source_domain( $candidate ) ) {
+                return esc_url_raw( $candidate );
+            }
+        }
     }
 
     return '';
@@ -4442,7 +4491,7 @@ function holyprofweb_backfill_source_url_meta( $post_id, $post = null ) {
     }
 
     $saved = (string) get_post_meta( $post_id, '_hpw_source_url', true );
-    if ( $saved && filter_var( $saved, FILTER_VALIDATE_URL ) ) {
+    if ( $saved && filter_var( $saved, FILTER_VALIDATE_URL ) && ! holyprofweb_is_disallowed_source_domain( $saved ) ) {
         return esc_url_raw( $saved );
     }
 
@@ -4458,7 +4507,7 @@ function holyprofweb_backfill_source_url_meta( $post_id, $post = null ) {
 
 function holyprofweb_get_post_source_status( $post_id ) {
     $saved = (string) get_post_meta( $post_id, '_hpw_source_url', true );
-    if ( $saved && filter_var( $saved, FILTER_VALIDATE_URL ) ) {
+    if ( $saved && filter_var( $saved, FILTER_VALIDATE_URL ) && ! holyprofweb_is_disallowed_source_domain( $saved ) ) {
         return array(
             'status' => 'saved',
             'url'    => esc_url_raw( $saved ),
@@ -4727,8 +4776,11 @@ function holyprofweb_get_clearbit_logo_url( $domain ) {
 
 function holyprofweb_maybe_get_remote_post_image( $post_id, $post = null ) {
     $cached = get_post_meta( $post_id, '_holyprofweb_remote_image_url', true );
-    if ( $cached ) {
+    if ( $cached && ! holyprofweb_is_disallowed_remote_image_url( $cached ) ) {
         return esc_url_raw( $cached );
+    }
+    if ( $cached ) {
+        delete_post_meta( $post_id, '_holyprofweb_remote_image_url' );
     }
 
     $post       = $post ?: get_post( $post_id );
@@ -8459,17 +8511,15 @@ add_filter( 'holyprofweb_automation_image_url', function( $image_url, $post_id, 
     $cats      = get_the_category( $post_id );
     $cat_slugs = wp_list_pluck( $cats, 'slug' );
 
-    $is_bio     = array_intersect( array( 'biography', 'founders', 'influencers' ), $cat_slugs );
-    $is_company = array_intersect( array( 'companies', 'fintech', 'banks', 'startups' ), $cat_slugs );
+    $is_bio         = array_intersect( array( 'biography', 'founders', 'influencers' ), $cat_slugs );
+    $is_company     = array_intersect( array( 'companies', 'fintech', 'banks', 'startups' ), $cat_slugs );
+    $is_review_like = array_intersect( array( 'reviews', 'apps', 'loan-apps', 'crypto', 'betting', 'earning-platforms', 'websites', 'product-reviews' ), $cat_slugs );
 
     if ( $is_bio ) {
         // Try Wikipedia first; source URL OG will be tried by the caller after this filter
         $image_url = holyprofweb_get_wikipedia_person_image( $post->post_title );
-    } elseif ( $is_company && $source_url ) {
+    } elseif ( ( $is_company || $is_review_like ) && $source_url ) {
         $image_url = holyprofweb_pick_working_remote_image_url( holyprofweb_get_site_visual_candidates( $source_url ) );
-        if ( ! $image_url ) {
-            $image_url = holyprofweb_get_landing_page_capture_url( $source_url );
-        }
         if ( ! $image_url && $domain ) {
             $image_url = holyprofweb_get_clearbit_logo_url( $domain );
         }

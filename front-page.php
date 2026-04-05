@@ -122,19 +122,23 @@ if ( ! empty( $live_reviews ) ) {
 }
 $featured_topics = holyprofweb_get_frontpage_topic_categories( 6 );
 $topic_descriptions = array(
+    'reviews'         => __( 'Platform reviews, scam checks, user complaints, and trust signals in one place.', 'holyprofweb' ),
     'companies'       => __( 'Profiles, reviews, salary gist, and what people say before you apply or buy.', 'holyprofweb' ),
+    'biography'       => __( 'Founder stories, influencer profiles, background details, and why people are searching them.', 'holyprofweb' ),
+    'salaries'        => __( 'Salary ranges, pay expectations, role trends, and hiring signals people actually need.', 'holyprofweb' ),
+    'reports'         => __( 'Scam alerts, complaint trends, rankings, and context-driven explainers worth checking.', 'holyprofweb' ),
+    'founders'        => __( 'Profiles of founders, operators, and company builders shaping the businesses people follow.', 'holyprofweb' ),
+    'influencers'     => __( 'Creator and public-figure profiles covering background, influence, and search interest.', 'holyprofweb' ),
     'fintech'         => __( 'Payment apps, money tools, transfer services, and fintech trust checks.', 'holyprofweb' ),
     'banks'           => __( 'Bank reviews, account experience, charges, and customer support signals.', 'holyprofweb' ),
     'startups'        => __( 'Fast-growing teams, work culture clues, and early-stage company context.', 'holyprofweb' ),
-    'scam-legit'      => __( 'Quick red flags, legitimacy checks, and what to verify before you commit.', 'holyprofweb' ),
-    'app-reviews'     => __( 'App quality, user experience, complaints, and overall usefulness in one place.', 'holyprofweb' ),
-    'website-reviews' => __( 'Website trust, service quality, fees, and warning signs worth checking.', 'holyprofweb' ),
-    'loan-finance'    => __( 'Loan apps, finance platforms, interest concerns, and borrowing reality checks.', 'holyprofweb' ),
-    'shopping'        => __( 'Online store reputation, delivery stories, and whether the deals make sense.', 'holyprofweb' ),
-    'scholarship'     => __( 'Scholarship opportunities, deadlines, and practical guidance for applicants.', 'holyprofweb' ),
-    'tech'            => __( 'Tech companies, tools, products, and industry topics people keep researching.', 'holyprofweb' ),
-    'reports'         => __( 'Broader explainers, rankings, and context-driven posts from the blog side.', 'holyprofweb' ),
-    'blog-opinion'    => __( 'Analysis, commentary, and deeper takes on trends shaping decisions.', 'holyprofweb' ),
+    'scam-reports'    => __( 'Reported scams, warning signs, and suspicious patterns users should verify first.', 'holyprofweb' ),
+    'user-complaints' => __( 'Complaint-led posts that surface repeated user issues, delays, and red flags.', 'holyprofweb' ),
+    'loan-apps'       => __( 'Loan app reviews, repayment concerns, collection behavior, and borrowing red flags.', 'holyprofweb' ),
+    'earning-platforms' => __( 'Earning site reviews, payout checks, and whether the opportunity looks real or risky.', 'holyprofweb' ),
+    'websites'        => __( 'Website trust, service quality, fees, and warning signs worth checking.', 'holyprofweb' ),
+    'nigeria'         => __( 'Nigeria-focused salary and work posts with local pay context and hiring expectations.', 'holyprofweb' ),
+    'remote'          => __( 'Remote salary and role discussions for people comparing global work opportunities.', 'holyprofweb' ),
 );
 ?>
 
