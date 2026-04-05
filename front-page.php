@@ -12,19 +12,55 @@ $total_companies  = $companies_term && ! is_wp_error( $companies_term ) ? (int) 
 $trending_searches = holyprofweb_get_trending_searches( 8 );
 $card_size        = holyprofweb_get_image_size_dimensions( 'holyprofweb-card' );
 
-$latest_query = new WP_Query( array(
-    'posts_per_page' => 8,
-    'post_status'    => 'publish',
-    'no_found_rows'  => true,
-) );
+$latest_ids = holyprofweb_get_localized_post_ids(
+    array(
+        'posts_per_page' => 8,
+        'orderby'        => 'date',
+        'order'          => 'DESC',
+    ),
+    8
+);
+$latest_query = new WP_Query(
+    ! empty( $latest_ids )
+        ? array(
+            'post__in'       => $latest_ids,
+            'orderby'        => 'post__in',
+            'posts_per_page' => 8,
+            'post_status'    => 'publish',
+            'no_found_rows'  => true,
+        )
+        : array(
+            'posts_per_page' => 8,
+            'post_status'    => 'publish',
+            'no_found_rows'  => true,
+        )
+);
 
-$just_added_query = new WP_Query( array(
-    'posts_per_page' => 6,
-    'post_status'    => 'publish',
-    'orderby'        => 'date',
-    'order'          => 'DESC',
-    'no_found_rows'  => true,
-) );
+$just_added_ids = holyprofweb_get_localized_post_ids(
+    array(
+        'posts_per_page' => 6,
+        'orderby'        => 'date',
+        'order'          => 'DESC',
+    ),
+    6
+);
+$just_added_query = new WP_Query(
+    ! empty( $just_added_ids )
+        ? array(
+            'post__in'       => $just_added_ids,
+            'orderby'        => 'post__in',
+            'posts_per_page' => 6,
+            'post_status'    => 'publish',
+            'no_found_rows'  => true,
+        )
+        : array(
+            'posts_per_page' => 6,
+            'post_status'    => 'publish',
+            'orderby'        => 'date',
+            'order'          => 'DESC',
+            'no_found_rows'  => true,
+        )
+);
 
 $reports_term      = get_term_by( 'slug', 'reports', 'category' );
 $blog_opinion_term = get_term_by( 'slug', 'blog-opinion', 'category' );
@@ -32,12 +68,31 @@ $blog_term_ids     = array_values( array_filter( array(
     $reports_term ? (int) $reports_term->term_id : 0,
     $blog_opinion_term ? (int) $blog_opinion_term->term_id : 0,
 ) ) );
-$guides_query = new WP_Query( array(
-    'posts_per_page' => 4,
-    'post_status'    => 'publish',
-    'no_found_rows'  => true,
-    'category__in'   => $blog_term_ids,
-) );
+$guides_ids = holyprofweb_get_localized_post_ids(
+    array(
+        'posts_per_page' => 4,
+        'category__in'   => $blog_term_ids,
+        'orderby'        => 'date',
+        'order'          => 'DESC',
+    ),
+    4
+);
+$guides_query = new WP_Query(
+    ! empty( $guides_ids )
+        ? array(
+            'post__in'       => $guides_ids,
+            'orderby'        => 'post__in',
+            'posts_per_page' => 4,
+            'post_status'    => 'publish',
+            'no_found_rows'  => true,
+        )
+        : array(
+            'posts_per_page' => 4,
+            'post_status'    => 'publish',
+            'no_found_rows'  => true,
+            'category__in'   => $blog_term_ids,
+        )
+);
 
 $live_reviews = get_comments( array(
     'type'   => 'review',

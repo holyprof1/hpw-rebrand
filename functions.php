@@ -1570,6 +1570,92 @@ function holyprofweb_get_active_country_context( $post_id = 0 ) {
     return $context;
 }
 
+function holyprofweb_get_country_priority_values() {
+    $locale = holyprofweb_detect_visitor_locale();
+    $region = ! empty( $locale['region'] ) ? strtoupper( (string) $locale['region'] ) : '';
+    $country = ! empty( $locale['country'] ) ? trim( (string) $locale['country'] ) : '';
+    $values = array();
+
+    if ( $country ) {
+        $values[] = $country;
+    }
+
+    if ( 'US' === $region ) {
+        $values = array_merge( $values, array( 'United States', 'USA', 'US', 'America' ) );
+    } elseif ( 'NG' === $region ) {
+        $values = array_merge( $values, array( 'Nigeria', 'NG' ) );
+    } elseif ( 'GB' === $region ) {
+        $values = array_merge( $values, array( 'United Kingdom', 'UK', 'Britain', 'England', 'GB' ) );
+    } elseif ( $region ) {
+        $values[] = $region;
+    }
+
+    $values = array_values(
+        array_unique(
+            array_filter(
+                array_map( 'trim', $values )
+            )
+        )
+    );
+
+    return $values;
+}
+
+function holyprofweb_get_localized_post_ids( $base_args = array(), $limit = 6 ) {
+    $limit = max( 1, (int) $limit );
+    $base_args = wp_parse_args(
+        $base_args,
+        array(
+            'post_type'      => 'post',
+            'post_status'    => 'publish',
+            'posts_per_page' => $limit,
+            'no_found_rows'  => true,
+            'fields'         => 'ids',
+        )
+    );
+    $base_args['posts_per_page'] = $limit;
+    $base_args['fields'] = 'ids';
+
+    $priority_values = holyprofweb_get_country_priority_values();
+    if ( empty( $priority_values ) ) {
+        return get_posts( $base_args );
+    }
+
+    $ordered_ids = array();
+
+    foreach ( $priority_values as $value ) {
+        if ( count( $ordered_ids ) >= $limit ) {
+            break;
+        }
+
+        $match_args = $base_args;
+        $match_args['posts_per_page'] = $limit - count( $ordered_ids );
+        $match_args['meta_query'] = array(
+            array(
+                'key'     => '_hpw_country_focus',
+                'value'   => $value,
+                'compare' => 'LIKE',
+            ),
+        );
+        if ( ! empty( $ordered_ids ) ) {
+            $match_args['post__not_in'] = $ordered_ids;
+        }
+
+        $ordered_ids = array_merge( $ordered_ids, get_posts( $match_args ) );
+    }
+
+    if ( count( $ordered_ids ) < $limit ) {
+        $fallback_args = $base_args;
+        $fallback_args['posts_per_page'] = $limit - count( $ordered_ids );
+        if ( ! empty( $ordered_ids ) ) {
+            $fallback_args['post__not_in'] = $ordered_ids;
+        }
+        $ordered_ids = array_merge( $ordered_ids, get_posts( $fallback_args ) );
+    }
+
+    return array_values( array_unique( array_map( 'intval', $ordered_ids ) ) );
+}
+
 function holyprofweb_get_geo_header_debug() {
     $headers = array();
     foreach ( array( 'HTTP_CF_IPCOUNTRY', 'HTTP_CLOUDFRONT_VIEWER_COUNTRY', 'HTTP_X_COUNTRY_CODE', 'HTTP_X_GEO_COUNTRY', 'HTTP_X_APPENGINE_COUNTRY' ) as $key ) {
@@ -3263,23 +3349,7 @@ function holyprofweb_post_has_generated_thumbnail_attachment( $post_id ) {
 }
 
 function holyprofweb_post_uses_generated_image_fallback( $post_id ) {
-    if ( holyprofweb_is_placeholder_post( $post_id ) ) {
-        return true;
-    }
-
-    if ( ! get_post_meta( $post_id, '_holyprofweb_gen_image_url', true ) && ! holyprofweb_post_has_generated_thumbnail_attachment( $post_id ) ) {
-        return false;
-    }
-
-    if ( get_post_meta( $post_id, 'external_image', true ) ) {
-        return false;
-    }
-
-    if ( get_post_meta( $post_id, '_holyprofweb_remote_image_url', true ) ) {
-        return false;
-    }
-
-    return true;
+    return false;
 }
 
 function holyprofweb_get_post_image_class( $post_id, $base = '' ) {
@@ -3415,11 +3485,11 @@ function holyprofweb_get_generated_svg_image_url( $post_id, $variant = 'card' ) 
 }
 
 function holyprofweb_get_generated_card_image_url( $post_id ) {
-    return holyprofweb_get_generated_svg_image_url( $post_id, 'card' );
+    return holyprofweb_placeholder_url();
 }
 
 function holyprofweb_get_generated_hero_image_url( $post_id ) {
-    return holyprofweb_get_generated_svg_image_url( $post_id, 'hero' );
+    return holyprofweb_placeholder_url();
 }
 
 function holyprofweb_get_generic_card_image_url() {
@@ -3446,7 +3516,18 @@ function holyprofweb_get_post_card_image_url( $post_id ) {
             return esc_url_raw( $full_url );
         }
     }
-    return holyprofweb_get_generated_card_image_url( $post_id );
+
+    $external = trim( (string) get_post_meta( $post_id, 'external_image', true ) );
+    if ( $external ) {
+        return esc_url_raw( $external );
+    }
+
+    $remote_cached = trim( (string) get_post_meta( $post_id, '_holyprofweb_remote_image_url', true ) );
+    if ( $remote_cached ) {
+        return esc_url_raw( $remote_cached );
+    }
+
+    return holyprofweb_get_generic_card_image_url();
 }
 
 /**
@@ -3458,66 +3539,27 @@ function holyprofweb_get_post_card_image_url( $post_id ) {
  * @return string
  */
 function holyprofweb_get_post_image_url( $post_id, $size = 'holyprofweb-card' ) {
-    if ( ! holyprofweb_post_has_trusted_featured_image( $post_id ) ) {
-        return 'full' === $size ? holyprofweb_get_generated_hero_image_url( $post_id ) : holyprofweb_get_generic_card_image_url();
-    }
-
-    $generated_url = get_post_meta( $post_id, '_holyprofweb_gen_image_url', true );
-    $generated_ver = get_post_meta( $post_id, '_holyprofweb_gen_image_version', true );
     $external      = trim( (string) get_post_meta( $post_id, 'external_image', true ) );
-    $post          = get_post( $post_id );
+    $remote_cached = get_post_meta( $post_id, '_holyprofweb_remote_image_url', true );
 
-    if ( $generated_url && holyprofweb_generated_image_version() !== $generated_ver && $post && function_exists( 'imagecreatetruecolor' ) ) {
-        holyprofweb_generate_post_image_modern( $post_id, $post );
-    }
+    if ( holyprofweb_post_has_trusted_featured_image( $post_id ) ) {
+        $url = get_the_post_thumbnail_url( $post_id, $size );
+        if ( $url ) {
+            return $url;
+        }
 
-    $image_size = $size;
-    if ( $generated_url || holyprofweb_is_placeholder_post( $post_id ) || holyprofweb_post_has_generated_thumbnail_attachment( $post_id ) ) {
-        $image_size = 'full';
-    }
-
-    $url = get_the_post_thumbnail_url( $post_id, $image_size );
-    if ( $url ) {
-        return $url;
-    }
-
-    $full_thumb = get_the_post_thumbnail_url( $post_id, 'full' );
-    if ( $full_thumb ) {
-        return $full_thumb;
+        $full_thumb = get_the_post_thumbnail_url( $post_id, 'full' );
+        if ( $full_thumb ) {
+            return $full_thumb;
+        }
     }
 
     if ( $external ) {
         return esc_url_raw( $external );
     }
 
-    $remote_cached = get_post_meta( $post_id, '_holyprofweb_remote_image_url', true );
     if ( $remote_cached ) {
         return esc_url_raw( $remote_cached );
-    }
-
-    $cached = get_post_meta( $post_id, '_holyprofweb_gen_image_url', true );
-    if ( $cached ) {
-        return esc_url_raw( $cached );
-    }
-
-    if ( $post ) {
-        $remote = holyprofweb_maybe_get_remote_post_image( $post_id, $post );
-        if ( $remote ) {
-            return esc_url_raw( $remote );
-        }
-    }
-
-    if ( ! $external && ! $remote_cached && ! $cached && $post && function_exists( 'imagecreatetruecolor' ) ) {
-        holyprofweb_generate_post_image_modern( $post_id, $post );
-        $url = get_the_post_thumbnail_url( $post_id, $size );
-        if ( $url ) {
-            return $url;
-        }
-
-        $cached = get_post_meta( $post_id, '_holyprofweb_gen_image_url', true );
-        if ( $cached ) {
-            return esc_url_raw( $cached );
-        }
     }
 
     return holyprofweb_placeholder_url();
@@ -5289,52 +5331,73 @@ function holyprofweb_wrap_image_text( $text, $max_lines = 3, $max_chars = 26 ) {
 // =========================================
 
 function holyprofweb_left_sidebar() {
-    $parent_cats = array(
-        'reviews'   => array( 'label' => 'Reviews',   'icon' => '&#9733;' ),
-        'companies' => array( 'label' => 'Companies', 'icon' => '&#127970;' ),
-        'biography' => array( 'label' => 'Biography', 'icon' => '&#128100;' ),
-        'reports'   => array( 'label' => 'Reports',   'icon' => '&#128203;' ),
+    $icon_map = array(
+        'reviews'   => '&#9733;',
+        'companies' => '&#127970;',
+        'biography' => '&#128100;',
+        'reports'   => '&#128203;',
+        'banks'     => '&#127974;',
+        'fintech'   => '&#128181;',
+        'startups'  => '&#128640;',
+        'tech'      => '&#128187;',
+        'salaries'  => '&#128176;',
     );
+    $current_term = is_category() ? get_queried_object() : null;
+    $parents = get_terms(
+        array(
+            'taxonomy'   => 'category',
+            'parent'     => 0,
+            'hide_empty' => false,
+            'exclude'    => holyprofweb_get_category_exclusions(),
+            'orderby'    => 'name',
+            'order'      => 'ASC',
+        )
+    );
+
+    if ( is_wp_error( $parents ) || empty( $parents ) ) {
+        return;
+    }
 
     echo '<aside class="left-sidebar" id="left-sidebar" aria-label="' . esc_attr__( 'Category Navigation', 'holyprofweb' ) . '">';
     echo '<nav class="left-nav">';
     echo '<p class="left-nav-heading">' . esc_html__( 'Browse Topics', 'holyprofweb' ) . '</p>';
 
-    foreach ( $parent_cats as $slug => $data ) {
-        $parent = get_term_by( 'slug', $slug, 'category' );
-        if ( ! $parent ) continue;
+    foreach ( $parents as $parent ) {
+        if ( ! $parent instanceof WP_Term ) {
+            continue;
+        }
 
-        // Skip parent if it has no posts AND no children with posts
-        $child_terms = holyprofweb_get_visible_categories( array(
-            'parent' => $parent->term_id,
-        ) );
-        $has_children = ! is_wp_error( $child_terms ) && ! empty( $child_terms );
-        $has_own_posts = ( (int) $parent->count > 0 );
+        $child_terms = get_terms(
+            array(
+                'taxonomy'   => 'category',
+                'parent'     => $parent->term_id,
+                'hide_empty' => false,
+                'exclude'    => holyprofweb_get_category_exclusions(),
+                'orderby'    => 'name',
+                'order'      => 'ASC',
+            )
+        );
+        if ( is_wp_error( $child_terms ) ) {
+            $child_terms = array();
+        }
 
-        // Show parent if it has its own posts OR has children with posts
-        if ( ! $has_own_posts && ! $has_children ) continue;
-
-        $parent_url = get_category_link( $parent->term_id );
-        $child_ids  = $has_children ? wp_list_pluck( $child_terms, 'term_id' ) : array();
-
-        $is_active = true;
+        $has_children = ! empty( $child_terms );
+        $icon         = isset( $icon_map[ $parent->slug ] ) ? $icon_map[ $parent->slug ] : '&#128193;';
+        $is_active    = $current_term instanceof WP_Term && ( (int) $current_term->term_id === (int) $parent->term_id || term_is_ancestor_of( $parent->term_id, $current_term->term_id, 'category' ) );
 
         echo '<div class="left-nav-group' . ( $is_active ? ' is-open' : '' ) . '">';
         echo '<button class="left-nav-parent left-nav-parent--static" aria-expanded="true" type="button">';
-        echo '<span class="left-nav-icon" aria-hidden="true">' . $data['icon'] . '</span>';
+        echo '<span class="left-nav-icon" aria-hidden="true">' . $icon . '</span>';
         echo '<span class="left-nav-parent-main">';
-        echo '<a href="' . esc_url( $parent_url ) . '" class="left-nav-parent-link">' . esc_html( $data['label'] ) . '</a>';
+        echo '<a href="' . esc_url( get_category_link( $parent->term_id ) ) . '" class="left-nav-parent-link">' . esc_html( $parent->name ) . '</a>';
         echo '<span class="left-nav-count">(' . esc_html( holyprofweb_format_display_count( (int) $parent->count ) ) . ')</span>';
         echo '</span>';
-        if ( $has_children ) {
-            echo '<svg class="left-nav-arrow" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="6 9 12 15 18 9"></polyline></svg>';
-        }
         echo '</button>';
 
         if ( $has_children ) {
             echo '<ul class="left-nav-children">';
             foreach ( $child_terms as $child ) {
-                $active_child = is_category() && (int) get_query_var( 'cat' ) === (int) $child->term_id;
+                $active_child = $current_term instanceof WP_Term && (int) $current_term->term_id === (int) $child->term_id;
                 echo '<li' . ( $active_child ? ' class="is-active"' : '' ) . '>';
                 echo '<a href="' . esc_url( get_category_link( $child->term_id ) ) . '">';
                 echo esc_html( $child->name );
@@ -6515,7 +6578,7 @@ function holyprofweb_settings_redirects_page() {
     $redirect_preview = holyprofweb_parse_redirect_rules();
     ?>
     <div class="wrap">
-        <h1>&#10145; <?php esc_html_e( 'HPW Settings â€” Redirects', 'holyprofweb' ); ?></h1>
+        <h1>&#10145; <?php esc_html_e( 'HPW Settings - Redirects', 'holyprofweb' ); ?></h1>
         <?php holyprofweb_settings_nav( 'redirects' ); ?>
 
         <div class="hpw-search-card" style="background:#fff;border:1px solid #dcdcde;border-radius:14px;padding:18px;margin:0 0 18px;">
@@ -6539,7 +6602,7 @@ function holyprofweb_settings_redirects_page() {
 
         <div class="hpw-search-card" style="background:#fff;border:1px solid #dcdcde;border-radius:14px;padding:18px;margin:0 0 18px;">
             <h2 style="margin:0 0 8px;"><?php esc_html_e( 'Bulk Year Replace', 'holyprofweb' ); ?></h2>
-            <p style="margin:0 0 14px;color:#646970;"><?php esc_html_e( 'Change years in titles/slugs fast. Published URL changes trigger redirects immediately.', 'holyprofweb' ); ?></p>
+            <p style="margin:0 0 14px;color:#646970;"><?php esc_html_e( 'Change years in titles and slugs fast. If a published URL changes, the redirect is stored immediately.', 'holyprofweb' ); ?></p>
             <form method="post" action="<?php echo esc_url( admin_url( 'admin.php?page=hpw-settings-redirects' ) ); ?>" style="display:grid;grid-template-columns:120px 120px 220px auto;gap:12px;align-items:end;">
                 <?php wp_nonce_field( 'hpw_redirect_year_action', 'hpw_redirect_year_nonce' ); ?>
                 <input type="hidden" name="page" value="hpw-settings-redirects" />
@@ -6559,7 +6622,7 @@ function holyprofweb_settings_redirects_page() {
                         <option value="all"><?php esc_html_e( 'Titles, slugs, and content', 'holyprofweb' ); ?></option>
                     </select>
                 </label>
-                <?php submit_button( __( 'Run Year Update', 'holyprofweb' ), 'secondary', '', false, array( 'onclick' => "return confirm('Run the year replacement across posts/pages now?');" ) ); ?>
+                <?php submit_button( __( 'Run Year Update', 'holyprofweb' ), 'secondary', '', false, array( 'onclick' => "return confirm('Run the year replacement across posts and pages now?');" ) ); ?>
             </form>
         </div>
 
@@ -7000,10 +7063,15 @@ function holyprofweb_settings_languages_page() {
     );
     $languages = holyprofweb_get_language_catalog();
     $enabled_languages = holyprofweb_get_enabled_languages();
+    $locale = holyprofweb_detect_visitor_locale();
     ?>
     <div class="wrap">
         <h1>&#127758; <?php esc_html_e( 'HPW Settings — Languages & Geo', 'holyprofweb' ); ?></h1>
         <?php holyprofweb_settings_nav( 'languages' ); ?>
+        <div class="notice notice-info inline" style="margin:0 0 16px;">
+            <p><strong><?php esc_html_e( 'How country targeting works:', 'holyprofweb' ); ?></strong> <?php esc_html_e( 'HPW checks your CDN or proxy country header first, then falls back to browser language or IP lookup depending on your mode. Posts with a matching Country Focus, like USA or Nigeria, are then prioritized first in key discovery sections.', 'holyprofweb' ); ?></p>
+            <p><?php echo esc_html( sprintf( __( 'Current detected country on this request: %1$s (%2$s via %3$s)', 'holyprofweb' ), $locale['country'], $locale['region'], $locale['source'] ) ); ?></p>
+        </div>
         <form method="post" action="options.php">
             <?php settings_fields( 'hpw_languages' ); ?>
             <table class="form-table">

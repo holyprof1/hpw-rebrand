@@ -2266,6 +2266,8 @@ ul, ol {
     border-radius: 12px;
     transition: background-color var(--transition), color var(--transition);
     font-weight: 500;
+    white-space: normal;
+    overflow-wrap: anywhere;
 }
 
 .left-nav-children li a:hover,
@@ -10626,10 +10628,14 @@ html[data-theme="dark"] .post-tags a {
 .platform-wrap--single .single-header--refined {
     border-radius: 24px !important;
     background-image: none !important;
+    grid-template-columns: minmax(320px, 1.05fr) minmax(0, 1.35fr) !important;
+    align-items: stretch !important;
 }
 
 .platform-wrap--single .single-featured-image--inline {
     padding: 12px !important;
+    display: flex !important;
+    align-items: stretch !important;
 }
 
 .platform-wrap--single .single-header-copy {
@@ -10644,6 +10650,30 @@ html[data-theme="dark"] .post-tags a {
     background:
         radial-gradient(circle at top right, rgba(240, 184, 74, 0.14), transparent 34%),
         linear-gradient(135deg, #141c28 0%, #1d2735 100%) !important;
+    width: 100% !important;
+    height: 100% !important;
+    min-height: 100% !important;
+    border-radius: 18px !important;
+    object-fit: cover !important;
+}
+
+.left-sidebar,
+.left-sidebar .left-nav,
+.left-nav-group,
+.left-nav-parent-main,
+.left-nav-parent-link,
+.left-nav-children {
+    min-width: 0;
+}
+
+.left-sidebar .left-nav {
+    overflow-x: hidden;
+}
+
+.left-nav-children {
+    width: 100%;
+    padding: 8px 0 0 18px;
+    box-sizing: border-box;
 }
 
 html[data-theme="light"] .hero-quick-link {
