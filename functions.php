@@ -62,6 +62,10 @@ function holyprofweb_enqueue_assets() {
         array(),
         null
     );
+    add_action( 'wp_head', function() {
+        echo '<link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>' . "\n";
+        echo '<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>' . "\n";
+    }, 1 );
 
     wp_enqueue_style(
         'holyprofweb-style',
@@ -7602,6 +7606,11 @@ add_filter( 'wp_robots', function( $robots ) {
     if ( get_option( 'hpw_discourage_indexing', 0 ) ) {
         $robots['noindex']  = true;
         $robots['nofollow'] = true;
+        return $robots;
+    }
+
+    if ( is_search() || is_404() ) {
+        $robots['noindex'] = true;
         return $robots;
     }
 

@@ -319,7 +319,7 @@ function holyprofweb_seo_head() {
             'itemListElement' => array(
                 array( '@type' => 'ListItem', 'position' => 1, 'name' => 'Home', 'item' => $site_url ),
                 array( '@type' => 'ListItem', 'position' => 2, 'name' => ( $cat_name ?: 'Articles' ), 'item' => ( $cat_name && ! empty( $cats ) ? get_category_link( $cats[0]->term_id ) : $site_url ) ),
-                array( '@type' => 'ListItem', 'position' => 3, 'name' => get_the_title( $post ) ),
+                array( '@type' => 'ListItem', 'position' => 3, 'name' => get_the_title( $post ), 'item' => get_permalink( $post ) ),
             ),
         );
 
