@@ -155,6 +155,32 @@ function holyprofweb_get_archive_share_image( $context = null ) {
     return holyprofweb_placeholder_url();
 }
 
+function holyprofweb_get_archive_schema_items() {
+    $items = array();
+    $query = $GLOBALS['wp_query'] ?? null;
+
+    if ( ! $query instanceof WP_Query || empty( $query->posts ) || ! is_array( $query->posts ) ) {
+        return $items;
+    }
+
+    $position = 1;
+    foreach ( array_slice( $query->posts, 0, 12 ) as $entry ) {
+        if ( ! $entry instanceof WP_Post ) {
+            continue;
+        }
+
+        $items[] = array(
+            '@type'    => 'ListItem',
+            'position' => $position,
+            'url'      => get_permalink( $entry ),
+            'name'     => get_the_title( $entry ),
+        );
+        $position++;
+    }
+
+    return $items;
+}
+
 function holyprofweb_seo_head() {
     if ( is_admin() ) return;
 
@@ -324,6 +350,99 @@ function holyprofweb_seo_head() {
         );
 
         echo '<script type="application/ld+json">' . wp_json_encode( $schema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE ) . '</script>' . "\n";
+        echo '<script type="application/ld+json">' . wp_json_encode( $breadcrumb, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE ) . '</script>' . "\n";
+    } elseif ( is_category() || is_search() || get_query_var( 'hpw_blog_archive' ) || get_query_var( 'hpw_reports_archive' ) ) {
+        $item_list = holyprofweb_get_archive_schema_items();
+        $archive_name = $og_title;
+        $archive_description = mb_substr( wp_strip_all_tags( $raw_desc ), 0, 200 );
+        $archive_schema = array(
+            '@context'    => 'https://schema.org',
+            '@type'       => is_search() ? 'SearchResultsPage' : 'CollectionPage',
+            'name'        => $archive_name,
+            'description' => $archive_description,
+            'url'         => $og_url,
+            'isPartOf'    => array(
+                '@type' => 'WebSite',
+                'name'  => $site_name,
+                'url'   => $site_url,
+            ),
+        );
+
+        if ( $og_img ) {
+            $archive_schema['image'] = $og_img;
+        }
+
+        if ( ! empty( $item_list ) ) {
+            $archive_schema['mainEntity'] = array(
+                '@type'           => 'ItemList',
+                'itemListElement' => $item_list,
+            );
+        }
+
+        if ( is_category() && $post instanceof WP_Term ) {
+            $archive_schema['about'] = array(
+                '@type' => 'DefinedTerm',
+                'name'  => $post->name,
+                'url'   => get_category_link( $post->term_id ),
+            );
+        }
+
+        if ( is_search() ) {
+            $search_query = get_search_query();
+            $archive_schema['query'] = $search_query;
+            $archive_schema['potentialAction'] = array(
+                '@type'       => 'SearchAction',
+                'target'      => home_url( '/?s={search_term_string}' ),
+                'query-input' => 'required name=search_term_string',
+            );
+        }
+
+        $breadcrumb_items = array(
+            array(
+                '@type'    => 'ListItem',
+                'position' => 1,
+                'name'     => 'Home',
+                'item'     => $site_url,
+            ),
+        );
+
+        if ( is_category() && $post instanceof WP_Term ) {
+            $breadcrumb_items[] = array(
+                '@type'    => 'ListItem',
+                'position' => 2,
+                'name'     => $post->name,
+                'item'     => get_category_link( $post->term_id ),
+            );
+        } elseif ( is_search() ) {
+            $breadcrumb_items[] = array(
+                '@type'    => 'ListItem',
+                'position' => 2,
+                'name'     => sprintf( 'Search: %s', get_search_query() ),
+                'item'     => $og_url,
+            );
+        } elseif ( get_query_var( 'hpw_blog_archive' ) ) {
+            $breadcrumb_items[] = array(
+                '@type'    => 'ListItem',
+                'position' => 2,
+                'name'     => 'Blog',
+                'item'     => $og_url,
+            );
+        } elseif ( get_query_var( 'hpw_reports_archive' ) ) {
+            $breadcrumb_items[] = array(
+                '@type'    => 'ListItem',
+                'position' => 2,
+                'name'     => 'Reports',
+                'item'     => $og_url,
+            );
+        }
+
+        $breadcrumb = array(
+            '@context'        => 'https://schema.org',
+            '@type'           => 'BreadcrumbList',
+            'itemListElement' => $breadcrumb_items,
+        );
+
+        echo '<script type="application/ld+json">' . wp_json_encode( $archive_schema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE ) . '</script>' . "\n";
         echo '<script type="application/ld+json">' . wp_json_encode( $breadcrumb, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE ) . '</script>' . "\n";
     }
 

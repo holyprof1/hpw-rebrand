@@ -5860,6 +5860,7 @@ function holyprofweb_register_settings_menu() {
     add_submenu_page( 'hpw-settings', __( 'Site & SEO',      'holyprofweb' ), __( 'Site & SEO',      'holyprofweb' ), 'manage_options', 'hpw-settings',             'holyprofweb_settings_page' );
     add_submenu_page( 'hpw-settings', __( 'Search & Audience','holyprofweb' ), __( 'Search & Audience','holyprofweb' ), 'manage_options', 'hpw-settings-search',      'holyprofweb_settings_search_page' );
     add_submenu_page( 'hpw-settings', __( 'Content & Reviews','holyprofweb' ), __( 'Content & Reviews','holyprofweb' ), 'manage_options', 'hpw-settings-reviews',     'holyprofweb_settings_reviews_page' );
+    add_submenu_page( 'hpw-settings', __( 'Redirects',       'holyprofweb' ), __( 'Redirects',       'holyprofweb' ), 'manage_options', 'hpw-settings-redirects',   'holyprofweb_settings_redirects_page' );
     add_submenu_page( 'hpw-settings', __( 'Ads',             'holyprofweb' ), __( 'Ads',             'holyprofweb' ), 'manage_options', 'hpw-settings-ads',         'holyprofweb_ads_admin_page' );
     add_submenu_page( 'hpw-settings', __( 'Emails',          'holyprofweb' ), __( 'Emails',          'holyprofweb' ), 'manage_options', 'hpw-settings-emails',      'holyprofweb_settings_emails_page' );
     add_submenu_page( 'hpw-settings', __( 'Languages & Geo', 'holyprofweb' ), __( 'Languages & Geo', 'holyprofweb' ), 'manage_options', 'hpw-settings-languages',   'holyprofweb_settings_languages_page' );
@@ -6501,6 +6502,93 @@ function holyprofweb_settings_page() {
 
 /* ── Reviews ──────────────────────────────────────────────────────────────── */
 
+function holyprofweb_settings_redirects_page() {
+    if ( ! current_user_can( 'manage_options' ) ) return;
+    if ( isset( $_GET['hpw_redirect_saved'] ) ) {
+        add_settings_error( 'hpw_messages', 'hpw_redirect_saved', __( 'Redirect saved.', 'holyprofweb' ), 'updated' );
+    }
+    if ( isset( $_GET['hpw_year_replaced'] ) ) {
+        $count = (int) $_GET['hpw_year_replaced'];
+        add_settings_error( 'hpw_messages', 'hpw_year_replaced', sprintf( __( 'Year replacement completed. Updated %d item(s).', 'holyprofweb' ), $count ), 'updated' );
+    }
+    settings_errors( 'hpw_messages' );
+    $redirect_preview = holyprofweb_parse_redirect_rules();
+    ?>
+    <div class="wrap">
+        <h1>&#10145; <?php esc_html_e( 'HPW Settings â€” Redirects', 'holyprofweb' ); ?></h1>
+        <?php holyprofweb_settings_nav( 'redirects' ); ?>
+
+        <div class="hpw-search-card" style="background:#fff;border:1px solid #dcdcde;border-radius:14px;padding:18px;margin:0 0 18px;">
+            <h2 style="margin:0 0 8px;"><?php esc_html_e( 'Add Redirect', 'holyprofweb' ); ?></h2>
+            <p style="margin:0 0 14px;color:#646970;"><?php esc_html_e( 'Use this for old URL to new URL redirects. The redirect works immediately after save.', 'holyprofweb' ); ?></p>
+            <form method="post" action="<?php echo esc_url( admin_url( 'admin.php?page=hpw-settings-redirects' ) ); ?>" style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr) auto;gap:12px;align-items:end;">
+                <?php wp_nonce_field( 'hpw_redirect_add_action', 'hpw_redirect_add_nonce' ); ?>
+                <input type="hidden" name="page" value="hpw-settings-redirects" />
+                <input type="hidden" name="hpw_redirect_action" value="add_redirect" />
+                <label>
+                    <span style="display:block;font-weight:600;margin-bottom:4px;"><?php esc_html_e( 'Old URL or path', 'holyprofweb' ); ?></span>
+                    <input type="text" name="hpw_redirect_old_url" class="regular-text" style="width:100%;" placeholder="/old-url/ or https://holyprofweb.com/old-url/" />
+                </label>
+                <label>
+                    <span style="display:block;font-weight:600;margin-bottom:4px;"><?php esc_html_e( 'New URL or path', 'holyprofweb' ); ?></span>
+                    <input type="text" name="hpw_redirect_new_url" class="regular-text" style="width:100%;" placeholder="/new-url/ or https://holyprofweb.com/new-url/" />
+                </label>
+                <?php submit_button( __( 'Save Redirect', 'holyprofweb' ), 'primary', '', false ); ?>
+            </form>
+        </div>
+
+        <div class="hpw-search-card" style="background:#fff;border:1px solid #dcdcde;border-radius:14px;padding:18px;margin:0 0 18px;">
+            <h2 style="margin:0 0 8px;"><?php esc_html_e( 'Bulk Year Replace', 'holyprofweb' ); ?></h2>
+            <p style="margin:0 0 14px;color:#646970;"><?php esc_html_e( 'Change years in titles/slugs fast. Published URL changes trigger redirects immediately.', 'holyprofweb' ); ?></p>
+            <form method="post" action="<?php echo esc_url( admin_url( 'admin.php?page=hpw-settings-redirects' ) ); ?>" style="display:grid;grid-template-columns:120px 120px 220px auto;gap:12px;align-items:end;">
+                <?php wp_nonce_field( 'hpw_redirect_year_action', 'hpw_redirect_year_nonce' ); ?>
+                <input type="hidden" name="page" value="hpw-settings-redirects" />
+                <input type="hidden" name="hpw_redirect_action" value="replace_year" />
+                <label>
+                    <span style="display:block;font-weight:600;margin-bottom:4px;"><?php esc_html_e( 'From year', 'holyprofweb' ); ?></span>
+                    <input type="number" name="hpw_year_from" min="2000" max="2099" class="small-text" style="width:100%;" value="2024" />
+                </label>
+                <label>
+                    <span style="display:block;font-weight:600;margin-bottom:4px;"><?php esc_html_e( 'To year', 'holyprofweb' ); ?></span>
+                    <input type="number" name="hpw_year_to" min="2000" max="2099" class="small-text" style="width:100%;" value="2026" />
+                </label>
+                <label>
+                    <span style="display:block;font-weight:600;margin-bottom:4px;"><?php esc_html_e( 'Replace scope', 'holyprofweb' ); ?></span>
+                    <select name="hpw_year_scope" style="width:100%;">
+                        <option value="titles-slugs"><?php esc_html_e( 'Titles and slugs only', 'holyprofweb' ); ?></option>
+                        <option value="all"><?php esc_html_e( 'Titles, slugs, and content', 'holyprofweb' ); ?></option>
+                    </select>
+                </label>
+                <?php submit_button( __( 'Run Year Update', 'holyprofweb' ), 'secondary', '', false, array( 'onclick' => "return confirm('Run the year replacement across posts/pages now?');" ) ); ?>
+            </form>
+        </div>
+
+        <div class="hpw-search-card" style="background:#fff;border:1px solid #dcdcde;border-radius:14px;padding:18px;">
+            <h2 style="margin:0 0 8px;"><?php esc_html_e( 'Current Redirect Map', 'holyprofweb' ); ?></h2>
+            <p style="margin:0 0 14px;color:#646970;"><?php esc_html_e( 'These redirects are already active sitewide.', 'holyprofweb' ); ?></p>
+            <?php if ( empty( $redirect_preview ) ) : ?>
+                <p><?php esc_html_e( 'No redirect rules yet.', 'holyprofweb' ); ?></p>
+            <?php else : ?>
+                <div style="border:1px solid #e6dcc7;border-radius:16px;background:#fffdfa;overflow:hidden;">
+                    <div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:0;background:#f7f2e7;padding:10px 14px;font-weight:700;">
+                        <span><?php esc_html_e( 'Old URL', 'holyprofweb' ); ?></span>
+                        <span><?php esc_html_e( 'New URL', 'holyprofweb' ); ?></span>
+                    </div>
+                    <div style="max-height:420px;overflow:auto;">
+                        <?php foreach ( $redirect_preview as $old_path => $new_path ) : ?>
+                        <div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px;padding:10px 14px;border-top:1px solid #eee6d6;">
+                            <code><?php echo esc_html( $old_path ); ?></code>
+                            <code><?php echo esc_html( $new_path ); ?></code>
+                        </div>
+                        <?php endforeach; ?>
+                    </div>
+                </div>
+            <?php endif; ?>
+        </div>
+    </div>
+    <?php
+}
+
 function holyprofweb_settings_reviews_page() {
     if ( ! current_user_can( 'manage_options' ) ) return;
     if ( isset( $_GET['settings-updated'] ) ) {
@@ -7005,6 +7093,7 @@ function holyprofweb_settings_nav( $active = 'general' ) {
         'general'    => array( 'label' => 'Site & SEO',         'slug' => 'hpw-settings',            'icon' => '&#9881;' ),
         'search'     => array( 'label' => 'Search & Audience',  'slug' => 'hpw-settings-search',     'icon' => '&#128269;' ),
         'reviews'    => array( 'label' => 'Content & Reviews',  'slug' => 'hpw-settings-reviews',    'icon' => '&#9733;' ),
+        'redirects'  => array( 'label' => 'Redirects',          'slug' => 'hpw-settings-redirects',  'icon' => '&#10145;' ),
         'ads'        => array( 'label' => 'Ads',                'slug' => 'hpw-settings-ads',        'icon' => '&#128250;' ),
         'languages'  => array( 'label' => 'Languages & Geo',    'slug' => 'hpw-settings-languages',  'icon' => '&#127758;' ),
         'emails'     => array( 'label' => 'Emails',             'slug' => 'hpw-settings-emails',     'icon' => '&#128231;' ),
@@ -7502,6 +7591,109 @@ function holyprofweb_store_redirect_rule( $from, $to ) {
     update_option( 'hpw_redirect_rules', implode( "\n", $lines ), false );
     return true;
 }
+
+function holyprofweb_apply_year_replacement( $from_year, $to_year, $scope = 'titles-slugs' ) {
+    $from_year = preg_replace( '/\D+/', '', (string) $from_year );
+    $to_year   = preg_replace( '/\D+/', '', (string) $to_year );
+
+    if ( 4 !== strlen( $from_year ) || 4 !== strlen( $to_year ) || $from_year === $to_year ) {
+        return 0;
+    }
+
+    $posts = get_posts(
+        array(
+            'post_type'      => array( 'post', 'page' ),
+            'post_status'    => array( 'publish', 'draft', 'pending', 'future' ),
+            'posts_per_page' => -1,
+            'fields'         => 'ids',
+            'no_found_rows'  => true,
+        )
+    );
+
+    $updated = 0;
+
+    foreach ( $posts as $post_id ) {
+        $post = get_post( $post_id );
+        if ( ! $post instanceof WP_Post ) {
+            continue;
+        }
+
+        $new_title   = str_replace( $from_year, $to_year, (string) $post->post_title );
+        $new_slug    = str_replace( $from_year, $to_year, (string) $post->post_name );
+        $new_content = (string) $post->post_content;
+
+        if ( 'all' === $scope ) {
+            $new_content = str_replace( $from_year, $to_year, $new_content );
+        }
+
+        if ( $new_title === $post->post_title && $new_slug === $post->post_name && $new_content === $post->post_content ) {
+            continue;
+        }
+
+        $update_args = array(
+            'ID'         => $post_id,
+            'post_title' => $new_title,
+            'post_name'  => sanitize_title( $new_slug ),
+        );
+
+        if ( 'all' === $scope ) {
+            $update_args['post_content'] = $new_content;
+        }
+
+        wp_update_post( $update_args );
+        $updated++;
+    }
+
+    return $updated;
+}
+
+function holyprofweb_handle_redirect_admin_actions() {
+    if ( ! is_admin() || ! current_user_can( 'manage_options' ) ) {
+        return;
+    }
+
+    if ( empty( $_POST['page'] ) || 'hpw-settings-redirects' !== $_POST['page'] ) {
+        return;
+    }
+
+    if ( ! empty( $_POST['hpw_redirect_action'] ) && 'add_redirect' === $_POST['hpw_redirect_action'] ) {
+        check_admin_referer( 'hpw_redirect_add_action', 'hpw_redirect_add_nonce' );
+
+        $old_url = isset( $_POST['hpw_redirect_old_url'] ) ? sanitize_text_field( wp_unslash( $_POST['hpw_redirect_old_url'] ) ) : '';
+        $new_url = isset( $_POST['hpw_redirect_new_url'] ) ? sanitize_text_field( wp_unslash( $_POST['hpw_redirect_new_url'] ) ) : '';
+        holyprofweb_store_redirect_rule( $old_url, $new_url );
+
+        wp_safe_redirect( admin_url( 'admin.php?page=hpw-settings-redirects&hpw_redirect_saved=1' ) );
+        exit;
+    }
+
+    if ( ! empty( $_POST['hpw_redirect_action'] ) && 'replace_year' === $_POST['hpw_redirect_action'] ) {
+        check_admin_referer( 'hpw_redirect_year_action', 'hpw_redirect_year_nonce' );
+
+        $from_year = isset( $_POST['hpw_year_from'] ) ? sanitize_text_field( wp_unslash( $_POST['hpw_year_from'] ) ) : '';
+        $to_year   = isset( $_POST['hpw_year_to'] ) ? sanitize_text_field( wp_unslash( $_POST['hpw_year_to'] ) ) : '';
+        $scope     = isset( $_POST['hpw_year_scope'] ) ? sanitize_key( wp_unslash( $_POST['hpw_year_scope'] ) ) : 'titles-slugs';
+        if ( ! in_array( $scope, array( 'titles-slugs', 'all' ), true ) ) {
+            $scope = 'titles-slugs';
+        }
+
+        $updated = holyprofweb_apply_year_replacement( $from_year, $to_year, $scope );
+
+        wp_safe_redirect(
+            add_query_arg(
+                array(
+                    'page'                 => 'hpw-settings-redirects',
+                    'hpw_year_replaced'    => $updated,
+                    'hpw_year_from_done'   => preg_replace( '/\D+/', '', (string) $from_year ),
+                    'hpw_year_to_done'     => preg_replace( '/\D+/', '', (string) $to_year ),
+                ),
+                admin_url( 'admin.php' )
+            )
+        );
+        exit;
+    }
+}
+add_action( 'admin_init', 'holyprofweb_handle_redirect_admin_actions' );
 
 function holyprofweb_get_redirect_fallback_target( $post_id ) {
     if ( ! $post_id ) {
