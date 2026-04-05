@@ -3129,46 +3129,6 @@ function holyprofweb_get_raster_logo_path() {
     return '';
 }
 
-function holyprofweb_get_brand_mark_url() {
-    if ( has_custom_logo() ) {
-        $custom_logo_id = (int) get_theme_mod( 'custom_logo' );
-        if ( $custom_logo_id > 0 ) {
-            $custom_logo_url = wp_get_attachment_image_url( $custom_logo_id, 'full' );
-            if ( $custom_logo_url ) {
-                return esc_url_raw( $custom_logo_url );
-            }
-        }
-    }
-
-    $candidates = array(
-        'assets/images/logo.png',
-        'assets/images/logoo.png',
-        'assets/images/logo-black.png',
-    );
-
-    foreach ( $candidates as $relative_path ) {
-        $absolute_path = trailingslashit( get_template_directory() ) . $relative_path;
-        if ( file_exists( $absolute_path ) ) {
-            return esc_url_raw( trailingslashit( get_template_directory_uri() ) . $relative_path );
-        }
-    }
-
-    return '';
-}
-
-function holyprofweb_render_brand_mark( $context = 'card' ) {
-    $classes  = array( 'hpw-brand-mark', 'hpw-brand-mark--' . sanitize_html_class( $context ) );
-    $logo_url = holyprofweb_get_brand_mark_url();
-
-    echo '<span class="' . esc_attr( implode( ' ', $classes ) ) . '" aria-hidden="true">';
-    if ( $logo_url ) {
-        echo '<img src="' . esc_url( $logo_url ) . '" alt="" class="hpw-brand-mark-image" loading="lazy" decoding="async" />';
-    } else {
-        echo '<span class="hpw-brand-mark-text">HOLYPROFWEB</span>';
-    }
-    echo '</span>';
-}
-
 function holyprofweb_load_image_resource( $path ) {
     if ( ! $path || ! file_exists( $path ) ) {
         return null;

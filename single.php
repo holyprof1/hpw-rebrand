@@ -67,7 +67,6 @@ get_header();
                              alt="<?php echo esc_attr( $decoded_title ); ?>"
                              loading="eager"
                              class="<?php echo esc_attr( holyprofweb_get_post_image_class( $post_id ) ); ?>" />
-                        <?php holyprofweb_render_brand_mark( 'hero' ); ?>
                     </div>
                     <div class="single-header-copy">
                         <?php if ( $primary_cat ) : ?>
@@ -626,7 +625,7 @@ get_header();
                             <div class="related-grid">
                                 <?php while ( $similar_posts->have_posts() ) : $similar_posts->the_post(); ?>
                                 <article class="related-card">
-                                    <a href="<?php the_permalink(); ?>" class="related-card-thumb"><img src="<?php echo esc_attr( holyprofweb_get_post_card_image_url( get_the_ID() ) ); ?>" alt="<?php echo esc_attr( holyprofweb_get_decoded_post_title() ); ?>" loading="lazy" class="<?php echo esc_attr( holyprofweb_get_post_image_class( get_the_ID() ) ); ?>" /><?php holyprofweb_render_brand_mark( 'related' ); ?></a>
+                                    <a href="<?php the_permalink(); ?>" class="related-card-thumb"><img src="<?php echo esc_attr( holyprofweb_get_post_card_image_url( get_the_ID() ) ); ?>" alt="<?php echo esc_attr( holyprofweb_get_decoded_post_title() ); ?>" loading="lazy" class="<?php echo esc_attr( holyprofweb_get_post_image_class( get_the_ID() ) ); ?>" /></a>
                                     <h4 class="related-card-title"><a href="<?php the_permalink(); ?>"><?php holyprofweb_the_decoded_title(); ?></a></h4>
                                 </article>
                                 <?php endwhile; wp_reset_postdata(); ?>
@@ -640,7 +639,7 @@ get_header();
                             <div class="related-grid">
                                 <?php while ( $compare_posts->have_posts() ) : $compare_posts->the_post(); ?>
                                 <article class="related-card">
-                                    <a href="<?php the_permalink(); ?>" class="related-card-thumb"><img src="<?php echo esc_attr( holyprofweb_get_post_card_image_url( get_the_ID() ) ); ?>" alt="<?php echo esc_attr( holyprofweb_get_decoded_post_title() ); ?>" loading="lazy" class="<?php echo esc_attr( holyprofweb_get_post_image_class( get_the_ID() ) ); ?>" /><?php holyprofweb_render_brand_mark( 'related' ); ?></a>
+                                    <a href="<?php the_permalink(); ?>" class="related-card-thumb"><img src="<?php echo esc_attr( holyprofweb_get_post_card_image_url( get_the_ID() ) ); ?>" alt="<?php echo esc_attr( holyprofweb_get_decoded_post_title() ); ?>" loading="lazy" class="<?php echo esc_attr( holyprofweb_get_post_image_class( get_the_ID() ) ); ?>" /></a>
                                     <h4 class="related-card-title"><a href="<?php the_permalink(); ?>"><?php holyprofweb_the_decoded_title(); ?></a></h4>
                                 </article>
                                 <?php endwhile; wp_reset_postdata(); ?>
@@ -654,7 +653,7 @@ get_header();
                             <div class="related-grid">
                                 <?php while ( $salary_links->have_posts() ) : $salary_links->the_post(); ?>
                                 <article class="related-card">
-                                    <a href="<?php the_permalink(); ?>" class="related-card-thumb"><img src="<?php echo esc_attr( holyprofweb_get_post_card_image_url( get_the_ID() ) ); ?>" alt="<?php echo esc_attr( holyprofweb_get_decoded_post_title() ); ?>" loading="lazy" class="<?php echo esc_attr( holyprofweb_get_post_image_class( get_the_ID() ) ); ?>" /><?php holyprofweb_render_brand_mark( 'related' ); ?></a>
+                                    <a href="<?php the_permalink(); ?>" class="related-card-thumb"><img src="<?php echo esc_attr( holyprofweb_get_post_card_image_url( get_the_ID() ) ); ?>" alt="<?php echo esc_attr( holyprofweb_get_decoded_post_title() ); ?>" loading="lazy" class="<?php echo esc_attr( holyprofweb_get_post_image_class( get_the_ID() ) ); ?>" /></a>
                                     <h4 class="related-card-title"><a href="<?php the_permalink(); ?>"><?php holyprofweb_the_decoded_title(); ?></a></h4>
                                 </article>
                                 <?php endwhile; wp_reset_postdata(); ?>
@@ -668,7 +667,7 @@ get_header();
                             <div class="related-grid">
                                 <?php while ( $tips_links->have_posts() ) : $tips_links->the_post(); ?>
                                 <article class="related-card">
-                                    <a href="<?php the_permalink(); ?>" class="related-card-thumb"><img src="<?php echo esc_attr( holyprofweb_get_post_card_image_url( get_the_ID() ) ); ?>" alt="<?php echo esc_attr( holyprofweb_get_decoded_post_title() ); ?>" loading="lazy" class="<?php echo esc_attr( holyprofweb_get_post_image_class( get_the_ID() ) ); ?>" /><?php holyprofweb_render_brand_mark( 'related' ); ?></a>
+                                    <a href="<?php the_permalink(); ?>" class="related-card-thumb"><img src="<?php echo esc_attr( holyprofweb_get_post_card_image_url( get_the_ID() ) ); ?>" alt="<?php echo esc_attr( holyprofweb_get_decoded_post_title() ); ?>" loading="lazy" class="<?php echo esc_attr( holyprofweb_get_post_image_class( get_the_ID() ) ); ?>" /></a>
                                     <h4 class="related-card-title"><a href="<?php the_permalink(); ?>"><?php holyprofweb_the_decoded_title(); ?></a></h4>
                                 </article>
                                 <?php endwhile; wp_reset_postdata(); ?>

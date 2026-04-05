@@ -1638,7 +1638,6 @@ ul, ol {
 
 .related-card-thumb {
     display: block;
-    position: relative;
     width: 100%;
     aspect-ratio: 16 / 9;
     overflow: hidden;
@@ -6136,7 +6135,6 @@ html[data-theme="light"] .theme-toggle-icon--sun {
 
 .single-featured-image--inline {
     min-width: 0;
-    position: relative;
 }
 
 .single-featured-image--inline img,
@@ -6144,67 +6142,6 @@ html[data-theme="light"] .theme-toggle-icon--sun {
     width: 100%;
     border-radius: 20px;
     box-shadow: 0 22px 44px rgba(15, 23, 42, 0.12);
-}
-
-.hpw-brand-mark {
-    position: absolute;
-    top: 12px;
-    left: 12px;
-    z-index: 2;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    min-width: 108px;
-    min-height: 30px;
-    padding: 5px 10px;
-    border-radius: 999px;
-    background: rgba(8, 12, 18, 0.84);
-    border: 1px solid rgba(255, 255, 255, 0.16);
-    box-shadow: 0 10px 24px rgba(15, 23, 42, 0.24);
-    backdrop-filter: blur(8px);
-    pointer-events: none;
-}
-
-.hpw-brand-mark-image {
-    display: block;
-    width: auto;
-    max-width: 112px;
-    height: 16px;
-    object-fit: contain;
-}
-
-.hpw-brand-mark-text {
-    font-size: 0.64rem;
-    font-weight: 800;
-    letter-spacing: 0.08em;
-    color: #f8fafc;
-    white-space: nowrap;
-}
-
-.hpw-brand-mark--hero {
-    top: 16px;
-    left: 16px;
-    min-width: 136px;
-    min-height: 38px;
-    padding: 8px 14px;
-}
-
-.hpw-brand-mark--hero .hpw-brand-mark-image {
-    max-width: 142px;
-    height: 20px;
-}
-
-.hpw-brand-mark--related {
-    top: 10px;
-    left: 10px;
-    min-width: 96px;
-    min-height: 28px;
-    padding: 5px 9px;
-}
-
-.hpw-brand-mark--related .hpw-brand-mark-image {
-    max-width: 98px;
-    height: 14px;
 }
 
 @media (max-width: 1024px) {
@@ -6467,7 +6404,6 @@ html[data-theme="light"] .theme-toggle-icon--sun {
 
 .post-card-thumb-link {
     display: block;
-    position: relative;
     border-radius: 18px 18px 0 0;
     overflow: hidden;
 }
@@ -10729,16 +10665,14 @@ html[data-theme="dark"] .post-tags a {
 .platform-wrap--single .single-featured-image--inline img.post-image--generated,
 .platform-wrap--single .single-featured-image--inline .post-image--generated,
 .platform-wrap--single .single-featured-image .post-image--generated {
-    background:
-        radial-gradient(circle at top right, rgba(240, 184, 74, 0.14), transparent 34%),
-        linear-gradient(135deg, #141c28 0%, #1d2735 100%) !important;
+    background: none !important;
     width: 100% !important;
     height: 100% !important;
     min-height: 100% !important;
     border-radius: 18px !important;
-    object-fit: contain !important;
+    object-fit: cover !important;
     object-position: center center !important;
-    padding: 14px !important;
+    padding: 0 !important;
 }
 
 .left-sidebar,
