@@ -3270,7 +3270,7 @@ function holyprofweb_regenerate_generated_images_batch() {
     $posts = get_posts( array(
         'post_type'      => 'post',
         'post_status'    => array( 'publish', 'draft', 'pending', 'future' ),
-        'posts_per_page' => -1,
+        'posts_per_page' => 20,
         'fields'         => 'ids',
         'no_found_rows'  => true,
     ) );
@@ -3315,7 +3315,7 @@ function holyprofweb_reset_generated_images_batch() {
     $posts = get_posts( array(
         'post_type'      => 'post',
         'post_status'    => array( 'publish', 'draft', 'pending', 'future' ),
-        'posts_per_page' => -1,
+        'posts_per_page' => 50,
         'fields'         => 'ids',
         'no_found_rows'  => true,
     ) );
@@ -3623,14 +3623,6 @@ function holyprofweb_get_post_card_image_url( $post_id ) {
     $remote_cached = trim( (string) get_post_meta( $post_id, '_holyprofweb_remote_image_url', true ) );
     if ( $remote_cached && ! holyprofweb_is_disallowed_remote_image_url( $remote_cached ) ) {
         return esc_url_raw( $remote_cached );
-    }
-
-    $post = get_post( $post_id );
-    if ( $post ) {
-        $remote = holyprofweb_maybe_get_remote_post_image( $post_id, $post );
-        if ( $remote ) {
-            return esc_url_raw( $remote );
-        }
     }
 
     return holyprofweb_get_generated_card_image_url( $post_id );
@@ -4735,11 +4727,7 @@ function holyprofweb_get_site_visual_candidates( $source_url ) {
 }
 
 function holyprofweb_get_landing_page_capture_url( $source_url ) {
-    if ( ! $source_url || ! get_option( 'hpw_enable_remote_image_fetch', 1 ) ) {
-        return '';
-    }
-
-    return 'https://s.wordpress.com/mshots/v1/' . rawurlencode( $source_url ) . '?w=1200&h=630';
+    return '';
 }
 
 function holyprofweb_pick_working_remote_image_url( $candidates ) {
@@ -4810,9 +4798,6 @@ function holyprofweb_maybe_get_remote_post_image( $post_id, $post = null ) {
     }
     if ( ! $image_url && $source_url ) {
         $image_url = holyprofweb_fetch_og_image_url( $source_url );
-    }
-    if ( ! $image_url && $source_url ) {
-        $image_url = holyprofweb_get_landing_page_capture_url( $source_url );
     }
     if ( ! $image_url && $domain ) {
         $image_url = holyprofweb_get_clearbit_logo_url( $domain );
