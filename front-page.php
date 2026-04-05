@@ -11,6 +11,45 @@ $companies_term   = get_term_by( 'slug', 'companies', 'category' );
 $total_companies  = $companies_term && ! is_wp_error( $companies_term ) ? (int) $companies_term->count : 0;
 $trending_searches = holyprofweb_get_trending_searches( 8 );
 $card_size        = holyprofweb_get_image_size_dimensions( 'holyprofweb-card' );
+$prioritize_image_ids = static function( $ids ) {
+    $ids = array_values( array_filter( array_map( 'intval', (array) $ids ) ) );
+    if ( count( $ids ) < 2 ) {
+        return $ids;
+    }
+
+    $order_map = array_flip( $ids );
+    usort(
+        $ids,
+        static function( $a, $b ) use ( $order_map ) {
+            $score = static function( $post_id ) {
+                if ( holyprofweb_post_has_trusted_featured_image( $post_id ) ) {
+                    return 4;
+                }
+                if ( get_post_meta( $post_id, 'external_image', true ) ) {
+                    return 3;
+                }
+                if ( get_post_meta( $post_id, '_holyprofweb_remote_image_url', true ) ) {
+                    return 2;
+                }
+                if ( holyprofweb_post_uses_generated_image_fallback( $post_id ) || holyprofweb_post_has_generated_thumbnail_attachment( $post_id ) ) {
+                    return 1;
+                }
+                return 0;
+            };
+
+            $a_score = $score( $a );
+            $b_score = $score( $b );
+
+            if ( $a_score !== $b_score ) {
+                return $b_score <=> $a_score;
+            }
+
+            return ( $order_map[ $a ] ?? 0 ) <=> ( $order_map[ $b ] ?? 0 );
+        }
+    );
+
+    return $ids;
+};
 
 $latest_ids = holyprofweb_get_localized_post_ids(
     array(
@@ -20,6 +59,7 @@ $latest_ids = holyprofweb_get_localized_post_ids(
     ),
     8
 );
+$latest_ids = $prioritize_image_ids( $latest_ids );
 $latest_query = new WP_Query(
     ! empty( $latest_ids )
         ? array(
@@ -44,6 +84,7 @@ $just_added_ids = holyprofweb_get_localized_post_ids(
     ),
     6
 );
+$just_added_ids = $prioritize_image_ids( $just_added_ids );
 $just_added_query = new WP_Query(
     ! empty( $just_added_ids )
         ? array(
@@ -77,6 +118,7 @@ $guides_ids = holyprofweb_get_localized_post_ids(
     ),
     4
 );
+$guides_ids = $prioritize_image_ids( $guides_ids );
 $guides_query = new WP_Query(
     ! empty( $guides_ids )
         ? array(

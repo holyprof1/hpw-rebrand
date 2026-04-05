@@ -590,6 +590,14 @@ function holyprofweb_ads_admin_page() {
             update_option( $format_field, $code );
             update_option( $density_field, in_array( $density, array( 'basic', 'normal', 'rigid' ), true ) ? $density : 'basic' );
         }
+
+        $granular_units = array( 'native', 'banner_160x300', 'banner_468x60', 'banner_320x50', 'banner_728x90', 'banner_160x600', 'banner_300x250' );
+        foreach ( $granular_units as $unit ) {
+            $field = 'holyprofweb_ad_format_' . $unit;
+            // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+            $code = isset( $_POST[ $field ] ) ? wp_unslash( $_POST[ $field ] ) : '';
+            update_option( $field, $code );
+        }
         $saved = true;
     }
     ?>
@@ -658,6 +666,54 @@ function holyprofweb_ads_admin_page() {
                             <option value="rigid" <?php selected( holyprofweb_get_ad_density( 'social' ), 'rigid' ); ?>><?php esc_html_e( 'Rigid', 'holyprofweb' ); ?></option>
                         </select></p>
                         <p class="description"><?php esc_html_e( 'Sticky social-style bar. Use carefully on mobile.', 'holyprofweb' ); ?></p>
+                    </td>
+                </tr>
+            </table>
+
+            <hr>
+            <h2><?php esc_html_e( 'Granular Ad Units', 'holyprofweb' ); ?></h2>
+            <table class="form-table" role="presentation">
+                <tr>
+                    <th scope="row"><?php esc_html_e( 'Native Banner', 'holyprofweb' ); ?></th>
+                    <td>
+                        <textarea name="holyprofweb_ad_format_native" rows="5" class="large-text code"><?php echo esc_textarea( get_option( 'holyprofweb_ad_format_native', '' ) ); ?></textarea>
+                        <p class="description"><?php esc_html_e( 'Used as a cleaner inline fallback on homepage sections, archives, and inside posts when present.', 'holyprofweb' ); ?></p>
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row"><?php esc_html_e( 'Banner 728x90', 'holyprofweb' ); ?></th>
+                    <td>
+                        <textarea name="holyprofweb_ad_format_banner_728x90" rows="5" class="large-text code"><?php echo esc_textarea( get_option( 'holyprofweb_ad_format_banner_728x90', '' ) ); ?></textarea>
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row"><?php esc_html_e( 'Banner 468x60', 'holyprofweb' ); ?></th>
+                    <td>
+                        <textarea name="holyprofweb_ad_format_banner_468x60" rows="5" class="large-text code"><?php echo esc_textarea( get_option( 'holyprofweb_ad_format_banner_468x60', '' ) ); ?></textarea>
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row"><?php esc_html_e( 'Banner 320x50', 'holyprofweb' ); ?></th>
+                    <td>
+                        <textarea name="holyprofweb_ad_format_banner_320x50" rows="5" class="large-text code"><?php echo esc_textarea( get_option( 'holyprofweb_ad_format_banner_320x50', '' ) ); ?></textarea>
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row"><?php esc_html_e( 'Banner 300x250', 'holyprofweb' ); ?></th>
+                    <td>
+                        <textarea name="holyprofweb_ad_format_banner_300x250" rows="5" class="large-text code"><?php echo esc_textarea( get_option( 'holyprofweb_ad_format_banner_300x250', '' ) ); ?></textarea>
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row"><?php esc_html_e( 'Banner 160x300', 'holyprofweb' ); ?></th>
+                    <td>
+                        <textarea name="holyprofweb_ad_format_banner_160x300" rows="5" class="large-text code"><?php echo esc_textarea( get_option( 'holyprofweb_ad_format_banner_160x300', '' ) ); ?></textarea>
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row"><?php esc_html_e( 'Banner 160x600', 'holyprofweb' ); ?></th>
+                    <td>
+                        <textarea name="holyprofweb_ad_format_banner_160x600" rows="5" class="large-text code"><?php echo esc_textarea( get_option( 'holyprofweb_ad_format_banner_160x600', '' ) ); ?></textarea>
                     </td>
                 </tr>
             </table>
@@ -773,9 +829,52 @@ function holyprofweb_get_ad_code( $slot ) {
     return (string) get_option( 'holyprofweb_ad_' . sanitize_key( $slot ), '' );
 }
 
+function holyprofweb_get_ad_unit_code( $unit ) {
+    $unit = sanitize_key( $unit );
+    if ( '' === $unit ) {
+        return '';
+    }
+
+    $code = (string) get_option( 'holyprofweb_ad_format_' . $unit, '' );
+    if ( trim( $code ) ) {
+        return $code;
+    }
+
+    $legacy_map = array(
+        'leaderboard' => 'leaderboard',
+        'rectangle'   => 'rectangle',
+        'mobile'      => 'mobile',
+        'social'      => 'social',
+    );
+
+    if ( isset( $legacy_map[ $unit ] ) ) {
+        return (string) get_option( 'holyprofweb_ad_format_' . $legacy_map[ $unit ], '' );
+    }
+
+    return '';
+}
+
+function holyprofweb_get_first_available_ad_code( $units ) {
+    foreach ( (array) $units as $unit ) {
+        $code = holyprofweb_get_ad_unit_code( $unit );
+        if ( trim( $code ) ) {
+            return $code;
+        }
+    }
+
+    return '';
+}
+
 function holyprofweb_get_ad_format_code( $format ) {
     $format = sanitize_key( $format );
-    $code   = (string) get_option( 'holyprofweb_ad_format_' . $format, '' );
+    $lookup = array(
+        'leaderboard' => array( 'banner_728x90', 'banner_468x60', 'leaderboard' ),
+        'rectangle'   => array( 'banner_300x250', 'banner_160x300', 'banner_160x600', 'rectangle' ),
+        'mobile'      => array( 'banner_320x50', 'mobile' ),
+        'social'      => array( 'social' ),
+        'native'      => array( 'native' ),
+    );
+    $code   = holyprofweb_get_first_available_ad_code( $lookup[ $format ] ?? array( $format ) );
 
     if ( trim( $code ) ) {
         return $code;
@@ -837,8 +936,41 @@ function holyprofweb_render_ad_format( $format, $placement, $extra_class = '' ) 
         return;
     }
 
-    $code = holyprofweb_get_ad_format_code( $format );
-    if ( ! trim( $code ) ) {
+    $inline_like   = in_array( $placement, array( 'front_inline', 'archive_inline', 'incontent_1', 'incontent_2' ), true );
+    $desktop_units = array();
+    $mobile_units  = array();
+
+    if ( 'leaderboard' === $format ) {
+        $desktop_units = array( 'banner_728x90', 'banner_468x60', 'leaderboard' );
+        $mobile_units  = array( 'banner_320x50', 'mobile' );
+        if ( $inline_like ) {
+            $desktop_units[] = 'native';
+            $mobile_units[]  = 'native';
+        }
+    } elseif ( 'rectangle' === $format ) {
+        $desktop_units = array( 'banner_300x250', 'banner_160x300', 'banner_160x600', 'rectangle' );
+        $mobile_units  = array( 'banner_320x50', 'mobile' );
+        if ( $inline_like ) {
+            array_unshift( $desktop_units, 'native' );
+            array_unshift( $mobile_units, 'native' );
+        }
+    } elseif ( 'mobile' === $format ) {
+        $mobile_units = array( 'banner_320x50', 'mobile', 'native' );
+    } elseif ( 'social' === $format ) {
+        $desktop_units = array( 'social' );
+        $mobile_units  = array( 'social' );
+    } else {
+        $desktop_units = array( $format );
+    }
+
+    $desktop_code = holyprofweb_get_first_available_ad_code( $desktop_units );
+    $mobile_code  = holyprofweb_get_first_available_ad_code( $mobile_units );
+
+    if ( ! trim( $desktop_code ) && trim( $mobile_code ) && ! in_array( $placement, array( 'mobile_sticky', 'front_mobile', 'archive_mobile' ), true ) ) {
+        $desktop_code = $mobile_code;
+    }
+
+    if ( ! trim( $desktop_code ) && ! trim( $mobile_code ) ) {
         return;
     }
 
@@ -848,7 +980,16 @@ function holyprofweb_render_ad_format( $format, $placement, $extra_class = '' ) 
     }
 
     echo '<div class="' . $class . '">';
-    echo $code; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+    if ( trim( $desktop_code ) ) {
+        echo '<div class="ad-variant ad-variant--desktop">';
+        echo $desktop_code; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+        echo '</div>';
+    }
+    if ( trim( $mobile_code ) ) {
+        echo '<div class="ad-variant ad-variant--mobile">';
+        echo $mobile_code; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+        echo '</div>';
+    }
     echo '</div>';
 }
 
@@ -893,13 +1034,22 @@ function holyprofweb_inject_incontent_ad( $content ) {
         return $content;
     }
 
-    $code_1 = holyprofweb_ad_density_allows( 'rectangle', 'incontent_1' ) ? holyprofweb_get_ad_format_code( 'rectangle' ) : holyprofweb_get_ad_code( 'incontent' );
-    $code_2 = holyprofweb_ad_density_allows( 'rectangle', 'incontent_2' ) ? holyprofweb_get_ad_format_code( 'rectangle' ) : holyprofweb_get_ad_code( 'incontent_2' );
-    $code_3 = holyprofweb_ad_density_allows( 'rectangle', 'incontent_2' ) && 'rigid' === holyprofweb_get_ad_density( 'rectangle' ) ? holyprofweb_get_ad_format_code( 'rectangle' ) : '';
+    ob_start();
+    holyprofweb_render_ad_format( 'rectangle', 'incontent_1', 'ad-incontent-slot' );
+    $code_1 = trim( (string) ob_get_clean() );
+    ob_start();
+    holyprofweb_render_ad_format( 'rectangle', 'incontent_2', 'ad-incontent-slot' );
+    $code_2 = trim( (string) ob_get_clean() );
+    $code_3 = '';
+    if ( holyprofweb_ad_density_allows( 'rectangle', 'incontent_2' ) && 'rigid' === holyprofweb_get_ad_density( 'rectangle' ) ) {
+        ob_start();
+        holyprofweb_render_ad_format( 'rectangle', 'incontent_2', 'ad-incontent-slot ad-incontent-slot--extra' );
+        $code_3 = trim( (string) ob_get_clean() );
+    }
 
-    $has_ad1 = ! empty( trim( $code_1 ) );
-    $has_ad2 = ! empty( trim( $code_2 ) );
-    $has_ad3 = ! empty( trim( $code_3 ) );
+    $has_ad1 = '' !== $code_1;
+    $has_ad2 = '' !== $code_2;
+    $has_ad3 = '' !== $code_3;
 
     if ( ! $has_ad1 && ! $has_ad2 && ! $has_ad3 ) {
         return $content;
@@ -3116,6 +3266,21 @@ function holyprofweb_get_post_image( $post_id, $size = 'large' ) {
     return holyprofweb_placeholder_url();
 }
 
+function holyprofweb_normalize_possible_url( $value ) {
+    $value = trim( (string) $value );
+    if ( '' === $value ) {
+        return '';
+    }
+
+    if ( 0 === strpos( $value, '//' ) ) {
+        $value = 'https:' . $value;
+    } elseif ( ! preg_match( '#^[a-z][a-z0-9+\-.]*://#i', $value ) && preg_match( '#^(?:www\.)?[a-z0-9][a-z0-9\-\.]+\.[a-z]{2,}(?:/.*)?$#i', $value ) ) {
+        $value = 'https://' . $value;
+    }
+
+    return esc_url_raw( $value );
+}
+
 function holyprofweb_is_disallowed_source_domain( $url ) {
     $host = holyprofweb_extract_domain( $url );
     if ( ! $host ) {
@@ -3428,6 +3593,10 @@ function holyprofweb_get_post_image_class( $post_id, $base = '' ) {
         $classes[] = 'post-image--photo';
     }
 
+    if ( ! holyprofweb_post_has_trusted_featured_image( $post_id ) && ( get_post_meta( $post_id, 'external_image', true ) || get_post_meta( $post_id, '_holyprofweb_remote_image_url', true ) ) ) {
+        $classes[] = 'post-image--remote';
+    }
+
     if ( holyprofweb_post_in_category_tree( $post_id, 'biography' ) || holyprofweb_post_in_category_tree( $post_id, 'founders' ) || holyprofweb_post_in_category_tree( $post_id, 'influencers' ) ) {
         $classes[] = 'post-image--person';
     } elseif ( holyprofweb_post_in_category_tree( $post_id, 'companies' ) ) {
@@ -3595,7 +3764,11 @@ function holyprofweb_get_generic_card_image_url() {
 }
 
 function holyprofweb_get_front_page_card_image_url( $post_id ) {
-    if ( holyprofweb_post_has_trusted_featured_image( $post_id ) ) {
+    if (
+        holyprofweb_post_has_trusted_featured_image( $post_id )
+        || get_post_meta( $post_id, 'external_image', true )
+        || get_post_meta( $post_id, '_holyprofweb_remote_image_url', true )
+    ) {
         return holyprofweb_get_post_card_image_url( $post_id );
     }
 
@@ -4471,7 +4644,7 @@ function holyprofweb_get_post_source_url( $post_id, $post = null ) {
     );
 
     foreach ( $keys as $key ) {
-        $value = get_post_meta( $post_id, $key, true );
+        $value = holyprofweb_normalize_possible_url( get_post_meta( $post_id, $key, true ) );
         if ( $value && filter_var( $value, FILTER_VALIDATE_URL ) && ! holyprofweb_is_disallowed_source_domain( $value ) ) {
             return esc_url_raw( $value );
         }
@@ -4484,6 +4657,17 @@ function holyprofweb_get_post_source_url( $post_id, $post = null ) {
 
     if ( preg_match_all( '#https?://[^\s"\']+#i', $post->post_content, $matches ) ) {
         foreach ( (array) $matches[0] as $candidate ) {
+            $candidate = holyprofweb_normalize_possible_url( $candidate );
+            if ( filter_var( $candidate, FILTER_VALIDATE_URL ) && ! holyprofweb_is_disallowed_source_domain( $candidate ) ) {
+                return esc_url_raw( $candidate );
+            }
+        }
+    }
+
+    $url_like_text = wp_strip_all_tags( $post->post_title . ' ' . $post->post_content );
+    if ( preg_match_all( '#\b(?:www\.)?[a-z0-9][a-z0-9\-\.]+\.[a-z]{2,}(?:/[^\s"\']*)?#i', $url_like_text, $matches ) ) {
+        foreach ( (array) $matches[0] as $candidate ) {
+            $candidate = holyprofweb_normalize_possible_url( $candidate );
             if ( filter_var( $candidate, FILTER_VALIDATE_URL ) && ! holyprofweb_is_disallowed_source_domain( $candidate ) ) {
                 return esc_url_raw( $candidate );
             }
@@ -5791,7 +5975,7 @@ function holyprofweb_post_ops_meta_box_render( $post ) {
     ?>
     <p>
         <label for="hpw_source_url"><strong><?php esc_html_e( 'Reviewed Site URL', 'holyprofweb' ); ?></strong></label><br>
-        <input type="url" id="hpw_source_url" name="hpw_source_url" value="<?php echo esc_attr( $source_url ); ?>" class="widefat" placeholder="https://example.com or https://play.google.com/store/apps/details?id=app" />
+        <input type="text" inputmode="url" autocapitalize="off" spellcheck="false" id="hpw_source_url" name="hpw_source_url" value="<?php echo esc_attr( $source_url ); ?>" class="widefat" placeholder="example.com or https://example.com" />
         <span class="description"><?php esc_html_e( 'Add the official website, landing page, app store page, or trusted profile URL here. This is the safest way for HPW to fetch a better featured image automatically after publish.', 'holyprofweb' ); ?></span>
     </p>
     <p>
@@ -5842,9 +6026,9 @@ function holyprofweb_save_salary_meta( $post_id ) {
     }
 
     if ( isset( $_POST['hpw_post_ops_meta_nonce'] ) && wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['hpw_post_ops_meta_nonce'] ) ), 'hpw_save_post_ops_meta' ) ) {
-        $posted_source_url = isset( $_POST['hpw_source_url'] ) ? esc_url_raw( wp_unslash( $_POST['hpw_source_url'] ) ) : '';
+        $posted_source_url = isset( $_POST['hpw_source_url'] ) ? holyprofweb_normalize_possible_url( wp_unslash( $_POST['hpw_source_url'] ) ) : '';
         update_post_meta( $post_id, '_hpw_source_url', $posted_source_url );
-        update_post_meta( $post_id, 'external_image', isset( $_POST['hpw_external_image'] ) ? esc_url_raw( wp_unslash( $_POST['hpw_external_image'] ) ) : '' );
+        update_post_meta( $post_id, 'external_image', isset( $_POST['hpw_external_image'] ) ? holyprofweb_normalize_possible_url( wp_unslash( $_POST['hpw_external_image'] ) ) : '' );
         update_post_meta( $post_id, '_hpw_country_focus', isset( $_POST['hpw_country_focus'] ) ? sanitize_text_field( wp_unslash( $_POST['hpw_country_focus'] ) ) : '' );
         update_post_meta( $post_id, '_hpw_verdict_override', isset( $_POST['hpw_verdict_override'] ) ? sanitize_key( wp_unslash( $_POST['hpw_verdict_override'] ) ) : '' );
         $rating_override = isset( $_POST['hpw_rating_override'] ) ? trim( (string) wp_unslash( $_POST['hpw_rating_override'] ) ) : '';
@@ -5917,7 +6101,7 @@ function holyprofweb_render_post_quick_edit_fields( $column_name, $post_type ) {
             <label>
                 <span class="title"><?php esc_html_e( 'Site URL', 'holyprofweb' ); ?></span>
                 <span class="input-text-wrap">
-                    <input type="url" name="hpw_source_url" class="ptitle" value="">
+                    <input type="text" inputmode="url" autocapitalize="off" spellcheck="false" name="hpw_source_url" class="ptitle" value="">
                 </span>
             </label>
             <label>
@@ -5997,11 +6181,11 @@ function holyprofweb_save_quick_edit_post_links( $post_id ) {
     }
 
     if ( isset( $_POST['hpw_source_url'] ) ) {
-        update_post_meta( $post_id, '_hpw_source_url', esc_url_raw( wp_unslash( $_POST['hpw_source_url'] ) ) );
+        update_post_meta( $post_id, '_hpw_source_url', holyprofweb_normalize_possible_url( wp_unslash( $_POST['hpw_source_url'] ) ) );
     }
 
     if ( isset( $_POST['hpw_external_image'] ) ) {
-        update_post_meta( $post_id, 'external_image', esc_url_raw( wp_unslash( $_POST['hpw_external_image'] ) ) );
+        update_post_meta( $post_id, 'external_image', holyprofweb_normalize_possible_url( wp_unslash( $_POST['hpw_external_image'] ) ) );
     }
 }
 add_action( 'save_post_post', 'holyprofweb_save_quick_edit_post_links' );
@@ -6194,8 +6378,8 @@ function holyprofweb_handle_reviews_admin_quick_update() {
 
     $rating_override  = isset( $_POST['hpw_rating_override'] ) ? trim( (string) wp_unslash( $_POST['hpw_rating_override'] ) ) : '';
     $verdict_override = isset( $_POST['hpw_verdict_override'] ) ? sanitize_key( wp_unslash( $_POST['hpw_verdict_override'] ) ) : '';
-    $source_url       = isset( $_POST['hpw_source_url'] ) ? esc_url_raw( wp_unslash( $_POST['hpw_source_url'] ) ) : '';
-    $external_image   = isset( $_POST['hpw_external_image'] ) ? esc_url_raw( wp_unslash( $_POST['hpw_external_image'] ) ) : '';
+    $source_url       = isset( $_POST['hpw_source_url'] ) ? holyprofweb_normalize_possible_url( wp_unslash( $_POST['hpw_source_url'] ) ) : '';
+    $external_image   = isset( $_POST['hpw_external_image'] ) ? holyprofweb_normalize_possible_url( wp_unslash( $_POST['hpw_external_image'] ) ) : '';
     $country_focus    = isset( $_POST['hpw_country_focus'] ) ? sanitize_text_field( wp_unslash( $_POST['hpw_country_focus'] ) ) : '';
     if ( ! array_key_exists( $verdict_override, holyprofweb_get_verdict_options() ) ) {
         $verdict_override = '';
@@ -6960,7 +7144,7 @@ function holyprofweb_settings_reviews_page() {
                         </label>
                         <label style="grid-column:1 / -1;">
                             <span style="display:block;font-weight:600;margin-bottom:4px;"><?php esc_html_e( 'Source URL', 'holyprofweb' ); ?></span>
-                            <input type="url" name="hpw_source_url" value="<?php echo esc_attr( $source_url ); ?>" class="regular-text" style="width:100%;">
+                            <input type="text" inputmode="url" autocapitalize="off" spellcheck="false" name="hpw_source_url" value="<?php echo esc_attr( $source_url ); ?>" class="regular-text" style="width:100%;" placeholder="example.com or https://example.com">
                         </label>
                         <label style="grid-column:1 / -1;">
                             <span style="display:block;font-weight:600;margin-bottom:4px;"><?php esc_html_e( 'Image URL override', 'holyprofweb' ); ?></span>

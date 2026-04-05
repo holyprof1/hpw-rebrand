@@ -1698,6 +1698,21 @@ ul, ol {
     overflow: hidden;
 }
 
+.ad-variant--mobile {
+    display: none;
+}
+
+.ad-variant--desktop,
+.ad-variant--mobile {
+    width: 100%;
+}
+
+.ad-container iframe,
+.ad-container img,
+.ad-container ins {
+    max-width: 100%;
+}
+
 .ad-incontent {
     margin: 28px 0;
     padding: 16px 0;
@@ -6427,6 +6442,12 @@ html[data-theme="light"] .theme-toggle-icon--sun {
     object-position: center;
 }
 
+.post-image--remote {
+    object-fit: contain !important;
+    object-position: center center !important;
+    background: #fff;
+}
+
 .post-card-body {
     display: flex;
     flex: 1;
@@ -7047,6 +7068,14 @@ html[data-theme="light"] .theme-toggle-icon--sun {
 }
 
 @media (max-width: 768px) {
+    .ad-variant--desktop {
+        display: none;
+    }
+
+    .ad-variant--mobile {
+        display: block;
+    }
+
     .header-inner {
         grid-template-columns: minmax(0, 1fr) auto;
         min-height: 84px;
