@@ -3180,10 +3180,10 @@ function holyprofweb_overlay_brand_logo( $canvas, $canvas_width, $canvas_height 
         return;
     }
 
-    $target_w = 220;
-    $target_h = max( 42, (int) round( $target_w * ( $logo_h / $logo_w ) ) );
-    $dest_x   = $canvas_width - $target_w - 58;
-    $dest_y   = $canvas_height - $target_h - 38;
+    $target_w = max( 120, (int) round( $canvas_width * 0.11 ) );
+    $target_h = max( 28, (int) round( $target_w * ( $logo_h / $logo_w ) ) );
+    $dest_x   = $canvas_width - $target_w - max( 28, (int) round( $canvas_width * 0.036 ) );
+    $dest_y   = $canvas_height - $target_h - max( 24, (int) round( $canvas_height * 0.04 ) );
 
     imagealphablending( $canvas, true );
     imagesavealpha( $canvas, true );
@@ -3465,6 +3465,12 @@ function holyprofweb_get_generated_svg_image_url( $post_id, $variant = 'card' ) 
     $circle_small_x = $is_hero ? 76 : 44;
     $circle_small_y = $is_hero ? 602 : 354;
     $circle_small_r = $is_hero ? 54 : 38;
+    $brand_panel_w  = $is_hero ? 224 : 136;
+    $brand_panel_h  = $is_hero ? 42 : 28;
+    $brand_panel_x  = $width - $brand_panel_w - ( $is_hero ? 64 : 32 );
+    $brand_panel_y  = $height - $brand_panel_h - ( $is_hero ? 48 : 26 );
+    $brand_text_x   = $brand_panel_x + ( $is_hero ? 18 : 12 );
+    $brand_text_y   = $brand_panel_y + ( $is_hero ? 27 : 19 );
 
     $title_svg = '';
     foreach ( $title_lines as $index => $line ) {
@@ -3495,6 +3501,8 @@ function holyprofweb_get_generated_svg_image_url( $post_id, $variant = 'card' ) 
         . $deck_svg
         . '<rect x="' . ( $is_hero ? 64 : 32 ) . '" y="' . $footer_y . '" width="' . ( $is_hero ? 1072 : 576 ) . '" height="2" fill="rgba(255,255,255,0.12)"/>'
         . '<text x="' . ( $is_hero ? 64 : 32 ) . '" y="' . $site_y . '" fill="#CBD5E1" font-size="' . ( $is_hero ? 18 : 13 ) . '" font-weight="600" font-family="Inter, Segoe UI, Arial, sans-serif">holyprofweb.com</text>'
+        . '<rect x="' . $brand_panel_x . '" y="' . $brand_panel_y . '" width="' . $brand_panel_w . '" height="' . $brand_panel_h . '" rx="' . ( $is_hero ? 16 : 12 ) . '" fill="rgba(8,12,19,0.52)" stroke="rgba(255,255,255,0.18)" stroke-width="1"/>'
+        . '<text x="' . $brand_text_x . '" y="' . $brand_text_y . '" fill="#F8FAFC" font-size="' . ( $is_hero ? 17 : 11 ) . '" font-weight="700" font-family="Inter, Segoe UI, Arial, sans-serif">holyprofweb.com</text>'
         . '</svg>';
 
     return 'data:image/svg+xml;charset=UTF-8,' . rawurlencode( $svg );

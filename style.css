@@ -7602,8 +7602,18 @@ html[data-theme="light"] .theme-toggle-icon--sun {
     }
 
     .left-sidebar {
+        display: block !important;
+        position: static !important;
+        top: auto !important;
+        align-self: auto !important;
+        min-height: 0 !important;
+        height: auto !important;
+        max-height: none !important;
         overflow: hidden !important;
+        padding: 8px 0 !important;
         padding-inline: 0 !important;
+        margin: 0 0 10px !important;
+        border-right: 0 !important;
     }
 
     .left-sidebar .left-nav {
@@ -7615,16 +7625,19 @@ html[data-theme="light"] .theme-toggle-icon--sun {
         width: 100% !important;
         min-width: 0 !important;
         max-width: 100% !important;
-        padding: 0 12px 8px !important;
+        padding: 0 12px 0 !important;
         gap: 10px !important;
         scroll-snap-type: x proximity;
         -webkit-overflow-scrolling: touch;
     }
 
     .left-nav-heading {
-        flex: 0 0 auto;
-        padding-left: 12px !important;
-        margin-right: 2px !important;
+        display: none !important;
+        flex: 0 0 0 !important;
+        width: 0 !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        overflow: hidden !important;
         white-space: nowrap !important;
     }
 

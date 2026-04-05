@@ -3,6 +3,45 @@
 // SEO — Meta Description, Open Graph, JSON-LD
 // =========================================
 
+function holyprofweb_get_seo_publisher_logo_url() {
+    $custom_logo_id = (int) get_theme_mod( 'custom_logo' );
+    if ( $custom_logo_id ) {
+        $logo = wp_get_attachment_image_url( $custom_logo_id, 'full' );
+        if ( $logo ) {
+            return esc_url_raw( $logo );
+        }
+    }
+
+    $logo_path = function_exists( 'holyprofweb_get_raster_logo_path' ) ? holyprofweb_get_raster_logo_path() : '';
+    if ( ! $logo_path ) {
+        return '';
+    }
+
+    $relative = wp_normalize_path( str_replace( wp_normalize_path( get_template_directory() ), '', wp_normalize_path( $logo_path ) ) );
+    if ( '' === $relative ) {
+        return '';
+    }
+
+    return esc_url_raw( trailingslashit( get_template_directory_uri() ) . ltrim( $relative, '/' ) );
+}
+
+function holyprofweb_get_seo_image_dimensions( $image_url ) {
+    $image_url = (string) $image_url;
+    if ( '' === $image_url ) {
+        return array( 0, 0 );
+    }
+
+    if ( 0 === strpos( $image_url, 'data:image/svg+xml' ) ) {
+        return array( 1200, 675 );
+    }
+
+    if ( preg_match( '/holyprofweb\.jpg(?:$|\?)/i', $image_url ) ) {
+        return array( 1600, 900 );
+    }
+
+    return array( 0, 0 );
+}
+
 function holyprofweb_get_current_seo_url() {
     if ( is_singular() ) {
         return get_permalink();
@@ -247,9 +286,17 @@ function holyprofweb_seo_head() {
             echo '<meta property="og:locale:alternate" content="' . esc_attr( str_replace( '-', '_', $entry['hreflang'] ) ) . '" />' . "\n";
         }
     }
+    list( $og_img_width, $og_img_height ) = holyprofweb_get_seo_image_dimensions( $og_img );
     if ( $og_img ) {
         echo '<meta property="og:image"   content="' . esc_url( $og_img ) . '" />' . "\n";
+        echo '<meta property="og:image:secure_url" content="' . esc_url( set_url_scheme( $og_img, 'https' ) ) . '" />' . "\n";
+        if ( $og_img_width > 0 && $og_img_height > 0 ) {
+            echo '<meta property="og:image:width" content="' . esc_attr( $og_img_width ) . '" />' . "\n";
+            echo '<meta property="og:image:height" content="' . esc_attr( $og_img_height ) . '" />' . "\n";
+        }
+        echo '<meta property="og:image:alt" content="' . esc_attr( $og_title ) . '" />' . "\n";
         echo '<meta name="twitter:image"  content="' . esc_url( $og_img ) . '" />' . "\n";
+        echo '<meta name="twitter:image:alt" content="' . esc_attr( $og_title ) . '" />' . "\n";
     }
     echo '<meta name="twitter:card"        content="summary_large_image" />' . "\n";
     echo '<meta name="twitter:title"       content="' . esc_attr( $og_title ) . '" />' . "\n";
@@ -285,6 +332,8 @@ function holyprofweb_seo_head() {
         $verdict      = function_exists( 'holyprofweb_get_review_verdict' ) ? holyprofweb_get_review_verdict( $post->ID ) : array( 'label' => '' );
         $is_review    = (bool) array_intersect( array( 'reviews', 'scam-legit', 'app-reviews', 'website-reviews', 'loan-finance', 'shopping', 'scholarship', 'tech', 'blog-opinion', 'loan-apps', 'crypto', 'betting', 'earning-platforms' ), $cat_slugs );
 
+        $publisher_logo = holyprofweb_get_seo_publisher_logo_url();
+
         $schema = array(
             '@context'      => 'https://schema.org',
             '@type'         => $schema_type,
@@ -296,8 +345,18 @@ function holyprofweb_seo_head() {
             'author'        => array( '@type' => 'Person', 'name' => get_the_author_meta( 'display_name', $post->post_author ) ),
             'publisher'     => array( '@type' => 'Organization', 'name' => $site_name, 'url' => $site_url ),
         );
+        if ( $publisher_logo ) {
+            $schema['publisher']['logo'] = array(
+                '@type' => 'ImageObject',
+                'url'   => $publisher_logo,
+            );
+        }
         if ( $og_img ) $schema['image'] = $og_img;
         if ( $reading_time > 0 ) $schema['timeRequired'] = 'PT' . $reading_time . 'M';
+        if ( $cat_name ) {
+            $schema['articleSection'] = $cat_name;
+            $schema['keywords'] = implode( ', ', wp_get_post_tags( $post->ID, array( 'fields' => 'names' ) ) );
+        }
 
         if ( $is_review ) {
             $schema['@type'] = 'Review';
