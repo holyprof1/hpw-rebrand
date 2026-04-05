@@ -3283,16 +3283,28 @@ function holyprofweb_regenerate_generated_images_batch() {
             continue;
         }
 
-        if (
-            ! get_post_meta( $post_id, '_holyprofweb_gen_image_url', true ) &&
-            ! get_post_meta( $post_id, '_holyprofweb_gen_attachment_id', true ) &&
-            ! holyprofweb_post_has_generated_thumbnail_attachment( $post_id ) &&
-            ! holyprofweb_post_uses_generated_image_fallback( $post_id )
-        ) {
+        $has_image_work = holyprofweb_post_uses_generated_image_fallback( $post_id )
+            || holyprofweb_post_has_generated_thumbnail_attachment( $post_id )
+            || (bool) get_post_meta( $post_id, '_holyprofweb_gen_image_url', true )
+            || (bool) get_post_meta( $post_id, '_holyprofweb_gen_attachment_id', true )
+            || ( ! holyprofweb_post_has_trusted_featured_image( $post_id ) && ( holyprofweb_get_post_source_url( $post_id, $post ) || get_post_meta( $post_id, 'external_image', true ) ) );
+
+        if ( ! $has_image_work ) {
             continue;
         }
 
-        holyprofweb_generate_post_image_modern( $post_id, $post );
+        delete_post_meta( $post_id, '_holyprofweb_remote_image_url' );
+
+        if ( ! holyprofweb_post_has_trusted_featured_image( $post_id ) ) {
+            $remote = holyprofweb_maybe_get_remote_post_image( $post_id, $post );
+            if ( $remote ) {
+                holyprofweb_attach_remote_image_to_post( $remote, $post_id, $post->post_title );
+            }
+        }
+
+        if ( ! holyprofweb_post_has_trusted_featured_image( $post_id ) ) {
+            holyprofweb_generate_post_image_modern( $post_id, $post );
+        }
         $processed++;
     }
 
@@ -3315,7 +3327,8 @@ function holyprofweb_reset_generated_images_batch() {
             ! get_post_meta( $post_id, '_holyprofweb_gen_image_url', true ) &&
             ! get_post_meta( $post_id, '_holyprofweb_gen_attachment_id', true ) &&
             ! holyprofweb_post_has_generated_thumbnail_attachment( $post_id ) &&
-            ! holyprofweb_post_uses_generated_image_fallback( $post_id )
+            ! holyprofweb_post_uses_generated_image_fallback( $post_id ) &&
+            ! get_post_meta( $post_id, '_holyprofweb_remote_image_url', true )
         ) {
             continue;
         }
@@ -3336,6 +3349,7 @@ function holyprofweb_reset_generated_images_batch() {
         delete_post_meta( $post_id, '_holyprofweb_gen_attachment_id' );
         delete_post_meta( $post_id, '_holyprofweb_gen_image_url' );
         delete_post_meta( $post_id, '_holyprofweb_gen_image_version' );
+        delete_post_meta( $post_id, '_holyprofweb_remote_image_url' );
 
         $processed++;
     }
@@ -3607,8 +3621,16 @@ function holyprofweb_get_post_card_image_url( $post_id ) {
     }
 
     $remote_cached = trim( (string) get_post_meta( $post_id, '_holyprofweb_remote_image_url', true ) );
-    if ( $remote_cached ) {
+    if ( $remote_cached && ! holyprofweb_is_disallowed_remote_image_url( $remote_cached ) ) {
         return esc_url_raw( $remote_cached );
+    }
+
+    $post = get_post( $post_id );
+    if ( $post ) {
+        $remote = holyprofweb_maybe_get_remote_post_image( $post_id, $post );
+        if ( $remote ) {
+            return esc_url_raw( $remote );
+        }
     }
 
     return holyprofweb_get_generated_card_image_url( $post_id );
