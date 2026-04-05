@@ -6109,6 +6109,8 @@ function holyprofweb_register_settings() {
     register_setting( 'hpw_general',   'hpw_enable_copy_protection', array( 'sanitize_callback' => 'rest_sanitize_boolean' ) );
     register_setting( 'hpw_general',   'hpw_discourage_indexing',  array( 'sanitize_callback' => 'rest_sanitize_boolean' ) );
     register_setting( 'hpw_general',   'hpw_redirect_rules',       array( 'sanitize_callback' => 'holyprofweb_sanitize_redirect_rules' ) );
+    register_setting( 'hpw_general',   'hpw_header_logo_height',   array( 'sanitize_callback' => 'absint' ) );
+    register_setting( 'hpw_general',   'hpw_footer_logo_height',   array( 'sanitize_callback' => 'absint' ) );
 
     // Search & Audience
     register_setting( 'hpw_search',    'hpw_show_trending',        array( 'sanitize_callback' => 'rest_sanitize_boolean' ) );
@@ -6429,6 +6431,19 @@ function holyprofweb_settings_page() {
                 <tr>
                     <th><?php esc_html_e( 'Posts per page (archive/search)', 'holyprofweb' ); ?></th>
                     <td><input type="number" name="hpw_posts_per_page" value="<?php echo esc_attr( get_option( 'hpw_posts_per_page', 12 ) ); ?>" min="1" max="50" class="small-text" /></td>
+                </tr>
+                <tr>
+                    <th><?php esc_html_e( 'Header logo height', 'holyprofweb' ); ?></th>
+                    <td>
+                        <input type="number" name="hpw_header_logo_height" value="<?php echo esc_attr( max( 36, (int) get_option( 'hpw_header_logo_height', 86 ) ) ); ?>" min="36" max="180" class="small-text" /> px
+                        <p class="description"><?php esc_html_e( 'Use Appearance -> Customize -> Site Identity to change the logo itself. Use this setting to make the header logo bigger or smaller.', 'holyprofweb' ); ?></p>
+                    </td>
+                </tr>
+                <tr>
+                    <th><?php esc_html_e( 'Footer logo height', 'holyprofweb' ); ?></th>
+                    <td>
+                        <input type="number" name="hpw_footer_logo_height" value="<?php echo esc_attr( max( 28, (int) get_option( 'hpw_footer_logo_height', 56 ) ) ); ?>" min="28" max="140" class="small-text" /> px
+                    </td>
                 </tr>
                 <tr>
                     <th><?php esc_html_e( 'Show email capture widget', 'holyprofweb' ); ?></th>
@@ -7606,12 +7621,35 @@ function holyprofweb_virtual_robots_txt( $output, $public ) {
         $lines[] = 'Disallow: /';
     } else {
         $lines[] = 'Allow: /';
+        $lines[] = '';
+        $lines[] = 'User-agent: GPTBot';
+        $lines[] = 'Allow: /';
+        $lines[] = '';
+        $lines[] = 'User-agent: OAI-SearchBot';
+        $lines[] = 'Allow: /';
+        $lines[] = '';
+        $lines[] = 'User-agent: CCBot';
+        $lines[] = 'Allow: /';
         $lines[] = 'Sitemap: ' . esc_url_raw( home_url( '/wp-sitemap.xml' ) );
     }
 
     return implode( "\n", $lines ) . "\n";
 }
 add_filter( 'robots_txt', 'holyprofweb_virtual_robots_txt', 10, 2 );
+
+function holyprofweb_render_dynamic_brand_css() {
+    $header_logo_height = max( 36, min( 180, (int) get_option( 'hpw_header_logo_height', 86 ) ) );
+    $footer_logo_height = max( 28, min( 140, (int) get_option( 'hpw_footer_logo_height', 56 ) ) );
+    ?>
+    <style id="holyprofweb-dynamic-brand-css">
+    :root {
+        --hpw-header-logo-height: <?php echo esc_html( $header_logo_height ); ?>px;
+        --hpw-footer-logo-height: <?php echo esc_html( $footer_logo_height ); ?>px;
+    }
+    </style>
+    <?php
+}
+add_action( 'wp_head', 'holyprofweb_render_dynamic_brand_css', 20 );
 
 function holyprofweb_primary_menu_cleanup( $items, $args ) {
     if ( empty( $args->theme_location ) || 'primary' !== $args->theme_location ) {

@@ -365,9 +365,13 @@ ul, ol {
 .section-link {
     font-size: 0.8rem;
     font-weight: 500;
-    color: var(--color-accent);
+    color: #b8860b;
     text-transform: uppercase;
     letter-spacing: 0.05em;
+}
+
+.section-link:hover {
+    color: #d19a12;
 }
 
 /* =========================================
@@ -1358,13 +1362,13 @@ ul, ol {
 
 .site-logo img,
 .footer-logo img {
-    height: 68px;
+    height: var(--hpw-header-logo-height, 68px);
     width: auto;
     display: block;
 }
 
 .site-logo .custom-logo {
-    height: 68px;
+    height: var(--hpw-header-logo-height, 68px);
     width: auto;
 }
 
@@ -3905,9 +3909,9 @@ ul, ol {
 
 /* Success state */
 .review-form-success {
-    background-color: #F0FAF0;
-    border: 1px solid #B8DFB8;
-    border-radius: var(--radius);
+    background: linear-gradient(180deg, rgba(242, 248, 238, 0.98), rgba(233, 243, 227, 0.98));
+    border: 1px solid rgba(126, 161, 98, 0.34);
+    border-radius: 18px;
     padding: 28px 24px;
     text-align: center;
 }
@@ -3920,13 +3924,13 @@ ul, ol {
 .review-form-success h4 {
     font-size: 1rem;
     font-weight: 700;
-    color: #1A4A1A;
+    color: #26411f;
     margin-bottom: 6px;
 }
 
 .review-form-success p {
     font-size: 0.875rem;
-    color: #3A6A3A;
+    color: #496240;
 }
 
 /* New review card (dynamically appended) */
@@ -5084,12 +5088,13 @@ html[data-theme="light"] .theme-toggle-icon--sun {
 .review-verified-badge {
     display: inline-flex;
     align-items: center;
-    padding: 2px 10px;
+    padding: 3px 10px;
     border-radius: 999px;
-    background: #eef6ff;
-    color: #1d4ed8;
-    font-size: 0.75rem;
-    font-weight: 700;
+    background: rgba(184, 134, 11, 0.1);
+    color: #7b5a00;
+    border: 1px solid rgba(184, 134, 11, 0.18);
+    font-size: 0.72rem;
+    font-weight: 600;
     margin-left: 8px;
 }
 
@@ -7003,14 +7008,14 @@ html[data-theme="light"] .theme-toggle-icon--sun {
 .site-logo-link img {
     width: auto !important;
     max-width: min(100%, 320px) !important;
-    height: 86px !important;
+    height: var(--hpw-header-logo-height, 86px) !important;
     max-height: none !important;
 }
 
 .footer-logo img {
     width: auto !important;
     max-width: min(100%, 240px) !important;
-    height: 56px !important;
+    height: var(--hpw-footer-logo-height, 56px) !important;
     max-height: none !important;
 }
 
@@ -10037,7 +10042,6 @@ html[data-theme="dark"] .live-search-input::placeholder {
 }
 
 html[data-theme="dark"] .single-action-btn--alt,
-html[data-theme="dark"] .section-link,
 html[data-theme="dark"] .post-card-category,
 html[data-theme="dark"] .post-card-date,
 html[data-theme="dark"] .topic-hub-description,
@@ -10057,6 +10061,14 @@ html[data-theme="dark"] .live-search-label {
 
 html[data-theme="dark"] .single-action-btn--alt {
     background: var(--color-surface-2);
+}
+
+html[data-theme="dark"] .section-link {
+    color: #f0b84a !important;
+}
+
+html[data-theme="dark"] .section-link:hover {
+    color: #ffd27a !important;
 }
 
 html[data-theme="dark"] .topic-hub-card {
@@ -10467,6 +10479,25 @@ html[data-theme="dark"] .review-form-wrap,
 html[data-theme="dark"] .email-capture-box {
     background: var(--color-surface) !important;
     border: 1px solid var(--color-border) !important;
+}
+
+html[data-theme="dark"] .review-form-success {
+    background: linear-gradient(180deg, rgba(40, 57, 35, 0.96), rgba(30, 43, 27, 0.96)) !important;
+    border: 1px solid rgba(137, 178, 104, 0.28) !important;
+}
+
+html[data-theme="dark"] .review-form-success h4 {
+    color: #e7f4d8 !important;
+}
+
+html[data-theme="dark"] .review-form-success p {
+    color: #c7ddb8 !important;
+}
+
+html[data-theme="dark"] .review-verified-badge {
+    background: rgba(240, 184, 74, 0.12) !important;
+    color: #f0c96d !important;
+    border-color: rgba(240, 184, 74, 0.18) !important;
 }
 
 html[data-theme="dark"] .review-form-title,
