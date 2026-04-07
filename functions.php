@@ -5479,23 +5479,23 @@ function holyprofweb_generate_post_image_modern( $post_id, $post ) {
         imageline( $img, 0, $y, $width, $y, imagecolorallocate( $img, $r, $g, $b ) );
     }
 
-    imagefilledellipse( $img, 1280, 120, 540, 540, $accent_soft );
-    imagefilledellipse( $img, 1420, 700, 560, 560, $accent_glow );
-    imagefilledellipse( $img, 210, 120, 240, 240, imagecolorallocatealpha( $img, 255, 255, 255, 120 ) );
+    imagefilledellipse( $img, 1080, 120, 540, 540, $accent_soft );
+    imagefilledellipse( $img, 1200, 700, 560, 560, $accent_glow );
+    imagefilledellipse( $img, 360, 120, 240, 240, imagecolorallocatealpha( $img, 255, 255, 255, 120 ) );
 
     for ( $x = 0; $x < $width; $x += 96 ) {
         imageline( $img, $x, 0, $x - 280, $height, $grid );
     }
 
     imagefilledrectangle( $img, 0, 0, 14, $height, $accent );
-    holyprofweb_image_filled_rounded_rectangle( $img, 72, 66, $width - 72, $height - 66, $panel, 30 );
-    imagerectangle( $img, 72, 66, $width - 72, $height - 66, $panel_border );
-    holyprofweb_image_filled_rounded_rectangle( $img, 110, 144, 1040, 712, $card_shadow, 30 );
-    holyprofweb_image_filled_rounded_rectangle( $img, 102, 132, 1032, 700, $card_fill, 30 );
-    holyprofweb_image_filled_rounded_rectangle( $img, 110, 740, $width - 110, 810, $footer_panel, 18 );
+    holyprofweb_image_filled_rounded_rectangle( $img, 160, 66, $width - 160, $height - 66, $panel, 30 );
+    imagerectangle( $img, 160, 66, $width - 160, $height - 66, $panel_border );
+    holyprofweb_image_filled_rounded_rectangle( $img, 230, 144, 1120, 712, $card_shadow, 30 );
+    holyprofweb_image_filled_rounded_rectangle( $img, 220, 132, 1110, 700, $card_fill, 30 );
+    holyprofweb_image_filled_rounded_rectangle( $img, 220, 740, $width - 220, 810, $footer_panel, 18 );
 
     $badge_w = (int) ( strlen( $cat_name ) * 18 + 86 );
-    holyprofweb_image_filled_rounded_rectangle( $img, 152, 162, 152 + $badge_w, 224, $accent, 24 );
+    holyprofweb_image_filled_rounded_rectangle( $img, 262, 162, 262 + $badge_w, 224, $accent, 24 );
 
     $font_file = holyprofweb_get_image_font_file();
     $title     = trim( preg_replace( '/\s+/', ' ', wp_strip_all_tags( holyprofweb_get_decoded_post_title( $post_id ) ) ) );
@@ -5517,28 +5517,28 @@ function holyprofweb_generate_post_image_modern( $post_id, $post ) {
 
     switch ( $style ) {
         case 'split-banner':
-            holyprofweb_image_filled_rounded_rectangle( $img, 88, 92, 1512, 808, imagecolorallocatealpha( $img, 10, 14, 22, 26 ), 34 );
-            holyprofweb_image_filled_rounded_rectangle( $img, 112, 118, 1488, 494, imagecolorallocatealpha( $img, 255, 255, 255, 118 ), 24 );
-            holyprofweb_image_filled_rounded_rectangle( $img, 112, 522, 1488, 780, imagecolorallocatealpha( $img, 8, 11, 18, 18 ), 24 );
-            imagefilledellipse( $img, 1320, 148, 460, 460, $accent_soft );
-            imagefilledellipse( $img, 260, 762, 230, 230, imagecolorallocatealpha( $img, 255, 255, 255, 120 ) );
+            holyprofweb_image_filled_rounded_rectangle( $img, 192, 92, 1408, 808, imagecolorallocatealpha( $img, 10, 14, 22, 26 ), 34 );
+            holyprofweb_image_filled_rounded_rectangle( $img, 220, 118, 1380, 494, imagecolorallocatealpha( $img, 255, 255, 255, 118 ), 24 );
+            holyprofweb_image_filled_rounded_rectangle( $img, 220, 522, 1380, 780, imagecolorallocatealpha( $img, 8, 11, 18, 18 ), 24 );
+            imagefilledellipse( $img, 1100, 148, 460, 460, $accent_soft );
+            imagefilledellipse( $img, 380, 762, 230, 230, imagecolorallocatealpha( $img, 255, 255, 255, 120 ) );
 
             if ( $font_file && function_exists( 'imagettftext' ) ) {
-                imagettftext( $img, 19, 0, 156, 182, $dark, $font_file, strtoupper( $cat_name ) );
+                imagettftext( $img, 19, 0, 280, 182, $dark, $font_file, strtoupper( $cat_name ) );
                 $title_size = mb_strlen( $title ) > 60 ? 54 : 64;
                 $line_gap   = $title_size + 14;
                 foreach ( $wrapped as $index => $line ) {
-                    imagettftext( $img, $title_size, 0, 150, 308 + ( $index * $line_gap ), $white, $font_file, $line );
+                    imagettftext( $img, $title_size, 0, 274, 308 + ( $index * $line_gap ), $white, $font_file, $line );
                 }
                 foreach ( array_slice( $deck, 0, 2 ) as $index => $line ) {
-                    imagettftext( $img, 24, 0, 150, 604 + ( $index * 40 ), $muted, $font_file, $line );
+                    imagettftext( $img, 24, 0, 274, 604 + ( $index * 40 ), $muted, $font_file, $line );
                 }
-                imagettftext( $img, 18, 0, 148, 744, $muted, $font_file, 'holyprofweb.com' );
+                imagettftext( $img, 18, 0, 272, 744, $muted, $font_file, 'holyprofweb.com' );
             } else {
-                imagestring( $img, 5, 148, 162, strtoupper( $cat_name ), $dark );
+                imagestring( $img, 5, 270, 162, strtoupper( $cat_name ), $dark );
                 $y = 280;
                 foreach ( $wrapped as $line ) {
-                    imagestring( $img, 5, 146, $y, $line, $white );
+                    imagestring( $img, 5, 268, $y, $line, $white );
                     $y += 52;
                 }
             }
@@ -5546,51 +5546,51 @@ function holyprofweb_generate_post_image_modern( $post_id, $post ) {
 
         case 'spotlight':
             imagefilledellipse( $img, 800, 300, 980, 980, imagecolorallocatealpha( $img, 255, 255, 255, 122 ) );
-            holyprofweb_image_filled_rounded_rectangle( $img, 146, 124, 1454, 776, imagecolorallocatealpha( $img, 8, 12, 19, 36 ), 40 );
-            holyprofweb_image_filled_rounded_rectangle( $img, 226, 194, 1374, 706, imagecolorallocatealpha( $img, 9, 13, 21, 18 ), 34 );
-            holyprofweb_image_filled_rounded_rectangle( $img, 628, 152, 972, 220, $accent, 22 );
+            holyprofweb_image_filled_rounded_rectangle( $img, 220, 124, 1380, 776, imagecolorallocatealpha( $img, 8, 12, 19, 36 ), 40 );
+            holyprofweb_image_filled_rounded_rectangle( $img, 300, 194, 1300, 706, imagecolorallocatealpha( $img, 9, 13, 21, 18 ), 34 );
+            holyprofweb_image_filled_rounded_rectangle( $img, 578, 152, 1022, 220, $accent, 22 );
 
             if ( $font_file && function_exists( 'imagettftext' ) ) {
-                imagettftext( $img, 18, 0, 694, 196, $dark, $font_file, strtoupper( $cat_name ) );
+                imagettftext( $img, 18, 0, 670, 196, $dark, $font_file, strtoupper( $cat_name ) );
                 $title_size = mb_strlen( $title ) > 54 ? 56 : 68;
                 $line_gap   = $title_size + 18;
                 $start_y    = 360;
                 foreach ( $wrapped as $index => $line ) {
                     $bbox = imagettfbbox( $title_size, 0, $font_file, $line );
                     $line_width = is_array( $bbox ) ? abs( $bbox[4] - $bbox[0] ) : 0;
-                    $x = (int) max( 250, ( $width - $line_width ) / 2 );
+                    $x = (int) max( 360, ( $width - $line_width ) / 2 );
                     imagettftext( $img, $title_size, 0, $x, $start_y + ( $index * $line_gap ), $white, $font_file, $line );
                 }
                 foreach ( array_slice( $deck, 0, 2 ) as $index => $line ) {
                     $bbox = imagettfbbox( 23, 0, $font_file, $line );
                     $line_width = is_array( $bbox ) ? abs( $bbox[4] - $bbox[0] ) : 0;
-                    $x = (int) max( 280, ( $width - $line_width ) / 2 );
+                    $x = (int) max( 360, ( $width - $line_width ) / 2 );
                     imagettftext( $img, 23, 0, $x, 610 + ( $index * 38 ), $muted, $font_file, $line );
                 }
             }
             break;
 
         case 'signal-grid':
-            holyprofweb_image_filled_rounded_rectangle( $img, 92, 92, 1508, 808, imagecolorallocatealpha( $img, 8, 12, 19, 20 ), 30 );
-            for ( $grid_x = 120; $grid_x <= 1480; $grid_x += 170 ) {
+            holyprofweb_image_filled_rounded_rectangle( $img, 200, 92, 1400, 808, imagecolorallocatealpha( $img, 8, 12, 19, 20 ), 30 );
+            for ( $grid_x = 230; $grid_x <= 1370; $grid_x += 170 ) {
                 imageline( $img, $grid_x, 110, $grid_x, 790, imagecolorallocatealpha( $img, 255, 255, 255, 120 ) );
             }
             for ( $grid_y = 138; $grid_y <= 772; $grid_y += 108 ) {
-                imageline( $img, 120, $grid_y, 1480, $grid_y, imagecolorallocatealpha( $img, 255, 255, 255, 120 ) );
+                imageline( $img, 230, $grid_y, 1370, $grid_y, imagecolorallocatealpha( $img, 255, 255, 255, 120 ) );
             }
-            holyprofweb_image_filled_rounded_rectangle( $img, 132, 132, 600, 206, $accent, 18 );
-            holyprofweb_image_filled_rounded_rectangle( $img, 132, 246, 1468, 634, imagecolorallocatealpha( $img, 6, 10, 17, 18 ), 24 );
-            holyprofweb_image_filled_rounded_rectangle( $img, 132, 670, 940, 770, imagecolorallocatealpha( $img, 6, 10, 17, 18 ), 20 );
+            holyprofweb_image_filled_rounded_rectangle( $img, 246, 132, 720, 206, $accent, 18 );
+            holyprofweb_image_filled_rounded_rectangle( $img, 246, 246, 1354, 634, imagecolorallocatealpha( $img, 6, 10, 17, 18 ), 24 );
+            holyprofweb_image_filled_rounded_rectangle( $img, 246, 670, 1040, 770, imagecolorallocatealpha( $img, 6, 10, 17, 18 ), 20 );
 
             if ( $font_file && function_exists( 'imagettftext' ) ) {
-                imagettftext( $img, 20, 0, 164, 180, $dark, $font_file, strtoupper( $cat_name ) );
+                imagettftext( $img, 20, 0, 282, 180, $dark, $font_file, strtoupper( $cat_name ) );
                 $title_size = mb_strlen( $title ) > 58 ? 52 : 62;
                 $line_gap   = $title_size + 14;
                 foreach ( $wrapped as $index => $line ) {
-                    imagettftext( $img, $title_size, 0, 166, 346 + ( $index * $line_gap ), $white, $font_file, $line );
+                    imagettftext( $img, $title_size, 0, 284, 346 + ( $index * $line_gap ), $white, $font_file, $line );
                 }
                 foreach ( array_slice( $deck, 0, 2 ) as $index => $line ) {
-                    imagettftext( $img, 22, 0, 166, 724 + ( $index * 34 ), $muted, $font_file, $line );
+                    imagettftext( $img, 22, 0, 284, 724 + ( $index * 34 ), $muted, $font_file, $line );
                 }
             }
             break;
@@ -5598,28 +5598,28 @@ function holyprofweb_generate_post_image_modern( $post_id, $post ) {
         case 'minimal-poster':
             imagefilledrectangle( $img, 0, 0, $width, $height, imagecolorallocate( $img, $palette['bg'][0], $palette['bg'][1], $palette['bg'][2] ) );
             imagefilledrectangle( $img, 0, 0, 18, $height, $accent );
-            holyprofweb_image_filled_rounded_rectangle( $img, 116, 120, 1484, 782, imagecolorallocatealpha( $img, 255, 255, 255, 122 ), 18 );
-            holyprofweb_image_filled_rounded_rectangle( $img, 148, 160, 1462, 742, imagecolorallocatealpha( $img, 12, 16, 24, 4 ), 12 );
-            holyprofweb_image_filled_rounded_rectangle( $img, 148, 160, 410, 218, $accent, 14 );
+            holyprofweb_image_filled_rounded_rectangle( $img, 220, 120, 1380, 782, imagecolorallocatealpha( $img, 255, 255, 255, 122 ), 18 );
+            holyprofweb_image_filled_rounded_rectangle( $img, 252, 160, 1348, 742, imagecolorallocatealpha( $img, 12, 16, 24, 4 ), 12 );
+            holyprofweb_image_filled_rounded_rectangle( $img, 252, 160, 530, 218, $accent, 14 );
 
             if ( $font_file && function_exists( 'imagettftext' ) ) {
-                imagettftext( $img, 18, 0, 176, 198, $dark, $font_file, strtoupper( $cat_name ) );
+                imagettftext( $img, 18, 0, 284, 198, $dark, $font_file, strtoupper( $cat_name ) );
                 $title_size = mb_strlen( $title ) > 62 ? 54 : 66;
                 $line_gap   = $title_size + 18;
                 foreach ( $wrapped as $index => $line ) {
-                    imagettftext( $img, $title_size, 0, 176, 338 + ( $index * $line_gap ), $white, $font_file, $line );
+                    imagettftext( $img, $title_size, 0, 284, 338 + ( $index * $line_gap ), $white, $font_file, $line );
                 }
                 foreach ( array_slice( $deck, 0, 3 ) as $index => $line ) {
-                    imagettftext( $img, 24, 0, 180, 612 + ( $index * 40 ), $muted, $font_file, $line );
+                    imagettftext( $img, 24, 0, 284, 612 + ( $index * 40 ), $muted, $font_file, $line );
                 }
-                imagettftext( $img, 18, 0, 178, 724, $muted, $font_file, 'holyprofweb.com' );
+                imagettftext( $img, 18, 0, 284, 724, $muted, $font_file, 'holyprofweb.com' );
             }
             break;
 
         case 'editorial-dark':
         default:
             if ( $font_file && function_exists( 'imagettftext' ) ) {
-                imagettftext( $img, 20, 0, 186, 202, $dark, $font_file, strtoupper( $cat_name ) );
+                imagettftext( $img, 20, 0, 300, 202, $dark, $font_file, strtoupper( $cat_name ) );
 
                 $title_size  = mb_strlen( $title ) > 58 ? 56 : 68;
                 $line_gap    = $title_size + 16;
@@ -5628,36 +5628,36 @@ function holyprofweb_generate_post_image_modern( $post_id, $post ) {
                 $start_y     = 342;
 
                 foreach ( $wrapped as $index => $line ) {
-                    imagettftext( $img, $title_size, 0, 160, $start_y + ( $index * $line_gap ), $white, $font_file, $line );
+                    imagettftext( $img, $title_size, 0, 274, $start_y + ( $index * $line_gap ), $white, $font_file, $line );
                 }
 
                 if ( ! empty( $deck ) ) {
                     $deck_y = $start_y + $block_h + 34;
                     foreach ( array_slice( $deck, 0, 2 ) as $index => $line ) {
-                        imagettftext( $img, 24, 0, 162, $deck_y + ( $index * 38 ), $muted, $font_file, $line );
+                        imagettftext( $img, 24, 0, 276, $deck_y + ( $index * 38 ), $muted, $font_file, $line );
                     }
                 }
 
-                imagettftext( $img, 18, 0, 152, 787, $muted, $font_file, 'holyprofweb.com' );
-                imagettftext( $img, 18, 0, 1176, 787, $muted, $font_file, 'Research first. Decide with confidence.' );
+                imagettftext( $img, 18, 0, 274, 787, $muted, $font_file, 'holyprofweb.com' );
+                imagettftext( $img, 18, 0, 1080, 787, $muted, $font_file, 'Research first. Decide with confidence.' );
             } else {
                 $badge_label = strtoupper( $cat_name );
-                imagestring( $img, 5, 172, 180, $badge_label, $dark );
+                imagestring( $img, 5, 288, 180, $badge_label, $dark );
 
                 $y = 324;
                 foreach ( $wrapped as $line ) {
-                    imagestring( $img, 5, 158, $y, $line, $white );
+                    imagestring( $img, 5, 272, $y, $line, $white );
                     $y += 56;
                 }
 
                 if ( ! empty( $deck ) ) {
                     foreach ( array_slice( $deck, 0, 2 ) as $line ) {
-                        imagestring( $img, 4, 160, $y + 16, $line, $muted );
+                        imagestring( $img, 4, 272, $y + 16, $line, $muted );
                         $y += 34;
                     }
                 }
 
-                imagestring( $img, 3, 152, 772, 'holyprofweb.com', $muted );
+                imagestring( $img, 3, 274, 772, 'holyprofweb.com', $muted );
                 imagestring( $img, 3, 1064, 772, 'Research first. Decide with confidence.', $muted );
             }
             break;
