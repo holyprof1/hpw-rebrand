@@ -7060,6 +7060,141 @@ function holyprofweb_settings_page() {
             </table>
             <?php submit_button( __( 'Save General Settings', 'holyprofweb' ) ); ?>
         </form>
+
+        <?php
+        // ── IndexNow panel ────────────────────────────────────────────────────
+        $in_key      = holyprofweb_indexnow_key();
+        $in_enabled  = (bool) get_option( 'hpw_indexnow_enabled', 1 );
+        $in_file_ok  = holyprofweb_indexnow_key_file_exists( $in_key );
+        $in_key_url  = holyprofweb_indexnow_key_url( $in_key );
+        $in_log      = (array) get_option( 'hpw_indexnow_last_log', array() );
+        $in_queue    = count( (array) get_option( 'hpw_indexnow_queue', array() ) );
+
+        if ( isset( $_GET['hpw_indexnow'] ) ) {
+            $msg = sanitize_key( $_GET['hpw_indexnow'] );
+            $notice_map = array(
+                'key_regenerated' => 'IndexNow key regenerated and key file rewritten.',
+                'file_written'    => 'Key file written to server root.',
+                'pinged'          => 'Submitted ' . absint( $_GET['count'] ?? 0 ) . ' URL(s) to IndexNow.',
+                'toggled'         => 'IndexNow ' . ( $in_enabled ? 'enabled' : 'disabled' ) . '.',
+            );
+            if ( isset( $notice_map[ $msg ] ) ) {
+                echo '<div class="notice notice-success is-dismissible"><p>' . esc_html( $notice_map[ $msg ] ) . '</p></div>';
+            }
+        }
+
+        $status_color  = $in_enabled ? ( $in_file_ok ? '#1a7f37' : '#b45309' ) : '#888';
+        $status_label  = ! $in_enabled ? 'Disabled' : ( $in_file_ok ? 'Active' : 'Key file missing' );
+        ?>
+
+        <hr style="margin:36px 0 24px;">
+        <h2>&#127760; <?php esc_html_e( 'IndexNow — Real-time Search Engine Pings', 'holyprofweb' ); ?></h2>
+        <p style="color:#555;max-width:680px;">
+            IndexNow notifies Bing, Yandex, and all participating engines <strong>instantly</strong> when you publish, update, or delete a post — no crawl delay, no waiting. One API call covers all engines.
+        </p>
+
+        <table class="form-table" role="presentation" style="max-width:680px;">
+            <tr>
+                <th>Status</th>
+                <td>
+                    <span style="display:inline-block;padding:3px 12px;border-radius:3px;background:<?php echo esc_attr( $status_color ); ?>;color:#fff;font-weight:600;font-size:12px;"><?php echo esc_html( $status_label ); ?></span>
+                    &nbsp;
+                    <form method="post" style="display:inline;">
+                        <?php wp_nonce_field( 'hpw_indexnow_admin', 'hpw_indexnow_nonce' ); ?>
+                        <input type="hidden" name="hpw_indexnow_action" value="toggle">
+                        <button type="submit" class="button button-small"><?php echo $in_enabled ? 'Disable' : 'Enable'; ?></button>
+                    </form>
+                </td>
+            </tr>
+            <tr>
+                <th>API Key</th>
+                <td>
+                    <code style="font-size:13px;background:#f5f5f5;padding:4px 10px;border-radius:3px;user-select:all;"><?php echo esc_html( $in_key ); ?></code>
+                </td>
+            </tr>
+            <tr>
+                <th>Key file URL</th>
+                <td>
+                    <a href="<?php echo esc_url( $in_key_url ); ?>" target="_blank" style="font-size:12px;"><?php echo esc_html( $in_key_url ); ?></a>
+                    &nbsp;
+                    <?php if ( $in_file_ok ) : ?>
+                        <span style="color:#1a7f37;font-size:12px;font-weight:600;">&#10003; File exists on server</span>
+                    <?php else : ?>
+                        <span style="color:#c0392b;font-size:12px;font-weight:600;">&#10005; File missing — click "Write key file" below</span>
+                    <?php endif; ?>
+                </td>
+            </tr>
+            <?php if ( $in_log ) : ?>
+            <tr>
+                <th>Last submission</th>
+                <td style="font-size:12px;color:#555;">
+                    <?php echo esc_html( $in_log['time'] ?? '' ); ?> &mdash;
+                    <?php echo esc_html( $in_log['count'] ?? 0 ); ?> URL(s) &mdash;
+                    HTTP <?php echo esc_html( $in_log['code'] ?? '?' ); ?>
+                    <?php if ( ! empty( $in_log['error'] ) ) : ?>
+                        <span style="color:#c0392b;">&mdash; <?php echo esc_html( $in_log['error'] ); ?></span>
+                    <?php endif; ?>
+                    <br>
+                    <?php foreach ( (array) ( $in_log['urls'] ?? array() ) as $u ) : ?>
+                        <span style="color:#888;"><?php echo esc_html( $u ); ?></span><br>
+                    <?php endforeach; ?>
+                    <?php if ( ( $in_log['count'] ?? 0 ) > 10 ) : ?>
+                        <span style="color:#888;">… and <?php echo esc_html( (int) $in_log['count'] - 10 ); ?> more</span>
+                    <?php endif; ?>
+                </td>
+            </tr>
+            <?php endif; ?>
+            <?php if ( $in_queue > 0 ) : ?>
+            <tr>
+                <th>Import queue</th>
+                <td style="color:#b45309;font-size:12px;"><?php echo esc_html( $in_queue ); ?> URL(s) queued — will be submitted automatically on next page load.</td>
+            </tr>
+            <?php endif; ?>
+        </table>
+
+        <h3 style="margin-top:24px;"><?php esc_html_e( 'Actions', 'holyprofweb' ); ?></h3>
+        <div style="display:flex;flex-wrap:wrap;gap:12px;align-items:flex-start;">
+
+            <form method="post">
+                <?php wp_nonce_field( 'hpw_indexnow_admin', 'hpw_indexnow_nonce' ); ?>
+                <input type="hidden" name="hpw_indexnow_action" value="write_key_file">
+                <button type="submit" class="button">&#128190; Write key file to server</button>
+                <p class="description" style="margin-top:4px;">Rewrites the <code><?php echo esc_html( $in_key ); ?>.txt</code> file to your web root.</p>
+            </form>
+
+            <form method="post">
+                <?php wp_nonce_field( 'hpw_indexnow_admin', 'hpw_indexnow_nonce' ); ?>
+                <input type="hidden" name="hpw_indexnow_action" value="ping_all">
+                <button type="submit" class="button" onclick="return confirm('Submit 50 most recent posts to IndexNow now?');">&#128228; Ping 50 recent posts</button>
+                <p class="description" style="margin-top:4px;">Sends your 50 newest published URLs to Bing + all IndexNow engines.</p>
+            </form>
+
+            <form method="post">
+                <?php wp_nonce_field( 'hpw_indexnow_admin', 'hpw_indexnow_nonce' ); ?>
+                <input type="hidden" name="hpw_indexnow_action" value="ping_url">
+                <input type="url" name="hpw_indexnow_url" placeholder="https://holyprofweb.com/specific-post/" style="width:360px;" required>
+                <button type="submit" class="button">&#128205; Ping this URL</button>
+            </form>
+
+            <form method="post">
+                <?php wp_nonce_field( 'hpw_indexnow_admin', 'hpw_indexnow_nonce' ); ?>
+                <input type="hidden" name="hpw_indexnow_action" value="regenerate_key">
+                <button type="submit" class="button button-link-delete" onclick="return confirm('This will generate a new key and delete the old key file. Are you sure?');">&#128260; Regenerate key</button>
+                <p class="description" style="margin-top:4px;">Only do this if your key is compromised.</p>
+            </form>
+
+        </div>
+
+        <h3 style="margin-top:28px;">How it works on this site</h3>
+        <ul style="list-style:disc;margin-left:20px;color:#555;font-size:13px;line-height:1.8;">
+            <li><strong>Publish</strong> — post URL + all its category &amp; tag pages + homepage are pinged immediately.</li>
+            <li><strong>Update</strong> — same URLs pinged on every save while published.</li>
+            <li><strong>Delete / Trash</strong> — homepage + category pages pinged so engines re-index the listing.</li>
+            <li><strong>Category/Tag edit</strong> — that archive URL is pinged on term change.</li>
+            <li><strong>XML Import</strong> — URLs are queued and batch-submitted in one API call at the end.</li>
+            <li>All submissions go to <code>api.indexnow.org</code> which distributes to <strong>Bing, Yandex, Seznam, Naver</strong> and all participating engines.</li>
+        </ul>
+
     </div>
     <?php
 }
@@ -8959,6 +9094,324 @@ function holyprofweb_on_post_publish_rest_safe( $new_status, $old_status, $post 
 }
 remove_action( 'transition_post_status', 'holyprofweb_on_post_publish', 10 );
 add_action( 'transition_post_status', 'holyprofweb_on_post_publish_rest_safe', 10, 3 );
+
+// =========================================
+// INDEXNOW — REAL-TIME SEARCH ENGINE PINGS
+// =========================================
+
+/**
+ * Get or generate the IndexNow key (stored in wp_options).
+ */
+function holyprofweb_indexnow_key() {
+    $key = (string) get_option( 'hpw_indexnow_key', '' );
+    if ( '' === $key || strlen( $key ) < 8 ) {
+        $key = wp_generate_password( 32, false );
+        update_option( 'hpw_indexnow_key', $key );
+        holyprofweb_indexnow_write_key_file( $key );
+    }
+    return $key;
+}
+
+/**
+ * URL where the key verification file lives.
+ */
+function holyprofweb_indexnow_key_url( $key = '' ) {
+    if ( '' === $key ) $key = holyprofweb_indexnow_key();
+    return home_url( '/' . $key . '.txt' );
+}
+
+/**
+ * Write the key file to the web root so search engines can verify ownership.
+ */
+function holyprofweb_indexnow_write_key_file( $key = '' ) {
+    if ( '' === $key ) $key = (string) get_option( 'hpw_indexnow_key', '' );
+    if ( '' === $key ) return false;
+
+    $path = rtrim( ABSPATH, '/' ) . '/' . preg_replace( '/[^a-zA-Z0-9\-_]/', '', $key ) . '.txt';
+    // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_file_put_contents
+    return false !== file_put_contents( $path, $key );
+}
+
+/**
+ * Verify the key file is accessible on the server.
+ */
+function holyprofweb_indexnow_key_file_exists( $key = '' ) {
+    if ( '' === $key ) $key = (string) get_option( 'hpw_indexnow_key', '' );
+    if ( '' === $key ) return false;
+    $path = rtrim( ABSPATH, '/' ) . '/' . preg_replace( '/[^a-zA-Z0-9\-_]/', '', $key ) . '.txt';
+    return file_exists( $path );
+}
+
+/**
+ * Collect all URLs that should be pinged for a given post:
+ * the post permalink, its category pages, tag pages, and homepage.
+ */
+function holyprofweb_indexnow_post_urls( $post_id ) {
+    $urls   = array();
+    $urls[] = (string) get_permalink( $post_id );
+    $urls[] = home_url( '/' );
+
+    foreach ( get_the_category( $post_id ) as $cat ) {
+        $urls[] = (string) get_category_link( $cat->term_id );
+    }
+    foreach ( wp_get_post_tags( $post_id ) as $tag ) {
+        $urls[] = (string) get_tag_link( $tag->term_id );
+    }
+
+    return array_values( array_unique( array_filter( $urls ) ) );
+}
+
+/**
+ * Send a batch of URLs to IndexNow (Bing endpoint distributes to all participants).
+ * Stores the last submission log in wp_options.
+ *
+ * @param string[] $urls
+ */
+function holyprofweb_indexnow_submit( array $urls ) {
+    $urls = array_values( array_unique( array_filter( array_map( 'esc_url_raw', $urls ) ) ) );
+    if ( empty( $urls ) ) return;
+
+    $key     = holyprofweb_indexnow_key();
+    $host    = (string) wp_parse_url( home_url(), PHP_URL_HOST );
+    $key_url = holyprofweb_indexnow_key_url( $key );
+
+    // Chunk into max 500 per request (API limit is 10k, we keep it conservative).
+    foreach ( array_chunk( $urls, 500 ) as $chunk ) {
+        $body = wp_json_encode( array(
+            'host'        => $host,
+            'key'         => $key,
+            'keyLocation' => $key_url,
+            'urlList'     => $chunk,
+        ) );
+
+        $response = wp_remote_post(
+            'https://api.indexnow.org/indexnow',
+            array(
+                'headers'   => array( 'Content-Type' => 'application/json; charset=utf-8' ),
+                'body'      => $body,
+                'timeout'   => 8,
+                'sslverify' => true,
+            )
+        );
+
+        $code = is_wp_error( $response ) ? 0 : (int) wp_remote_retrieve_response_code( $response );
+
+        $log = array(
+            'time'  => current_time( 'mysql' ),
+            'count' => count( $chunk ),
+            'code'  => $code,
+            'urls'  => array_slice( $chunk, 0, 10 ), // store first 10 as sample
+            'error' => is_wp_error( $response ) ? $response->get_error_message() : '',
+        );
+        update_option( 'hpw_indexnow_last_log', $log );
+
+        // On 422 (invalid key file), regenerate.
+        if ( 422 === $code ) {
+            holyprofweb_indexnow_write_key_file( $key );
+        }
+    }
+}
+
+/**
+ * Queue URLs for batch submission (used during XML imports to avoid API spam).
+ */
+function holyprofweb_indexnow_enqueue( array $urls ) {
+    $queue = (array) get_option( 'hpw_indexnow_queue', array() );
+    $queue = array_unique( array_merge( $queue, $urls ) );
+    update_option( 'hpw_indexnow_queue', array_values( $queue ) );
+}
+
+/**
+ * Flush the queue — called on shutdown after a bulk import.
+ */
+function holyprofweb_indexnow_flush_queue() {
+    $queue = (array) get_option( 'hpw_indexnow_queue', array() );
+    if ( empty( $queue ) ) return;
+    delete_option( 'hpw_indexnow_queue' );
+    holyprofweb_indexnow_submit( $queue );
+}
+
+// ── Hooks ──────────────────────────────────────────────────────────────────────
+
+/**
+ * Ping on publish (new) or update (already published).
+ */
+add_action( 'transition_post_status', function ( $new, $old, $post ) {
+    if ( ! $post instanceof WP_Post || 'post' !== $post->post_type ) return;
+    if ( wp_is_post_revision( $post->ID ) || wp_is_post_autosave( $post->ID ) ) return;
+    if ( ! get_option( 'hpw_indexnow_enabled', 1 ) ) return;
+
+    $is_publish_event = ( 'publish' === $new );
+    $is_update_event  = ( 'publish' === $new && 'publish' === $old );
+
+    if ( ! $is_publish_event ) return;
+
+    $urls = holyprofweb_indexnow_post_urls( $post->ID );
+
+    // During imports (many posts in quick succession) use the queue.
+    if ( defined( 'WP_IMPORTING' ) && WP_IMPORTING ) {
+        holyprofweb_indexnow_enqueue( $urls );
+        // Register queue flush once.
+        if ( ! has_action( 'shutdown', 'holyprofweb_indexnow_flush_queue' ) ) {
+            add_action( 'shutdown', 'holyprofweb_indexnow_flush_queue' );
+        }
+        return;
+    }
+
+    // Normal publish/update: fire after the request completes (shutdown).
+    add_action( 'shutdown', function() use ( $urls ) {
+        holyprofweb_indexnow_submit( $urls );
+    } );
+}, 20, 3 );
+
+/**
+ * Ping when a published post is trashed or deleted.
+ */
+add_action( 'trashed_post', function ( $post_id ) {
+    if ( ! get_option( 'hpw_indexnow_enabled', 1 ) ) return;
+    $post = get_post( $post_id );
+    if ( ! $post instanceof WP_Post || 'post' !== $post->post_type ) return;
+    // Ping homepage + category so engines re-crawl the updated listing.
+    $urls = array( home_url( '/' ) );
+    foreach ( get_the_category( $post_id ) as $cat ) {
+        $urls[] = (string) get_category_link( $cat->term_id );
+    }
+    add_action( 'shutdown', function() use ( $urls ) {
+        holyprofweb_indexnow_submit( $urls );
+    } );
+} );
+
+/**
+ * Ping when a category/tag is edited (description, name change, etc.).
+ */
+add_action( 'edited_term', function ( $term_id, $tt_id, $taxonomy ) {
+    if ( ! get_option( 'hpw_indexnow_enabled', 1 ) ) return;
+    if ( ! in_array( $taxonomy, array( 'category', 'post_tag' ), true ) ) return;
+    $link = 'category' === $taxonomy ? get_category_link( $term_id ) : get_tag_link( $term_id );
+    if ( $link && ! is_wp_error( $link ) ) {
+        add_action( 'shutdown', function() use ( $link ) {
+            holyprofweb_indexnow_submit( array( $link, home_url( '/' ) ) );
+        } );
+    }
+}, 10, 3 );
+
+/**
+ * Ensure key file exists on every admin page load (self-healing).
+ */
+add_action( 'admin_init', function () {
+    $key = (string) get_option( 'hpw_indexnow_key', '' );
+    if ( $key && ! holyprofweb_indexnow_key_file_exists( $key ) ) {
+        holyprofweb_indexnow_write_key_file( $key );
+    }
+} );
+
+/**
+ * Serve the key file via WordPress rewrite (backup if physical write failed).
+ */
+add_action( 'init', function () {
+    $key = (string) get_option( 'hpw_indexnow_key', '' );
+    if ( '' === $key ) return;
+    add_rewrite_rule( '^' . preg_quote( $key, '/' ) . '\.txt$', 'index.php?hpw_indexnow_key=1', 'top' );
+} );
+add_filter( 'query_vars', function ( $vars ) {
+    $vars[] = 'hpw_indexnow_key';
+    return $vars;
+} );
+add_action( 'template_redirect', function () {
+    if ( ! get_query_var( 'hpw_indexnow_key' ) ) return;
+    $key = (string) get_option( 'hpw_indexnow_key', '' );
+    if ( '' === $key ) {
+        status_header( 404 );
+        exit;
+    }
+    header( 'Content-Type: text/plain; charset=utf-8' );
+    status_header( 200 );
+    echo esc_html( $key );
+    exit;
+} );
+
+/**
+ * Handle the manual ping form on the Site & SEO settings page.
+ */
+add_action( 'admin_init', function () {
+    if ( ! is_admin() || ! current_user_can( 'manage_options' ) ) return;
+    if ( empty( $_POST['hpw_indexnow_action'] ) ) return;
+
+    check_admin_referer( 'hpw_indexnow_admin', 'hpw_indexnow_nonce' );
+    $action = sanitize_key( $_POST['hpw_indexnow_action'] );
+
+    if ( 'regenerate_key' === $action ) {
+        // Delete old key file before regenerating.
+        $old_key = (string) get_option( 'hpw_indexnow_key', '' );
+        if ( $old_key ) {
+            $old_path = rtrim( ABSPATH, '/' ) . '/' . preg_replace( '/[^a-zA-Z0-9\-_]/', '', $old_key ) . '.txt';
+            if ( file_exists( $old_path ) ) {
+                // phpcs:ignore WordPress.WP.AlternativeFunctions.unlink_unlink
+                @unlink( $old_path );
+            }
+        }
+        delete_option( 'hpw_indexnow_key' );
+        holyprofweb_indexnow_key(); // triggers generation + file write
+        wp_safe_redirect( add_query_arg( array( 'page' => 'hpw-settings', 'hpw_indexnow' => 'key_regenerated' ), admin_url( 'admin.php' ) ) );
+        exit;
+    }
+
+    if ( 'write_key_file' === $action ) {
+        holyprofweb_indexnow_write_key_file();
+        wp_safe_redirect( add_query_arg( array( 'page' => 'hpw-settings', 'hpw_indexnow' => 'file_written' ), admin_url( 'admin.php' ) ) );
+        exit;
+    }
+
+    if ( 'ping_all' === $action ) {
+        // Ping the 50 most recent published posts + homepage.
+        $urls    = array( home_url( '/' ) );
+        $posts   = get_posts( array(
+            'post_type'      => 'post',
+            'post_status'    => 'publish',
+            'posts_per_page' => 50,
+            'fields'         => 'ids',
+            'no_found_rows'  => true,
+        ) );
+        foreach ( $posts as $pid ) {
+            $urls[] = (string) get_permalink( $pid );
+        }
+        holyprofweb_indexnow_submit( $urls );
+        wp_safe_redirect( add_query_arg( array( 'page' => 'hpw-settings', 'hpw_indexnow' => 'pinged', 'count' => count( $urls ) ), admin_url( 'admin.php' ) ) );
+        exit;
+    }
+
+    if ( 'ping_url' === $action ) {
+        $url = isset( $_POST['hpw_indexnow_url'] ) ? esc_url_raw( wp_unslash( $_POST['hpw_indexnow_url'] ) ) : '';
+        if ( $url ) {
+            holyprofweb_indexnow_submit( array( $url ) );
+        }
+        wp_safe_redirect( add_query_arg( array( 'page' => 'hpw-settings', 'hpw_indexnow' => 'pinged', 'count' => $url ? 1 : 0 ), admin_url( 'admin.php' ) ) );
+        exit;
+    }
+
+    if ( 'toggle' === $action ) {
+        $current = get_option( 'hpw_indexnow_enabled', 1 );
+        update_option( 'hpw_indexnow_enabled', $current ? 0 : 1 );
+        wp_safe_redirect( add_query_arg( array( 'page' => 'hpw-settings', 'hpw_indexnow' => 'toggled' ), admin_url( 'admin.php' ) ) );
+        exit;
+    }
+} );
+
+/**
+ * Auto-generate key on theme activation.
+ */
+add_action( 'after_switch_theme', function () {
+    holyprofweb_indexnow_key();
+} );
+
+/**
+ * Auto-generate key on first admin load if not yet set.
+ */
+add_action( 'admin_init', function () {
+    if ( '' === get_option( 'hpw_indexnow_key', '' ) ) {
+        holyprofweb_indexnow_key();
+    }
+}, 5 );
 
 /**
  * Auto-generate post excerpt from content (first ~155 chars, word-boundary cut).
