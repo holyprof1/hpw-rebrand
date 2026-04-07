@@ -484,8 +484,17 @@ function holyprofweb_thumbnail( $size = 'holyprofweb-card', $link = true ) {
     if ( has_post_thumbnail() ) {
         the_post_thumbnail( $size, array( 'loading' => 'lazy' ) );
     } else {
-        $ph = get_template_directory_uri() . '/assets/images/placeholder.svg';
-        echo '<img src="' . esc_url( $ph ) . '" alt="" loading="lazy" class="post-card-placeholder-img" />';
+        // Check for an SVG data URL stored in post meta (generated fallback that
+        // isn't a real WP attachment, so has_post_thumbnail() is false for it).
+        $gen_url = (string) get_post_meta( get_the_ID(), '_holyprofweb_gen_image_url', true );
+        if ( $gen_url && 0 === strpos( $gen_url, 'data:image/svg+xml' ) ) {
+            // Data URLs cannot be sanitized with esc_url_raw (it strips them).
+            // The value is theme-generated SVG — safe to output directly in src.
+            echo '<img src="' . $gen_url . '" alt="' . esc_attr( get_the_title() ) . '" loading="lazy" style="width:100%;height:100%;object-fit:cover;display:block;" />';
+        } else {
+            $ph = get_template_directory_uri() . '/assets/images/placeholder.svg';
+            echo '<img src="' . esc_url( $ph ) . '" alt="" loading="lazy" class="post-card-placeholder-img" />';
+        }
     }
 
     echo $link ? '</a>' : '</div>';
@@ -6947,7 +6956,7 @@ function holyprofweb_settings_page() {
             </div>
             <div style="background:#fff;border:1px solid #dcdcde;border-radius:12px;padding:16px;">
                 <h2 style="margin:0 0 10px;font-size:16px;"><?php esc_html_e( 'Site Visibility', 'holyprofweb' ); ?></h2>
-                <div style="display:flex;justify-content:space-between;gap:10px;padding:4px 0;"><span><?php esc_html_e( 'Search indexing', 'holyprofweb' ); ?></span><strong><?php echo get_option( 'hpw_discourage_indexing', 1 ) ? esc_html__( 'Discouraged', 'holyprofweb' ) : esc_html__( 'Allowed', 'holyprofweb' ); ?></strong></div>
+                <div style="display:flex;justify-content:space-between;gap:10px;padding:4px 0;"><span><?php esc_html_e( 'Search indexing', 'holyprofweb' ); ?></span><strong><?php echo get_option( 'hpw_discourage_indexing', 0 ) ? esc_html__( 'Discouraged', 'holyprofweb' ) : esc_html__( 'Allowed', 'holyprofweb' ); ?></strong></div>
                 <div style="display:flex;justify-content:space-between;gap:10px;padding:4px 0;"><span><?php esc_html_e( 'Copy protection', 'holyprofweb' ); ?></span><strong><?php echo get_option( 'hpw_enable_copy_protection', 0 ) ? esc_html__( 'On', 'holyprofweb' ) : esc_html__( 'Off', 'holyprofweb' ); ?></strong></div>
                 <div style="display:flex;justify-content:space-between;gap:10px;padding:4px 0;"><span><?php esc_html_e( 'Archive/search posts per page', 'holyprofweb' ); ?></span><strong><?php echo esc_html( (int) get_option( 'hpw_posts_per_page', 12 ) ); ?></strong></div>
             </div>
@@ -8031,7 +8040,7 @@ function holyprofweb_render_image_desk_rows( $posts, $filters = array() ) {
         $status   = ucfirst( $post->post_status );
 
         echo '<tr>';
-        echo '<td style="max-width:240px;"><a href="' . esc_url( get_edit_post_link( $pid ) ) . '" style="font-weight:500;">' . esc_html( get_the_title( $pid ) ) . '</a></td>';
+        echo '<td style="max-width:240px;"><a href="' . esc_url( get_permalink( $pid ) ) . '" target="_blank" style="font-weight:500;">' . esc_html( get_the_title( $pid ) ) . '</a> <a href="' . esc_url( get_edit_post_link( $pid ) ) . '" title="Edit post" style="color:#999;font-size:11px;margin-left:4px;" target="_blank">&#9998;</a></td>';
         echo '<td><span style="display:inline-block;padding:2px 8px;border-radius:3px;background:' . esc_attr( $color ) . ';color:#fff;font-size:11px;font-weight:600;white-space:nowrap;">'
             . esc_html( $state['label'] ) . '</span></td>';
         echo '<td>' . esc_html( $cat_name ) . '</td>';
