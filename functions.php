@@ -460,7 +460,7 @@ function holyprofweb_pagination( $query = null ) {
         'total'     => $query->max_num_pages,
         'prev_text' => '&larr;',
         'next_text' => '&rarr;',
-        'type'      => 'list',
+        'type'      => 'plain',
     ) );
 
     if ( $links ) {
@@ -558,7 +558,7 @@ function holyprofweb_ads_admin_menu() {
 add_action( 'admin_menu', 'holyprofweb_ads_admin_menu' );
 
 /**
- * Render the Ads settings page (6 slots).
+ * Render the Ads settings page — Adsterra units only.
  */
 function holyprofweb_ads_admin_page() {
     if ( ! current_user_can( 'manage_options' ) ) {
@@ -571,35 +571,46 @@ function holyprofweb_ads_admin_page() {
         isset( $_POST['holyprofweb_ads_nonce'] ) &&
         wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['holyprofweb_ads_nonce'] ) ), 'holyprofweb_save_ads' )
     ) {
-        // Raw ad code storage — admin-only, intentionally allows script tags
-        $slots = array( 'header', 'sidebar', 'sidebar_2', 'incontent', 'incontent_2', 'footer' );
-        foreach ( $slots as $slot ) {
-            $field = 'holyprofweb_ad_' . $slot;
-            // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
-            $code = isset( $_POST[ $field ] ) ? wp_unslash( $_POST[ $field ] ) : '';
-            update_option( $field, $code );
+        // Ad unit codes — base64-encoded by JS to bypass server WAF.
+        $ad_units = array(
+            'social'         => 'hpw_ad_social',
+            'native'         => 'hpw_ad_native',
+            'banner_728x90'  => 'hpw_ad_728x90',
+            'banner_468x60'  => 'hpw_ad_468x60',
+            'banner_320x50'  => 'hpw_ad_320x50',
+            'banner_160x300' => 'hpw_ad_160x300',
+            'banner_160x600' => 'hpw_ad_160x600',
+            'banner_300x250' => 'hpw_ad_300x250',
+        );
+        foreach ( $ad_units as $option_suffix => $field ) {
+            $b64_field = $field . '_b64';
+            if ( ! empty( $_POST[ $b64_field ] ) ) {
+                // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+                $code = base64_decode( wp_unslash( $_POST[ $b64_field ] ) );
+            } else {
+                // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+                $code = isset( $_POST[ $field ] ) ? wp_unslash( $_POST[ $field ] ) : '';
+            }
+            update_option( 'holyprofweb_ad_format_' . $option_suffix, $code );
         }
 
-        $formats = array( 'leaderboard', 'rectangle', 'mobile', 'social' );
-        foreach ( $formats as $format ) {
-            $format_field = 'holyprofweb_ad_format_' . $format;
-            $density_field = 'holyprofweb_ad_density_' . $format;
-            // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
-            $code = isset( $_POST[ $format_field ] ) ? wp_unslash( $_POST[ $format_field ] ) : '';
-            $density = isset( $_POST[ $density_field ] ) ? sanitize_key( wp_unslash( $_POST[ $density_field ] ) ) : 'basic';
-            update_option( $format_field, $code );
-            update_option( $density_field, in_array( $density, array( 'basic', 'normal', 'rigid' ), true ) ? $density : 'basic' );
+        // Density per format group — only basic or rigid.
+        foreach ( array( 'social', 'native', 'leaderboard', 'rectangle', 'mobile' ) as $group ) {
+            $val = isset( $_POST[ 'hpw_density_' . $group ] ) ? sanitize_key( wp_unslash( $_POST[ 'hpw_density_' . $group ] ) ) : 'basic';
+            update_option( 'holyprofweb_ad_density_' . $group, in_array( $val, array( 'basic', 'normal', 'rigid' ), true ) ? $val : 'basic' );
         }
 
-        $granular_units = array( 'native', 'banner_160x300', 'banner_468x60', 'banner_320x50', 'banner_728x90', 'banner_160x600', 'banner_300x250' );
-        foreach ( $granular_units as $unit ) {
-            $field = 'holyprofweb_ad_format_' . $unit;
-            // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
-            $code = isset( $_POST[ $field ] ) ? wp_unslash( $_POST[ $field ] ) : '';
-            update_option( $field, $code );
-        }
         $saved = true;
     }
+
+    // Helper: decode stored code for textarea display.
+    $get_code = function( $key ) {
+        return (string) get_option( 'holyprofweb_ad_format_' . $key, '' );
+    };
+    $density_label = function( $group ) {
+        $d = holyprofweb_get_ad_density( $group );
+        return 'rigid' === $d ? 'rigid' : 'basic';
+    };
     ?>
     <div class="wrap">
         <h1>&#128250; <?php esc_html_e( 'HPW Settings — Ads', 'holyprofweb' ); ?></h1>
@@ -607,217 +618,121 @@ function holyprofweb_ads_admin_page() {
 
         <?php if ( $saved ) : ?>
         <div class="notice notice-success is-dismissible">
-            <p><?php esc_html_e( 'Ad codes saved successfully.', 'holyprofweb' ); ?></p>
+            <p><?php esc_html_e( 'Ad codes saved.', 'holyprofweb' ); ?></p>
         </div>
         <?php endif; ?>
 
-        <p style="color:#666; margin-bottom:20px;">
-            <?php esc_html_e( 'Paste raw ad code from Adsterra or any network. Leave empty to disable. No popups or popunders — display/native ads only.', 'holyprofweb' ); ?>
+        <p style="color:#666;margin-bottom:24px;">
+            <?php esc_html_e( 'Paste your Adsterra ad code for each unit. Choose Basic (conservative) or Rigid (maximum coverage — feeds, archives, in-content).', 'holyprofweb' ); ?>
         </p>
 
-        <form method="post">
+        <form method="post" id="hpw-ads-form">
             <?php wp_nonce_field( 'holyprofweb_save_ads', 'holyprofweb_ads_nonce' ); ?>
 
-            <h2><?php esc_html_e( 'Adsterra Format Controls', 'holyprofweb' ); ?></h2>
+            <?php
+            // ── Section helper ────────────────────────────────────────────
+            $section = function( $title, $desc ) {
+                echo '<h2 style="margin-top:32px;border-bottom:1px solid #ddd;padding-bottom:6px;">' . esc_html( $title ) . '</h2>';
+                if ( $desc ) echo '<p style="color:#666;margin-bottom:12px;">' . esc_html( $desc ) . '</p>';
+            };
+            $unit_row = function( $label, $adsterra_id, $field, $code_key ) use ( $get_code ) {
+                $val = $get_code( $code_key );
+                ?>
+                <tr>
+                    <th scope="row" style="width:200px;">
+                        <strong><?php echo esc_html( $label ); ?></strong><br>
+                        <span style="font-size:11px;color:#888;font-weight:normal;">ID: <?php echo esc_html( $adsterra_id ); ?></span>
+                    </th>
+                    <td>
+                        <textarea name="<?php echo esc_attr( $field ); ?>" rows="4"
+                                  class="large-text code hpw-ad-code"
+                                  placeholder="Paste Adsterra script code here…"><?php echo esc_textarea( $val ); ?></textarea>
+                    </td>
+                </tr>
+                <?php
+            };
+            $density_row = function( $group, $basic_desc, $rigid_desc ) use ( $density_label ) {
+                $cur = $density_label( $group );
+                ?>
+                <tr>
+                    <th scope="row" style="padding-top:4px;">Placement</th>
+                    <td>
+                        <label style="margin-right:20px;">
+                            <input type="radio" name="hpw_density_<?php echo esc_attr( $group ); ?>" value="basic" <?php checked( $cur, 'basic' ); ?>>
+                            <strong>Basic</strong> — <?php echo esc_html( $basic_desc ); ?>
+                        </label>
+                        <label>
+                            <input type="radio" name="hpw_density_<?php echo esc_attr( $group ); ?>" value="rigid" <?php checked( $cur, 'rigid' ); ?>>
+                            <strong>Rigid</strong> — <?php echo esc_html( $rigid_desc ); ?>
+                        </label>
+                    </td>
+                </tr>
+                <tr><td colspan="2" style="padding-top:0;"><hr style="margin:4px 0 16px;"></td></tr>
+                <?php
+            };
+            ?>
+
+            <?php $section( 'Social Bar', 'Sitewide floating bar — always shown when active.' ); ?>
             <table class="form-table" role="presentation">
-                <tr>
-                    <th scope="row"><?php esc_html_e( 'Leaderboard / 728x90', 'holyprofweb' ); ?></th>
-                    <td>
-                        <textarea name="holyprofweb_ad_format_leaderboard" rows="5" class="large-text code"><?php echo esc_textarea( get_option( 'holyprofweb_ad_format_leaderboard', '' ) ); ?></textarea>
-                        <p><select name="holyprofweb_ad_density_leaderboard">
-                            <option value="basic" <?php selected( holyprofweb_get_ad_density( 'leaderboard' ), 'basic' ); ?>><?php esc_html_e( 'Basic', 'holyprofweb' ); ?></option>
-                            <option value="normal" <?php selected( holyprofweb_get_ad_density( 'leaderboard' ), 'normal' ); ?>><?php esc_html_e( 'Normal', 'holyprofweb' ); ?></option>
-                            <option value="rigid" <?php selected( holyprofweb_get_ad_density( 'leaderboard' ), 'rigid' ); ?>><?php esc_html_e( 'Rigid', 'holyprofweb' ); ?></option>
-                        </select></p>
-                        <p class="description"><?php esc_html_e( 'Basic: top only. Normal: top + footer. Rigid: top + front/archive inline + footer.', 'holyprofweb' ); ?></p>
-                    </td>
-                </tr>
-                <tr>
-                    <th scope="row"><?php esc_html_e( 'Rectangle / 300x250 / 336x280', 'holyprofweb' ); ?></th>
-                    <td>
-                        <textarea name="holyprofweb_ad_format_rectangle" rows="5" class="large-text code"><?php echo esc_textarea( get_option( 'holyprofweb_ad_format_rectangle', '' ) ); ?></textarea>
-                        <p><select name="holyprofweb_ad_density_rectangle">
-                            <option value="basic" <?php selected( holyprofweb_get_ad_density( 'rectangle' ), 'basic' ); ?>><?php esc_html_e( 'Basic', 'holyprofweb' ); ?></option>
-                            <option value="normal" <?php selected( holyprofweb_get_ad_density( 'rectangle' ), 'normal' ); ?>><?php esc_html_e( 'Normal', 'holyprofweb' ); ?></option>
-                            <option value="rigid" <?php selected( holyprofweb_get_ad_density( 'rectangle' ), 'rigid' ); ?>><?php esc_html_e( 'Rigid', 'holyprofweb' ); ?></option>
-                        </select></p>
-                        <p class="description"><?php esc_html_e( 'Basic: sidebar + first in-content. Normal: more front-page coverage. Rigid: sidebar, multiple in-content, archive/front inline.', 'holyprofweb' ); ?></p>
-                    </td>
-                </tr>
-                <tr>
-                    <th scope="row"><?php esc_html_e( 'Mobile 320x50 / 320x100', 'holyprofweb' ); ?></th>
-                    <td>
-                        <textarea name="holyprofweb_ad_format_mobile" rows="5" class="large-text code"><?php echo esc_textarea( get_option( 'holyprofweb_ad_format_mobile', '' ) ); ?></textarea>
-                        <p><select name="holyprofweb_ad_density_mobile">
-                            <option value="basic" <?php selected( holyprofweb_get_ad_density( 'mobile' ), 'basic' ); ?>><?php esc_html_e( 'Basic', 'holyprofweb' ); ?></option>
-                            <option value="normal" <?php selected( holyprofweb_get_ad_density( 'mobile' ), 'normal' ); ?>><?php esc_html_e( 'Normal', 'holyprofweb' ); ?></option>
-                            <option value="rigid" <?php selected( holyprofweb_get_ad_density( 'mobile' ), 'rigid' ); ?>><?php esc_html_e( 'Rigid', 'holyprofweb' ); ?></option>
-                        </select></p>
-                        <p class="description"><?php esc_html_e( 'Use for mobile sticky or compact inline mobile placements.', 'holyprofweb' ); ?></p>
-                    </td>
-                </tr>
-                <tr>
-                    <th scope="row"><?php esc_html_e( 'Social Bar / Native Bar', 'holyprofweb' ); ?></th>
-                    <td>
-                        <textarea name="holyprofweb_ad_format_social" rows="5" class="large-text code"><?php echo esc_textarea( get_option( 'holyprofweb_ad_format_social', '' ) ); ?></textarea>
-                        <p><select name="holyprofweb_ad_density_social">
-                            <option value="basic" <?php selected( holyprofweb_get_ad_density( 'social' ), 'basic' ); ?>><?php esc_html_e( 'Basic', 'holyprofweb' ); ?></option>
-                            <option value="normal" <?php selected( holyprofweb_get_ad_density( 'social' ), 'normal' ); ?>><?php esc_html_e( 'Normal', 'holyprofweb' ); ?></option>
-                            <option value="rigid" <?php selected( holyprofweb_get_ad_density( 'social' ), 'rigid' ); ?>><?php esc_html_e( 'Rigid', 'holyprofweb' ); ?></option>
-                        </select></p>
-                        <p class="description"><?php esc_html_e( 'Sticky social-style bar. Use carefully on mobile.', 'holyprofweb' ); ?></p>
-                    </td>
-                </tr>
+                <?php $unit_row( 'Social Bar', '28927838', 'hpw_ad_social', 'social' ); ?>
+                <?php $density_row( 'social', 'Footer sitewide.', 'Footer + injected on every page.' ); ?>
             </table>
 
-            <hr>
-            <h2><?php esc_html_e( 'Granular Ad Units', 'holyprofweb' ); ?></h2>
+            <?php $section( 'Native Banner', 'Blends with content — good for feeds and article bodies.' ); ?>
             <table class="form-table" role="presentation">
-                <tr>
-                    <th scope="row"><?php esc_html_e( 'Native Banner', 'holyprofweb' ); ?></th>
-                    <td>
-                        <textarea name="holyprofweb_ad_format_native" rows="5" class="large-text code"><?php echo esc_textarea( get_option( 'holyprofweb_ad_format_native', '' ) ); ?></textarea>
-                        <p class="description"><?php esc_html_e( 'Used as a cleaner inline fallback on homepage sections, archives, and inside posts when present.', 'holyprofweb' ); ?></p>
-                    </td>
-                </tr>
-                <tr>
-                    <th scope="row"><?php esc_html_e( 'Banner 728x90', 'holyprofweb' ); ?></th>
-                    <td>
-                        <textarea name="holyprofweb_ad_format_banner_728x90" rows="5" class="large-text code"><?php echo esc_textarea( get_option( 'holyprofweb_ad_format_banner_728x90', '' ) ); ?></textarea>
-                    </td>
-                </tr>
-                <tr>
-                    <th scope="row"><?php esc_html_e( 'Banner 468x60', 'holyprofweb' ); ?></th>
-                    <td>
-                        <textarea name="holyprofweb_ad_format_banner_468x60" rows="5" class="large-text code"><?php echo esc_textarea( get_option( 'holyprofweb_ad_format_banner_468x60', '' ) ); ?></textarea>
-                    </td>
-                </tr>
-                <tr>
-                    <th scope="row"><?php esc_html_e( 'Banner 320x50', 'holyprofweb' ); ?></th>
-                    <td>
-                        <textarea name="holyprofweb_ad_format_banner_320x50" rows="5" class="large-text code"><?php echo esc_textarea( get_option( 'holyprofweb_ad_format_banner_320x50', '' ) ); ?></textarea>
-                    </td>
-                </tr>
-                <tr>
-                    <th scope="row"><?php esc_html_e( 'Banner 300x250', 'holyprofweb' ); ?></th>
-                    <td>
-                        <textarea name="holyprofweb_ad_format_banner_300x250" rows="5" class="large-text code"><?php echo esc_textarea( get_option( 'holyprofweb_ad_format_banner_300x250', '' ) ); ?></textarea>
-                    </td>
-                </tr>
-                <tr>
-                    <th scope="row"><?php esc_html_e( 'Banner 160x300', 'holyprofweb' ); ?></th>
-                    <td>
-                        <textarea name="holyprofweb_ad_format_banner_160x300" rows="5" class="large-text code"><?php echo esc_textarea( get_option( 'holyprofweb_ad_format_banner_160x300', '' ) ); ?></textarea>
-                    </td>
-                </tr>
-                <tr>
-                    <th scope="row"><?php esc_html_e( 'Banner 160x600', 'holyprofweb' ); ?></th>
-                    <td>
-                        <textarea name="holyprofweb_ad_format_banner_160x600" rows="5" class="large-text code"><?php echo esc_textarea( get_option( 'holyprofweb_ad_format_banner_160x600', '' ) ); ?></textarea>
-                    </td>
-                </tr>
+                <?php $unit_row( 'Native Banner', '28927839', 'hpw_ad_native', 'native' ); ?>
+                <?php $density_row( 'native', 'Inside posts only (after 2nd paragraph).', 'Posts + feed/archive listings + homepage.' ); ?>
             </table>
 
-            <hr>
-            <h2><?php esc_html_e( 'Legacy Slot Controls', 'holyprofweb' ); ?></h2>
-
+            <?php $section( 'Leaderboard — Desktop Wide', 'Banner 728×90 is primary; 468×60 is the fallback if 728 is empty.' ); ?>
             <table class="form-table" role="presentation">
+                <?php $unit_row( 'Banner 728×90', '28927843', 'hpw_ad_728x90', 'banner_728x90' ); ?>
+                <?php $unit_row( 'Banner 468×60', '28927841', 'hpw_ad_468x60', 'banner_468x60' ); ?>
+                <?php $density_row( 'leaderboard', 'Header only.', 'Header + footer + feed/archive inline.' ); ?>
+            </table>
 
-                <tr>
-                    <th scope="row">
-                        <label for="holyprofweb_ad_header">
-                            <?php esc_html_e( 'Header Banner (728×90)', 'holyprofweb' ); ?>
-                        </label>
-                    </th>
-                    <td>
-                        <textarea id="holyprofweb_ad_header" name="holyprofweb_ad_header"
-                                  rows="6" cols="60" class="large-text code"><?php
-                            echo esc_textarea( get_option( 'holyprofweb_ad_header', '' ) );
-                        ?></textarea>
-                        <p class="description"><?php esc_html_e( 'Displayed in the site header area (728×90 leaderboard).', 'holyprofweb' ); ?></p>
-                    </td>
-                </tr>
+            <?php $section( 'Rectangle / Sidebar', '300×250 is primary; 160×300 and 160×600 are fallbacks.' ); ?>
+            <table class="form-table" role="presentation">
+                <?php $unit_row( 'Banner 300×250', '28927844', 'hpw_ad_300x250', 'banner_300x250' ); ?>
+                <?php $unit_row( 'Banner 160×300', '28927840', 'hpw_ad_160x300', 'banner_160x300' ); ?>
+                <?php $unit_row( 'Banner 160×600', '28927844', 'hpw_ad_160x600', 'banner_160x600' ); ?>
+                <?php $density_row( 'rectangle', 'Sidebar + 1 in-content.', 'Sidebar + 2 in-content + archive/homepage inline.' ); ?>
+            </table>
 
-                <tr>
-                    <th scope="row">
-                        <label for="holyprofweb_ad_sidebar">
-                            <?php esc_html_e( 'Sidebar Ad 1 (300×250)', 'holyprofweb' ); ?>
-                        </label>
-                    </th>
-                    <td>
-                        <textarea id="holyprofweb_ad_sidebar" name="holyprofweb_ad_sidebar"
-                                  rows="6" cols="60" class="large-text code"><?php
-                            echo esc_textarea( get_option( 'holyprofweb_ad_sidebar', '' ) );
-                        ?></textarea>
-                        <p class="description"><?php esc_html_e( 'Displayed in the post sidebar, first slot.', 'holyprofweb' ); ?></p>
-                    </td>
-                </tr>
-
-                <tr>
-                    <th scope="row">
-                        <label for="holyprofweb_ad_sidebar_2">
-                            <?php esc_html_e( 'Sidebar Ad 2 (300×250)', 'holyprofweb' ); ?>
-                        </label>
-                    </th>
-                    <td>
-                        <textarea id="holyprofweb_ad_sidebar_2" name="holyprofweb_ad_sidebar_2"
-                                  rows="6" cols="60" class="large-text code"><?php
-                            echo esc_textarea( get_option( 'holyprofweb_ad_sidebar_2', '' ) );
-                        ?></textarea>
-                        <p class="description"><?php esc_html_e( 'Displayed in the post sidebar, second slot.', 'holyprofweb' ); ?></p>
-                    </td>
-                </tr>
-
-                <tr>
-                    <th scope="row">
-                        <label for="holyprofweb_ad_incontent">
-                            <?php esc_html_e( 'In-Content Ad 1 (after 2nd paragraph)', 'holyprofweb' ); ?>
-                        </label>
-                    </th>
-                    <td>
-                        <textarea id="holyprofweb_ad_incontent" name="holyprofweb_ad_incontent"
-                                  rows="6" cols="60" class="large-text code"><?php
-                            echo esc_textarea( get_option( 'holyprofweb_ad_incontent', '' ) );
-                        ?></textarea>
-                        <p class="description"><?php esc_html_e( 'Injected after the 2nd paragraph inside post content.', 'holyprofweb' ); ?></p>
-                    </td>
-                </tr>
-
-                <tr>
-                    <th scope="row">
-                        <label for="holyprofweb_ad_incontent_2">
-                            <?php esc_html_e( 'In-Content Ad 2 (after 4th paragraph)', 'holyprofweb' ); ?>
-                        </label>
-                    </th>
-                    <td>
-                        <textarea id="holyprofweb_ad_incontent_2" name="holyprofweb_ad_incontent_2"
-                                  rows="6" cols="60" class="large-text code"><?php
-                            echo esc_textarea( get_option( 'holyprofweb_ad_incontent_2', '' ) );
-                        ?></textarea>
-                        <p class="description"><?php esc_html_e( 'Injected after the 4th paragraph inside post content.', 'holyprofweb' ); ?></p>
-                    </td>
-                </tr>
-
-                <tr>
-                    <th scope="row">
-                        <label for="holyprofweb_ad_footer">
-                            <?php esc_html_e( 'Footer Banner (728×90)', 'holyprofweb' ); ?>
-                        </label>
-                    </th>
-                    <td>
-                        <textarea id="holyprofweb_ad_footer" name="holyprofweb_ad_footer"
-                                  rows="6" cols="60" class="large-text code"><?php
-                            echo esc_textarea( get_option( 'holyprofweb_ad_footer', '' ) );
-                        ?></textarea>
-                        <p class="description"><?php esc_html_e( 'Displayed above the footer across all pages.', 'holyprofweb' ); ?></p>
-                    </td>
-                </tr>
-
+            <?php $section( 'Mobile Banner', 'Compact banner shown only on mobile devices.' ); ?>
+            <table class="form-table" role="presentation">
+                <?php $unit_row( 'Banner 320×50', '28927842', 'hpw_ad_320x50', 'banner_320x50' ); ?>
+                <?php $density_row( 'mobile', 'Mobile sticky footer.', 'Mobile sticky + feed/archive mobile inline.' ); ?>
             </table>
 
             <?php submit_button( __( 'Save Ad Codes', 'holyprofweb' ) ); ?>
         </form>
     </div>
+
+    <script>
+    (function(){
+        var form = document.getElementById('hpw-ads-form');
+        if ( ! form ) return;
+        form.addEventListener('submit', function(){
+            var areas = form.querySelectorAll('.hpw-ad-code');
+            areas.forEach(function(ta){
+                var orig = ta.name;
+                if ( ! orig ) return;
+                var val  = ta.value;
+                if ( val.trim() === '' ) return;
+                try {
+                    var encoded = btoa(unescape(encodeURIComponent(val)));
+                    var hidden  = document.createElement('input');
+                    hidden.type  = 'hidden';
+                    hidden.name  = orig + '_b64';
+                    hidden.value = encoded;
+                    form.appendChild(hidden);
+                    ta.name = ''; // stop raw POST of this field
+                } catch(e) {}
+            });
+        });
+    })();
+    </script>
     <?php
 }
 
@@ -919,6 +834,11 @@ function holyprofweb_ad_density_allows( $format, $placement ) {
             'basic'  => array( 'social_bar' ),
             'normal' => array( 'social_bar' ),
             'rigid'  => array( 'social_bar' ),
+        ),
+        'native' => array(
+            'basic'  => array( 'incontent_1' ),
+            'normal' => array( 'incontent_1', 'incontent_2' ),
+            'rigid'  => array( 'incontent_1', 'incontent_2', 'archive_inline', 'front_inline' ),
         ),
         'footer' => array(
             'basic'  => array( 'footer' ),
@@ -1182,6 +1102,93 @@ function holyprofweb_search_date_filter( $query ) {
     }
 }
 add_action( 'pre_get_posts', 'holyprofweb_search_date_filter' );
+
+// ── Admin post list — extra filter dropdowns ──────────────────────────────────
+
+add_action( 'restrict_manage_posts', function ( $post_type ) {
+    if ( 'post' !== $post_type ) return;
+
+    // Image type filter.
+    $cur_type = isset( $_GET['hpw_admin_img_type'] ) ? sanitize_key( $_GET['hpw_admin_img_type'] ) : '';
+    $types = array(
+        ''          => 'Any image type',
+        'none'      => 'No image',
+        'featured'  => 'Has featured image',
+        'remote'    => 'Remote / OG image',
+        'gd'        => 'Generated — GD',
+        'svg'       => 'Generated — SVG',
+        'generated' => 'Generated (any)',
+        'external'  => 'Manual image link',
+    );
+    echo '<select name="hpw_admin_img_type">';
+    foreach ( $types as $val => $label ) {
+        echo '<option value="' . esc_attr( $val ) . '"' . selected( $cur_type, $val, false ) . '>' . esc_html( $label ) . '</option>';
+    }
+    echo '</select> ';
+
+    // Country filter.
+    global $wpdb;
+    $countries = $wpdb->get_col( // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+        "SELECT DISTINCT meta_value FROM {$wpdb->postmeta} WHERE meta_key='_hpw_country_focus' AND meta_value != '' ORDER BY meta_value ASC LIMIT 80"
+    );
+    if ( $countries ) {
+        $cur_country = isset( $_GET['hpw_admin_country'] ) ? sanitize_text_field( wp_unslash( $_GET['hpw_admin_country'] ) ) : '';
+        echo '<select name="hpw_admin_country" style="margin-left:4px;">';
+        echo '<option value="">Any country</option>';
+        foreach ( $countries as $c ) {
+            echo '<option value="' . esc_attr( $c ) . '"' . selected( $cur_country, $c, false ) . '>' . esc_html( $c ) . '</option>';
+        }
+        echo '</select> ';
+    }
+} );
+
+add_action( 'pre_get_posts', function ( $query ) {
+    if ( ! is_admin() || ! $query->is_main_query() ) return;
+    if ( 'post' !== $query->get( 'post_type' ) && get_current_screen() && 'edit-post' !== get_current_screen()->id ) return;
+    if ( ! function_exists( 'get_current_screen' ) ) return;
+    $screen = get_current_screen();
+    if ( ! $screen || 'edit-post' !== $screen->id ) return;
+
+    $meta_q = (array) ( $query->get( 'meta_query' ) ?: array() );
+
+    // Image type filter.
+    $img_type = isset( $_GET['hpw_admin_img_type'] ) ? sanitize_key( wp_unslash( $_GET['hpw_admin_img_type'] ) ) : '';
+    switch ( $img_type ) {
+        case 'none':
+            $meta_q[] = array( 'key' => '_holyprofweb_gen_image_url',    'compare' => 'NOT EXISTS' );
+            $meta_q[] = array( 'key' => '_holyprofweb_remote_image_url', 'compare' => 'NOT EXISTS' );
+            $meta_q[] = array( 'key' => 'external_image',                'compare' => 'NOT EXISTS' );
+            $meta_q[] = array( 'key' => '_thumbnail_id',                 'compare' => 'NOT EXISTS' );
+            $meta_q['relation'] = 'AND';
+            break;
+        case 'featured':
+            $meta_q[] = array( 'key' => '_thumbnail_id', 'compare' => 'EXISTS' );
+            break;
+        case 'remote':
+            $meta_q[] = array( 'key' => '_holyprofweb_remote_image_url', 'compare' => 'EXISTS' );
+            break;
+        case 'generated':
+            $meta_q[] = array( 'key' => '_holyprofweb_gen_image_url', 'compare' => 'EXISTS' );
+            break;
+        case 'external':
+            $meta_q[] = array( 'key' => 'external_image', 'compare' => 'EXISTS' );
+            break;
+        // gd/svg: applied post-fetch — too complex for meta_query alone.
+    }
+
+    // Country filter.
+    $country = isset( $_GET['hpw_admin_country'] ) ? sanitize_text_field( wp_unslash( $_GET['hpw_admin_country'] ) ) : '';
+    if ( $country ) {
+        $meta_q[] = array( 'key' => '_hpw_country_focus', 'value' => $country, 'compare' => '=' );
+    }
+
+    if ( count( $meta_q ) > ( isset( $meta_q['relation'] ) ? 1 : 0 ) ) {
+        if ( ! isset( $meta_q['relation'] ) ) {
+            $meta_q['relation'] = 'AND';
+        }
+        $query->set( 'meta_query', $meta_q ); // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
+    }
+} );
 
 /**
  * Track search queries in wp_options.
@@ -5269,6 +5276,25 @@ function holyprofweb_auto_featured_image( $post_id, $post, $update ) {
 add_action( 'save_post', 'holyprofweb_auto_featured_image', 20, 3 );
 
 /**
+ * Generate GD image immediately when a post is saved via Gutenberg (REST).
+ * Gutenberg saves defer the full pipeline by 15s, so without this hook
+ * only the SVG placeholder would appear on first load — this guarantees a
+ * branded GD image is set right away. The deferred job will later upgrade
+ * it to a remote/OG image if one is found.
+ */
+add_action( 'rest_after_insert_post', function ( $post ) {
+    if ( ! $post instanceof WP_Post ) return;
+    if ( 'auto-draft' === $post->post_status ) return;
+    if ( has_post_thumbnail( $post->ID ) ) return;
+    if ( get_post_meta( $post->ID, '_holyprofweb_no_autothumb', true ) ) return;
+    if ( get_post_meta( $post->ID, 'external_image', true ) ) return;
+    if ( get_post_meta( $post->ID, '_holyprofweb_gen_image_url', true ) ) return;
+    if ( get_post_meta( $post->ID, '_holyprofweb_remote_image_url', true ) ) return;
+    if ( ! get_option( 'hpw_enable_generated_images', 1 ) ) return;
+    holyprofweb_generate_post_image_modern( $post->ID, $post );
+}, 20 );
+
+/**
  * GD fallback: generate a branded image with title + category text.
  *
  * @param int     $post_id
@@ -7730,6 +7756,236 @@ function holyprofweb_admin_editor_helpers() {
 }
 add_action( 'admin_footer', 'holyprofweb_admin_editor_helpers', 30 );
 
+// ── Image Desk: shared helpers ────────────────────────────────────────────────
+
+function holyprofweb_get_post_image_state( $post_id ) {
+    if ( holyprofweb_post_has_trusted_featured_image( $post_id ) ) {
+        return array( 'label' => 'Featured image', 'type' => 'trusted' );
+    }
+    if ( get_post_meta( $post_id, 'external_image', true ) ) {
+        return array( 'label' => 'Manual image link', 'type' => 'external' );
+    }
+    if ( get_post_meta( $post_id, '_holyprofweb_remote_image_url', true ) ) {
+        return array( 'label' => 'Remote / OG image', 'type' => 'remote' );
+    }
+    if ( holyprofweb_post_has_generated_thumbnail_attachment( $post_id ) ) {
+        return array( 'label' => 'Generated — GD', 'type' => 'gd' );
+    }
+    if ( get_post_meta( $post_id, '_holyprofweb_gen_image_url', true ) ) {
+        return array( 'label' => 'Generated — SVG', 'type' => 'svg' );
+    }
+    return array( 'label' => 'No image', 'type' => 'none' );
+}
+
+/**
+ * Query Image Desk posts with all active filters.
+ *
+ * @param array $f Keys: s, type, status, cat_id, country, orderby
+ */
+function holyprofweb_query_image_desk_posts( $f ) {
+    $f = array_merge( array(
+        's'       => '',
+        'type'    => '',
+        'status'  => '',
+        'cat_id'  => 0,
+        'country' => '',
+        'orderby' => 'date',
+    ), (array) $f );
+
+    $args = array(
+        'post_type'      => 'post',
+        'post_status'    => $f['status'] ? array( sanitize_key( $f['status'] ) ) : array( 'publish', 'draft', 'pending', 'future' ),
+        'posts_per_page' => 30,
+        's'              => $f['s'],
+        'orderby'        => in_array( $f['orderby'], array( 'date', 'modified', 'title' ), true ) ? $f['orderby'] : 'date',
+        'order'          => 'DESC',
+        'no_found_rows'  => true,
+    );
+
+    if ( $f['cat_id'] > 0 ) {
+        $args['cat'] = (int) $f['cat_id'];
+    }
+
+    // Image-type meta queries (DB-level where possible).
+    $meta_q = array();
+    switch ( $f['type'] ) {
+        case 'none':
+            $meta_q = array(
+                'relation' => 'AND',
+                array( 'key' => '_holyprofweb_gen_image_url',      'compare' => 'NOT EXISTS' ),
+                array( 'key' => '_holyprofweb_remote_image_url',   'compare' => 'NOT EXISTS' ),
+                array( 'key' => 'external_image',                  'compare' => 'NOT EXISTS' ),
+                array( 'key' => '_thumbnail_id',                   'compare' => 'NOT EXISTS' ),
+            );
+            break;
+        case 'remote':
+            $meta_q = array( array( 'key' => '_holyprofweb_remote_image_url', 'compare' => 'EXISTS' ) );
+            break;
+        case 'generated':
+            $meta_q = array( array( 'key' => '_holyprofweb_gen_image_url', 'compare' => 'EXISTS' ) );
+            break;
+        case 'external':
+            $meta_q = array( array( 'key' => 'external_image', 'compare' => 'EXISTS' ) );
+            break;
+        case 'featured':
+            $meta_q = array( array( 'key' => '_thumbnail_id', 'compare' => 'EXISTS' ) );
+            break;
+    }
+
+    if ( $f['country'] ) {
+        $country_q = array( 'key' => '_hpw_country_focus', 'value' => sanitize_text_field( $f['country'] ) );
+        $meta_q    = $meta_q ? array_merge( array( 'relation' => 'AND' ), array( $meta_q ), array( $country_q ) ) : array( $country_q );
+    }
+
+    if ( $meta_q ) {
+        $args['meta_query'] = $meta_q; // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
+    }
+
+    $posts = get_posts( $args );
+
+    // PHP-level post-filter for GD vs SVG (can't distinguish at DB level).
+    if ( in_array( $f['type'], array( 'gd', 'svg' ), true ) ) {
+        $posts = array_values( array_filter( $posts, function( $p ) use ( $f ) {
+            $state = holyprofweb_get_post_image_state( $p->ID );
+            return $state['type'] === $f['type'];
+        } ) );
+    }
+
+    return $posts;
+}
+
+function holyprofweb_render_image_desk_rows( $posts, $filters = array() ) {
+    $search = is_string( $filters ) ? $filters : ( $filters['s'] ?? '' );
+
+    $badge_colors = array(
+        'trusted'  => '#1a7f37',
+        'external' => '#0366d6',
+        'remote'   => '#6f42c1',
+        'gd'       => '#b45309',
+        'svg'      => '#b45309',
+        'none'     => '#c0392b',
+    );
+
+    if ( empty( $posts ) ) {
+        echo '<p style="color:#666;padding:12px 0;">' . esc_html__( 'No posts matched the current filters.', 'holyprofweb' ) . '</p>';
+        return;
+    }
+
+    $action_url = esc_url( admin_url( 'admin.php?page=hpw-settings-automation' ) );
+
+    echo '<p style="color:#888;font-size:12px;margin:0 0 8px;">' . esc_html( count( $posts ) ) . ' post(s) shown</p>';
+    echo '<table class="widefat striped"><thead><tr>';
+    echo '<th>' . esc_html__( 'Post', 'holyprofweb' ) . '</th>';
+    echo '<th>' . esc_html__( 'Image Type', 'holyprofweb' ) . '</th>';
+    echo '<th>' . esc_html__( 'Category', 'holyprofweb' ) . '</th>';
+    echo '<th>' . esc_html__( 'Country', 'holyprofweb' ) . '</th>';
+    echo '<th>' . esc_html__( 'Status', 'holyprofweb' ) . '</th>';
+    echo '<th>' . esc_html__( 'Modified', 'holyprofweb' ) . '</th>';
+    echo '<th>' . esc_html__( 'Actions', 'holyprofweb' ) . '</th>';
+    echo '</tr></thead><tbody>';
+
+    foreach ( $posts as $post ) {
+        $pid   = (int) $post->ID;
+        $state = holyprofweb_get_post_image_state( $pid );
+        $color = $badge_colors[ $state['type'] ] ?? '#888';
+        $nonce = wp_create_nonce( 'hpw_regenerate_post_image' );
+
+        $cats     = get_the_category( $pid );
+        $cat_name = $cats ? $cats[0]->name : '—';
+        $country  = (string) get_post_meta( $pid, '_hpw_country_focus', true ) ?: 'General';
+        $status   = ucfirst( $post->post_status );
+
+        echo '<tr>';
+        echo '<td style="max-width:240px;"><a href="' . esc_url( get_edit_post_link( $pid ) ) . '" style="font-weight:500;">' . esc_html( get_the_title( $pid ) ) . '</a></td>';
+        echo '<td><span style="display:inline-block;padding:2px 8px;border-radius:3px;background:' . esc_attr( $color ) . ';color:#fff;font-size:11px;font-weight:600;white-space:nowrap;">'
+            . esc_html( $state['label'] ) . '</span></td>';
+        echo '<td>' . esc_html( $cat_name ) . '</td>';
+        echo '<td>' . esc_html( $country ) . '</td>';
+        echo '<td>' . esc_html( $status ) . '</td>';
+        echo '<td>' . esc_html( get_the_modified_date( 'Y-m-d', $pid ) ) . '</td>';
+        echo '<td>';
+
+        $base_inputs = '<input type="hidden" name="hpw_regenerate_post_image_nonce" value="' . esc_attr( $nonce ) . '">'
+                     . '<input type="hidden" name="hpw_post_id" value="' . esc_attr( $pid ) . '">'
+                     . '<input type="hidden" name="hpw_image_search" value="' . esc_attr( $search ) . '">';
+
+        echo '<form method="post" action="' . $action_url . '" style="display:inline-flex;gap:4px;flex-wrap:wrap;">';
+        echo $base_inputs; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+
+        echo '<button type="submit" name="hpw_action" value="regenerate_post_image" class="button button-small">Regenerate</button>';
+
+        if ( 'gd' === $state['type'] ) {
+            echo ' <button type="submit" name="hpw_action" value="switch_to_svg" class="button button-small" style="color:#b45309;border-color:#b45309;" title="Switch to SVG fallback">↔ SVG</button>';
+        } elseif ( 'svg' === $state['type'] ) {
+            echo ' <button type="submit" name="hpw_action" value="switch_to_gd" class="button button-small" style="color:#b45309;border-color:#b45309;" title="Generate real GD file">↔ GD</button>';
+        } elseif ( 'none' === $state['type'] ) {
+            echo ' <button type="submit" name="hpw_action" value="regenerate_post_image" class="button button-small button-primary">Generate</button>';
+        }
+
+        echo '</form>';
+        echo '</td></tr>';
+    }
+
+    echo '</tbody></table>';
+}
+
+// AJAX handler for live image desk search + filter.
+add_action( 'wp_ajax_hpw_image_desk_search', function () {
+    check_ajax_referer( 'hpw_image_desk_ajax', 'nonce' );
+    if ( ! current_user_can( 'manage_options' ) ) wp_die();
+
+    $filters = array(
+        's'       => isset( $_POST['s'] )       ? sanitize_text_field( wp_unslash( $_POST['s'] ) )       : '',
+        'type'    => isset( $_POST['type'] )    ? sanitize_key( wp_unslash( $_POST['type'] ) )            : '',
+        'status'  => isset( $_POST['status'] )  ? sanitize_key( wp_unslash( $_POST['status'] ) )          : '',
+        'cat_id'  => isset( $_POST['cat_id'] )  ? absint( wp_unslash( $_POST['cat_id'] ) )                : 0,
+        'country' => isset( $_POST['country'] ) ? sanitize_text_field( wp_unslash( $_POST['country'] ) )  : '',
+        'orderby' => isset( $_POST['orderby'] ) ? sanitize_key( wp_unslash( $_POST['orderby'] ) )         : 'date',
+    );
+
+    $posts = holyprofweb_query_image_desk_posts( $filters );
+    holyprofweb_render_image_desk_rows( $posts, $filters );
+    wp_die();
+} );
+
+// Switch image type action handler.
+add_action( 'admin_init', function () {
+    if ( ! is_admin() || ! current_user_can( 'manage_options' ) ) {
+        return;
+    }
+    if ( ! isset( $_POST['hpw_action'] ) || ! in_array( $_POST['hpw_action'], array( 'switch_to_gd', 'switch_to_svg' ), true ) ) {
+        return;
+    }
+    check_admin_referer( 'hpw_regenerate_post_image', 'hpw_regenerate_post_image_nonce' );
+    $post_id = isset( $_POST['hpw_post_id'] ) ? absint( wp_unslash( $_POST['hpw_post_id'] ) ) : 0;
+    if ( ! $post_id ) {
+        return;
+    }
+    $action = sanitize_key( $_POST['hpw_action'] );
+    if ( 'switch_to_gd' === $action ) {
+        holyprofweb_clear_post_image_state( $post_id, true );
+        $post = get_post( $post_id );
+        if ( $post ) {
+            holyprofweb_generate_post_image_modern( $post_id, $post );
+        }
+    } else {
+        // switch_to_svg: delete the GD file attachment, set SVG meta
+        holyprofweb_clear_post_image_state( $post_id, true );
+        $svg_url = holyprofweb_get_generated_svg_image_url( $post_id, 'card' );
+        if ( $svg_url ) {
+            update_post_meta( $post_id, '_holyprofweb_gen_image_url', $svg_url );
+        }
+    }
+    $search = isset( $_POST['hpw_image_search'] ) ? sanitize_text_field( wp_unslash( $_POST['hpw_image_search'] ) ) : '';
+    wp_safe_redirect( add_query_arg( array(
+        'page'                 => 'hpw-settings-automation',
+        'hpw_image_switched'   => $post_id,
+        'hpw_image_switched_to'=> 'gd' === substr( $action, -2 ) ? 'gd' : 'svg',
+        'hpw_image_search'     => $search,
+    ), admin_url( 'admin.php' ) ) );
+    exit;
+} );
+
 function holyprofweb_settings_automation_page() {
     if ( ! current_user_can( 'manage_options' ) ) return;
     if ( isset( $_GET['settings-updated'] ) ) {
@@ -7748,6 +8004,31 @@ function holyprofweb_settings_automation_page() {
             'hpw_messages',
             'hpw_images_reset',
             sprintf( __( 'Generated image cache cleared: %d post(s).', 'holyprofweb' ), absint( $_GET['hpw_images_reset'] ) ),
+            'updated'
+        );
+    }
+    if ( isset( $_GET['hpw_image_regened'] ) ) {
+        $regened_id    = absint( $_GET['hpw_image_regened'] );
+        $regened_title = $regened_id ? get_the_title( $regened_id ) : '';
+        add_settings_error(
+            'hpw_messages',
+            'hpw_image_regened',
+            $regened_title
+                ? sprintf( __( 'Image regenerated for: %s', 'holyprofweb' ), $regened_title )
+                : __( 'Image regenerated.', 'holyprofweb' ),
+            'updated'
+        );
+    }
+    if ( isset( $_GET['hpw_image_switched'] ) ) {
+        $switched_id    = absint( $_GET['hpw_image_switched'] );
+        $switched_title = $switched_id ? get_the_title( $switched_id ) : '';
+        $switched_type  = sanitize_key( $_GET['hpw_image_switched_to'] ?? '' );
+        add_settings_error(
+            'hpw_messages',
+            'hpw_image_switched',
+            $switched_title
+                ? sprintf( __( 'Switched to %s for: %s', 'holyprofweb' ), strtoupper( $switched_type ), $switched_title )
+                : __( 'Image type switched.', 'holyprofweb' ),
             'updated'
         );
     }
@@ -7777,16 +8058,6 @@ function holyprofweb_settings_automation_page() {
     }
     $sample_title = $sample_post_id ? get_the_title( $sample_post_id ) : 'How Safe Is [Brand Name] for New Users in 2026?';
     $prompt_text  = holyprofweb_build_ai_prompt_template( $sample_title, $sample_post_id );
-    $image_search = isset( $_GET['hpw_image_search'] ) ? sanitize_text_field( wp_unslash( $_GET['hpw_image_search'] ) ) : '';
-    $image_posts  = get_posts( array(
-        'post_type'      => 'post',
-        'post_status'    => array( 'publish', 'draft', 'pending', 'future' ),
-        'posts_per_page' => 20,
-        's'              => $image_search,
-        'orderby'        => 'date',
-        'order'          => 'DESC',
-        'no_found_rows'  => true,
-    ) );
     ?>
     <div class="wrap">
         <h1>&#9889; <?php esc_html_e( 'HPW Settings — Automation', 'holyprofweb' ); ?></h1>
@@ -7880,58 +8151,163 @@ function holyprofweb_settings_automation_page() {
 
         <hr>
         <h2><?php esc_html_e( 'Posts Image Desk', 'holyprofweb' ); ?></h2>
-        <p><?php esc_html_e( 'Search posts and generate a fresh image directly from admin. Featured images stay first, manual image links stay next, and generated images only fill the gap when needed.', 'holyprofweb' ); ?></p>
-        <form id="hpw-image-desk-filter" method="get" action="" style="margin:18px 0 14px;display:grid;grid-template-columns:minmax(260px,1fr) auto;gap:12px;align-items:end;">
-            <input type="hidden" name="page" value="hpw-settings-automation" />
-            <p style="margin:0;">
-                <label for="hpw-image-search" style="display:block;font-weight:600;margin:0 0 6px;"><?php esc_html_e( 'Search posts', 'holyprofweb' ); ?></label>
-                <input id="hpw-image-search" type="search" name="hpw_image_search" value="<?php echo esc_attr( $image_search ); ?>" class="regular-text" style="width:100%;max-width:none;" placeholder="<?php esc_attr_e( 'Search by title, brand, company, website...', 'holyprofweb' ); ?>" />
-            </p>
-            <p style="margin:0;"><?php submit_button( __( 'Filter Posts', 'holyprofweb' ), 'secondary', 'submit', false ); ?></p>
-        </form>
-        <?php holyprofweb_render_admin_live_filter_script( 'hpw-image-desk-filter', 'input[type="search"]' ); ?>
-        <?php if ( empty( $image_posts ) ) : ?>
-            <p><?php esc_html_e( 'No posts matched this image search yet.', 'holyprofweb' ); ?></p>
-        <?php else : ?>
-            <table class="widefat striped">
-                <thead><tr>
-                    <th><?php esc_html_e( 'Post', 'holyprofweb' ); ?></th>
-                    <th><?php esc_html_e( 'Current Image Path', 'holyprofweb' ); ?></th>
-                    <th><?php esc_html_e( 'Country', 'holyprofweb' ); ?></th>
-                    <th><?php esc_html_e( 'Last Modified', 'holyprofweb' ); ?></th>
-                    <th><?php esc_html_e( 'Action', 'holyprofweb' ); ?></th>
-                </tr></thead>
-                <tbody>
-                <?php foreach ( $image_posts as $image_post ) : ?>
-                    <?php
-                    $image_post_id = (int) $image_post->ID;
-                    $image_state   = holyprofweb_post_has_trusted_featured_image( $image_post_id )
-                        ? __( 'Featured image', 'holyprofweb' )
-                        : ( get_post_meta( $image_post_id, 'external_image', true )
-                            ? __( 'Manual image link', 'holyprofweb' )
-                            : ( get_post_meta( $image_post_id, '_holyprofweb_remote_image_url', true )
-                                ? __( 'Remote/site image', 'holyprofweb' )
-                                : __( 'Generated fallback', 'holyprofweb' ) ) );
-                    ?>
-                    <tr>
-                        <td><a href="<?php echo esc_url( get_edit_post_link( $image_post_id ) ); ?>"><?php echo esc_html( get_the_title( $image_post_id ) ); ?></a></td>
-                        <td><?php echo esc_html( $image_state ); ?></td>
-                        <td><?php echo esc_html( (string) get_post_meta( $image_post_id, '_hpw_country_focus', true ) ?: 'General' ); ?></td>
-                        <td><?php echo esc_html( get_the_modified_date( 'Y-m-d', $image_post_id ) ); ?></td>
-                        <td>
-                            <form method="post" action="<?php echo esc_url( admin_url( 'admin.php?page=hpw-settings-automation' ) ); ?>">
-                                <?php wp_nonce_field( 'hpw_regenerate_post_image', 'hpw_regenerate_post_image_nonce' ); ?>
-                                <input type="hidden" name="hpw_action" value="regenerate_post_image" />
-                                <input type="hidden" name="hpw_post_id" value="<?php echo esc_attr( $image_post_id ); ?>" />
-                                <input type="hidden" name="hpw_image_search" value="<?php echo esc_attr( $image_search ); ?>" />
-                                <?php submit_button( __( 'Generate', 'holyprofweb' ), 'secondary small', 'submit', false ); ?>
-                            </form>
-                        </td>
-                    </tr>
-                <?php endforeach; ?>
-                </tbody>
-            </table>
-        <?php endif; ?>
+        <p style="color:#666;"><?php esc_html_e( 'Filter and search posts. Results update live — no page reload needed. Switch between GD (real file) and SVG (on-the-fly) for any post.', 'holyprofweb' ); ?></p>
+
+        <?php
+        // Collect unique countries for filter dropdown.
+        global $wpdb;
+        $desk_countries = $wpdb->get_col( // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+            "SELECT DISTINCT meta_value FROM {$wpdb->postmeta} WHERE meta_key='_hpw_country_focus' AND meta_value != '' ORDER BY meta_value ASC LIMIT 60"
+        );
+        $desk_categories = get_categories( array( 'hide_empty' => true, 'number' => 80 ) );
+
+        $desk_search  = isset( $_GET['hpw_image_search'] )  ? sanitize_text_field( wp_unslash( $_GET['hpw_image_search'] ) )  : '';
+        $desk_type    = isset( $_GET['hpw_image_type'] )    ? sanitize_key( wp_unslash( $_GET['hpw_image_type'] ) )            : '';
+        $desk_status  = isset( $_GET['hpw_image_status'] )  ? sanitize_key( wp_unslash( $_GET['hpw_image_status'] ) )          : '';
+        $desk_cat     = isset( $_GET['hpw_image_cat'] )     ? absint( wp_unslash( $_GET['hpw_image_cat'] ) )                   : 0;
+        $desk_country = isset( $_GET['hpw_image_country'] ) ? sanitize_text_field( wp_unslash( $_GET['hpw_image_country'] ) )  : '';
+        $desk_orderby = isset( $_GET['hpw_image_orderby'] ) ? sanitize_key( wp_unslash( $_GET['hpw_image_orderby'] ) )         : 'date';
+        ?>
+
+        <div style="display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end;margin:16px 0 20px;padding:16px;background:#f9f9f9;border:1px solid #e0e0e0;border-radius:4px;">
+
+            <div>
+                <label style="display:block;font-weight:600;font-size:12px;margin-bottom:4px;">Search</label>
+                <input id="hpw-image-search" type="search" value="<?php echo esc_attr( $desk_search ); ?>"
+                       class="regular-text" style="width:220px;"
+                       placeholder="Title, brand, keyword…" autocomplete="off" />
+            </div>
+
+            <div>
+                <label style="display:block;font-weight:600;font-size:12px;margin-bottom:4px;">Image type</label>
+                <select id="hpw-image-type" style="width:160px;">
+                    <option value="">All types</option>
+                    <option value="none"      <?php selected( $desk_type, 'none' ); ?>>No image</option>
+                    <option value="trusted"   <?php selected( $desk_type, 'trusted' ); ?>>Featured image</option>
+                    <option value="remote"    <?php selected( $desk_type, 'remote' ); ?>>Remote / OG</option>
+                    <option value="gd"        <?php selected( $desk_type, 'gd' ); ?>>Generated — GD</option>
+                    <option value="svg"       <?php selected( $desk_type, 'svg' ); ?>>Generated — SVG</option>
+                    <option value="generated" <?php selected( $desk_type, 'generated' ); ?>>Generated (any)</option>
+                    <option value="external"  <?php selected( $desk_type, 'external' ); ?>>Manual link</option>
+                </select>
+            </div>
+
+            <div>
+                <label style="display:block;font-weight:600;font-size:12px;margin-bottom:4px;">Status</label>
+                <select id="hpw-image-status" style="width:130px;">
+                    <option value="">All statuses</option>
+                    <option value="publish" <?php selected( $desk_status, 'publish' ); ?>>Published</option>
+                    <option value="draft"   <?php selected( $desk_status, 'draft' ); ?>>Draft</option>
+                    <option value="pending" <?php selected( $desk_status, 'pending' ); ?>>Pending</option>
+                    <option value="future"  <?php selected( $desk_status, 'future' ); ?>>Scheduled</option>
+                </select>
+            </div>
+
+            <?php if ( ! empty( $desk_categories ) ) : ?>
+            <div>
+                <label style="display:block;font-weight:600;font-size:12px;margin-bottom:4px;">Category</label>
+                <select id="hpw-image-cat" style="width:170px;">
+                    <option value="0">All categories</option>
+                    <?php foreach ( $desk_categories as $cat ) : ?>
+                    <option value="<?php echo esc_attr( $cat->term_id ); ?>" <?php selected( $desk_cat, $cat->term_id ); ?>><?php echo esc_html( $cat->name ); ?> (<?php echo esc_html( $cat->count ); ?>)</option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+            <?php endif; ?>
+
+            <?php if ( ! empty( $desk_countries ) ) : ?>
+            <div>
+                <label style="display:block;font-weight:600;font-size:12px;margin-bottom:4px;">Country</label>
+                <select id="hpw-image-country" style="width:140px;">
+                    <option value="">All countries</option>
+                    <?php foreach ( $desk_countries as $c ) : ?>
+                    <option value="<?php echo esc_attr( $c ); ?>" <?php selected( $desk_country, $c ); ?>><?php echo esc_html( $c ); ?></option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+            <?php endif; ?>
+
+            <div>
+                <label style="display:block;font-weight:600;font-size:12px;margin-bottom:4px;">Sort by</label>
+                <select id="hpw-image-orderby" style="width:130px;">
+                    <option value="date"     <?php selected( $desk_orderby, 'date' ); ?>>Date added</option>
+                    <option value="modified" <?php selected( $desk_orderby, 'modified' ); ?>>Last modified</option>
+                    <option value="title"    <?php selected( $desk_orderby, 'title' ); ?>>Title A–Z</option>
+                </select>
+            </div>
+
+            <div style="display:flex;align-items:center;gap:8px;padding-top:18px;">
+                <span id="hpw-image-search-spinner" style="display:none;">
+                    <span class="spinner is-active" style="float:none;margin:0;vertical-align:middle;"></span>
+                </span>
+            </div>
+        </div>
+
+        <div id="hpw-image-desk-results">
+        <?php
+        $desk_filters = array(
+            's'       => $desk_search,
+            'type'    => $desk_type,
+            'status'  => $desk_status,
+            'cat_id'  => $desk_cat,
+            'country' => $desk_country,
+            'orderby' => $desk_orderby,
+        );
+        holyprofweb_render_image_desk_rows( holyprofweb_query_image_desk_posts( $desk_filters ), $desk_filters );
+        ?>
+        </div>
+
+        <script>
+        (function(){
+            var results = document.getElementById('hpw-image-desk-results');
+            var spinner = document.getElementById('hpw-image-search-spinner');
+            var nonce   = <?php echo wp_json_encode( wp_create_nonce( 'hpw_image_desk_ajax' ) ); ?>;
+
+            var ids = ['hpw-image-search','hpw-image-type','hpw-image-status','hpw-image-cat','hpw-image-country','hpw-image-orderby'];
+            var fields = {};
+            ids.forEach(function(id){ fields[id] = document.getElementById(id); });
+
+            function getParams() {
+                return {
+                    action:  'hpw_image_desk_search',
+                    nonce:   nonce,
+                    s:       fields['hpw-image-search']  ? fields['hpw-image-search'].value  : '',
+                    type:    fields['hpw-image-type']    ? fields['hpw-image-type'].value    : '',
+                    status:  fields['hpw-image-status']  ? fields['hpw-image-status'].value  : '',
+                    cat_id:  fields['hpw-image-cat']     ? fields['hpw-image-cat'].value     : '0',
+                    country: fields['hpw-image-country'] ? fields['hpw-image-country'].value : '',
+                    orderby: fields['hpw-image-orderby'] ? fields['hpw-image-orderby'].value : 'date',
+                };
+            }
+
+            var timer = null;
+            function refresh(delay) {
+                clearTimeout(timer);
+                timer = setTimeout(function(){
+                    if (spinner) spinner.style.display = 'inline-block';
+                    fetch(ajaxurl, {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+                        body: new URLSearchParams(getParams())
+                    })
+                    .then(function(r){ return r.text(); })
+                    .then(function(html){
+                        if (results) results.innerHTML = html;
+                        if (spinner) spinner.style.display = 'none';
+                    })
+                    .catch(function(){ if (spinner) spinner.style.display = 'none'; });
+                }, delay || 280);
+            }
+
+            ids.forEach(function(id){
+                var el = fields[id];
+                if (!el) return;
+                var ev = el.tagName.toLowerCase() === 'select' ? 'change' : 'input';
+                el.addEventListener(ev, function(){ refresh(ev === 'change' ? 0 : 280); });
+                if (ev === 'input') el.addEventListener('search', function(){ refresh(0); });
+            });
+        })();
+        </script>
 
         <hr>
         <h2><?php esc_html_e( 'Draft Publish Queue', 'holyprofweb' ); ?></h2>

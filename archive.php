@@ -40,6 +40,7 @@ $card_size = holyprofweb_get_image_size_dimensions( 'holyprofweb-card' );
         </header>
 
         <?php holyprofweb_render_ad_format( 'leaderboard', 'archive_inline', 'ad-archive-inline' ); ?>
+        <?php holyprofweb_render_ad_format( 'native', 'archive_inline', 'ad-archive-native' ); ?>
 
         <?php if ( have_posts() ) : ?>
 
