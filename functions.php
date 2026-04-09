@@ -2194,6 +2194,124 @@ function holyprofweb_assign_smart_categories( $post_id, $post = null ) {
     }
 }
 
+function holyprofweb_get_category_normalization_targets() {
+    return array(
+        'reviews' => array(
+            'canonical_slug'    => 'reviews',
+            'canonical_name'    => 'Reviews',
+            'parent_slug'       => '',
+            'aliases'           => array( 'review', 'reviews' ),
+        ),
+        'website-reviews' => array(
+            'canonical_slug'    => 'website-reviews',
+            'canonical_name'    => 'Website Reviews',
+            'parent_slug'       => 'reviews',
+            'aliases'           => array( 'website reviews', 'website-review', 'website-reviews', 'web reviews', 'site reviews', 'site-review', 'websites' ),
+        ),
+        'app-reviews' => array(
+            'canonical_slug'    => 'app-reviews',
+            'canonical_name'    => 'App Reviews',
+            'parent_slug'       => 'reviews',
+            'aliases'           => array( 'app reviews', 'app-review', 'app-reviews', 'apps', 'application reviews' ),
+        ),
+    );
+}
+
+function holyprofweb_get_or_create_category_term( $slug, $name = '', $parent_slug = '' ) {
+    $term = get_term_by( 'slug', $slug, 'category' );
+    if ( $term && ! is_wp_error( $term ) ) {
+        return $term;
+    }
+
+    $args = array( 'slug' => $slug );
+    if ( $parent_slug ) {
+        $parent = get_term_by( 'slug', $parent_slug, 'category' );
+        if ( $parent && ! is_wp_error( $parent ) ) {
+            $args['parent'] = (int) $parent->term_id;
+        }
+    }
+
+    $created = wp_insert_term( $name ? $name : ucwords( str_replace( '-', ' ', $slug ) ), 'category', $args );
+    if ( is_wp_error( $created ) || empty( $created['term_id'] ) ) {
+        return null;
+    }
+
+    return get_term( (int) $created['term_id'], 'category' );
+}
+
+function holyprofweb_normalize_post_categories( $post_id ) {
+    $post_id = (int) $post_id;
+    if ( $post_id <= 0 ) {
+        return;
+    }
+
+    $terms = get_the_category( $post_id );
+    if ( empty( $terms ) ) {
+        return;
+    }
+
+    $map         = holyprofweb_get_category_normalization_targets();
+    $keep_ids    = array();
+    $matched     = array();
+    $changed     = false;
+
+    foreach ( $terms as $term ) {
+        $slug = strtolower( (string) $term->slug );
+        $name = strtolower( trim( preg_replace( '/\s+/', ' ', (string) $term->name ) ) );
+        $canonical_slug = '';
+
+        foreach ( $map as $target_slug => $config ) {
+            if ( $slug === $target_slug || $name === strtolower( $config['canonical_name'] ) || in_array( $slug, $config['aliases'], true ) || in_array( $name, $config['aliases'], true ) ) {
+                $canonical_slug = $target_slug;
+                break;
+            }
+        }
+
+        if ( $canonical_slug ) {
+            $matched[ $canonical_slug ] = true;
+            if ( $slug !== $canonical_slug ) {
+                $changed = true;
+            }
+            continue;
+        }
+
+        $keep_ids[] = (int) $term->term_id;
+    }
+
+    if ( empty( $matched ) ) {
+        return;
+    }
+
+    foreach ( array_keys( $matched ) as $target_slug ) {
+        $config = $map[ $target_slug ];
+        if ( ! empty( $config['parent_slug'] ) ) {
+            $parent = holyprofweb_get_or_create_category_term( $config['parent_slug'], $map[ $config['parent_slug'] ]['canonical_name'] ?? $config['parent_slug'] );
+            if ( $parent ) {
+                $keep_ids[] = (int) $parent->term_id;
+            }
+        }
+
+        $target = holyprofweb_get_or_create_category_term( $target_slug, $config['canonical_name'], $config['parent_slug'] );
+        if ( $target ) {
+            $keep_ids[] = (int) $target->term_id;
+        }
+    }
+
+    $keep_ids = array_values( array_unique( array_filter( array_map( 'intval', $keep_ids ) ) ) );
+    if ( empty( $keep_ids ) ) {
+        return;
+    }
+
+    $current_ids = array_map( 'intval', wp_get_post_categories( $post_id ) );
+    sort( $current_ids );
+    $updated_ids = $keep_ids;
+    sort( $updated_ids );
+
+    if ( $changed || $current_ids !== $updated_ids ) {
+        wp_set_post_categories( $post_id, $updated_ids, false );
+    }
+}
+
 function holyprofweb_maybe_expand_topic_title( $post_id ) {
     $title = trim( holyprofweb_get_decoded_post_title( $post_id ) );
     $word_count = count( preg_split( '/\s+/', $title ) );
@@ -2258,6 +2376,7 @@ function holyprofweb_attempt_draft_repairs( $post_id, $post = null ) {
     }
 
     holyprofweb_assign_smart_categories( $post_id, $post );
+    holyprofweb_normalize_post_categories( $post_id );
     holyprofweb_maybe_expand_topic_title( $post_id );
 
     $post = get_post( $post_id );
@@ -2279,6 +2398,17 @@ function holyprofweb_attempt_draft_repairs( $post_id, $post = null ) {
         }
     }
 }
+
+add_action( 'save_post_post', function ( $post_id, $post ) {
+    if ( wp_is_post_revision( $post_id ) || wp_is_post_autosave( $post_id ) ) {
+        return;
+    }
+    if ( ! $post instanceof WP_Post || 'post' !== $post->post_type ) {
+        return;
+    }
+
+    holyprofweb_normalize_post_categories( $post_id );
+}, 30, 2 );
 
 function holyprofweb_process_draft_queue() {
     if ( ! get_option( 'hpw_enable_draft_autopublish', 1 ) ) {
@@ -7933,13 +8063,13 @@ add_action( 'admin_footer', 'holyprofweb_admin_editor_helpers', 30 );
 
 function holyprofweb_get_post_image_state( $post_id ) {
     if ( holyprofweb_post_has_trusted_featured_image( $post_id ) ) {
-        return array( 'label' => 'Featured image', 'type' => 'trusted' );
+        return array( 'label' => 'Showing now: Featured image', 'type' => 'trusted', 'detail' => 'Real attached image' );
     }
     if ( get_post_meta( $post_id, 'external_image', true ) ) {
-        return array( 'label' => 'Manual image link', 'type' => 'external' );
+        return array( 'label' => 'Showing now: Manual image link', 'type' => 'external', 'detail' => 'Custom external image URL' );
     }
     if ( get_post_meta( $post_id, '_holyprofweb_remote_image_url', true ) ) {
-        return array( 'label' => 'Remote / OG image', 'type' => 'remote' );
+        return array( 'label' => 'Showing now: Remote / OG image', 'type' => 'remote', 'detail' => 'Fetched from source site / logo' );
     }
     if ( holyprofweb_post_has_generated_thumbnail_attachment( $post_id ) ) {
         return array( 'label' => 'Generated — GD', 'type' => 'gd' );
@@ -8062,6 +8192,20 @@ function holyprofweb_render_image_desk_rows( $posts, $filters = array() ) {
         $state = holyprofweb_get_post_image_state( $pid );
         $color = $badge_colors[ $state['type'] ] ?? '#888';
         $nonce = wp_create_nonce( 'hpw_regenerate_post_image' );
+        $state_label  = $state['label'];
+        $state_detail = $state['detail'] ?? '';
+
+        if ( 'gd' === $state['type'] ) {
+            $state_label  = 'Showing now: Generated GD';
+            $state_detail = 'JPEG file fallback';
+        } elseif ( 'svg' === $state['type'] ) {
+            $generated    = (string) get_post_meta( $pid, '_holyprofweb_gen_image_url', true );
+            $state_label  = 'Showing now: Generated SVG';
+            $state_detail = 0 === strpos( $generated, 'data:image/svg+xml' ) ? 'SVG data fallback' : 'Generated fallback meta';
+        } elseif ( 'none' === $state['type'] ) {
+            $state_label  = 'Showing now: No image';
+            $state_detail = 'Nothing attached yet';
+        }
 
         $cats     = get_the_category( $pid );
         $cat_name = $cats ? $cats[0]->name : '—';
@@ -8071,7 +8215,11 @@ function holyprofweb_render_image_desk_rows( $posts, $filters = array() ) {
         echo '<tr>';
         echo '<td style="max-width:240px;"><a href="' . esc_url( get_permalink( $pid ) ) . '" target="_blank" style="font-weight:500;">' . esc_html( get_the_title( $pid ) ) . '</a> <a href="' . esc_url( get_edit_post_link( $pid ) ) . '" title="Edit post" style="color:#999;font-size:11px;margin-left:4px;" target="_blank">&#9998;</a></td>';
         echo '<td><span style="display:inline-block;padding:2px 8px;border-radius:3px;background:' . esc_attr( $color ) . ';color:#fff;font-size:11px;font-weight:600;white-space:nowrap;">'
-            . esc_html( $state['label'] ) . '</span></td>';
+            . esc_html( $state_label ) . '</span>';
+        if ( $state_detail ) {
+            echo '<div style="margin-top:4px;color:#666;font-size:11px;line-height:1.35;">' . esc_html( $state_detail ) . '</div>';
+        }
+        echo '</td>';
         echo '<td>' . esc_html( $cat_name ) . '</td>';
         echo '<td>' . esc_html( $country ) . '</td>';
         echo '<td>' . esc_html( $status ) . '</td>';
