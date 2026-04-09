@@ -5319,6 +5319,16 @@ add_action( 'rest_after_insert_post', function ( $post ) {
     if ( get_post_meta( $post->ID, '_holyprofweb_gen_image_url', true ) ) return;
     if ( get_post_meta( $post->ID, '_holyprofweb_remote_image_url', true ) ) return;
     if ( ! get_option( 'hpw_enable_generated_images', 1 ) ) return;
+
+    // On publish/import, try the better remote/logo image immediately before
+    // falling back to a generated GD image so the first visible image is nicer.
+    delete_transient( 'hpw_remote_image_retry_' . $post->ID );
+    $remote = holyprofweb_maybe_get_remote_post_image( $post->ID, $post );
+    if ( $remote ) {
+        holyprofweb_attach_remote_image_to_post( $remote, $post->ID, $post->post_title );
+    }
+    if ( has_post_thumbnail( $post->ID ) ) return;
+
     holyprofweb_generate_post_image_modern( $post->ID, $post );
 }, 20 );
 
