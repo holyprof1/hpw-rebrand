@@ -24,7 +24,9 @@ get_header();
                 $review_count = holyprofweb_get_review_count( $post_id );
                 $reactions   = holyprofweb_get_reactions( $post_id );
                 $tags        = get_the_tags();
-                $img_url     = holyprofweb_get_post_image_url( $post_id, 'full' );
+                $img_url     = holyprofweb_post_uses_generated_image_fallback( $post_id )
+                    ? holyprofweb_get_generated_svg_image_url( $post_id, 'hero' )
+                    : holyprofweb_get_post_image_url( $post_id, 'full' );
                 $is_salary_post  = holyprofweb_post_in_category_tree( $post_id, 'salaries' );
                 $is_company_post = holyprofweb_post_in_category_tree( $post_id, 'companies' );
                 $salary_count    = holyprofweb_get_comment_count_by_type( $post_id, 'salary_submission' );

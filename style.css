@@ -5385,6 +5385,43 @@ html[data-theme="light"] .theme-toggle-icon--sun {
     border-radius: 16px;
 }
 
+.widget_search .wp-block-search__inside-wrapper,
+.sidebar .wp-block-search__inside-wrapper {
+    display: flex;
+    gap: 10px;
+    align-items: stretch;
+}
+
+.widget_search .wp-block-search__input,
+.sidebar .wp-block-search__input {
+    min-width: 0;
+    flex: 1;
+    min-height: 48px;
+    padding: 12px 14px;
+    border: 1px solid var(--color-border);
+    border-radius: 16px;
+    background: rgba(11, 18, 30, 0.92);
+    color: #f8fafc;
+}
+
+.widget_search .wp-block-search__button,
+.sidebar .wp-block-search__button {
+    min-height: 48px;
+    padding: 12px 18px;
+    border: 1px solid transparent;
+    border-radius: 16px;
+    background: var(--color-accent, #f4b740);
+    color: #111827;
+    font-weight: 700;
+    box-shadow: none;
+}
+
+.widget_search .wp-block-search__button:hover,
+.sidebar .wp-block-search__button:hover {
+    background: #ffd06a;
+    color: #111827;
+}
+
 /* =========================================
    404 ERROR PAGE
 ========================================= */
