@@ -2383,7 +2383,7 @@ function holyprofweb_evaluate_draft_readiness( $post ) {
     $title      = trim( (string) $post->post_title );
     $plain      = trim( preg_replace( '/\s+/', ' ', wp_strip_all_tags( (string) $post->post_content ) ) );
     $word_count = str_word_count( $plain );
-    $minimum    = max( 1000, absint( get_option( 'hpw_ai_minimum_words', 1000 ) ) );
+    $minimum    = holyprofweb_get_draft_minimum_words();
     $needs      = array();
 
     if ( mb_strlen( $title ) < 18 ) {
@@ -2426,6 +2426,14 @@ function holyprofweb_attempt_draft_repairs( $post_id, $post = null ) {
 
     holyprofweb_expand_thin_post_content( $post_id, true );
     $post = get_post( $post_id );
+
+    if ( $post instanceof WP_Post ) {
+        $result = holyprofweb_evaluate_draft_readiness( $post );
+        if ( in_array( 'content', $result['needs'], true ) || in_array( 'repetition', $result['needs'], true ) ) {
+            holyprofweb_expand_thin_post_content( $post_id, true );
+            $post = get_post( $post_id );
+        }
+    }
 
     if ( $post instanceof WP_Post ) {
         holyprofweb_auto_set_excerpt( $post_id, $post );
@@ -2526,7 +2534,7 @@ function holyprofweb_build_ai_prompt_template( $title = '', $post_id = 0 ) {
     $title           = trim( (string) $title );
     $site_name       = get_bloginfo( 'name' );
     $tagline         = get_option( 'hpw_site_tagline', 'Research-first reviews, salary guides, company profiles, and practical explainers.' );
-    $minimum_words   = max( 1000, absint( get_option( 'hpw_ai_minimum_words', 1000 ) ) );
+    $minimum_words   = holyprofweb_get_draft_minimum_words();
     $internal_links  = max( 2, absint( get_option( 'hpw_ai_internal_links', 3 ) ) );
     $faq_count       = max( 3, absint( get_option( 'hpw_ai_faq_count', 5 ) ) );
     $country_context = holyprofweb_get_active_country_context( $post_id );
@@ -4519,6 +4527,10 @@ function holyprofweb_get_front_stat_display_count( $count, $mode = 'real' ) {
     }
 
     return $count;
+}
+
+function holyprofweb_get_draft_minimum_words() {
+    return max( 650, absint( get_option( 'hpw_ai_minimum_words', 700 ) ) );
 }
 
 function holyprofweb_get_comment_count_by_type( $post_id, $comment_type ) {
@@ -8551,7 +8563,7 @@ function holyprofweb_settings_automation_page() {
                 </tr>
                 <tr>
                     <th><?php esc_html_e( 'AI minimum target words', 'holyprofweb' ); ?></th>
-                    <td><input type="number" name="hpw_ai_minimum_words" value="<?php echo esc_attr( get_option( 'hpw_ai_minimum_words', 1000 ) ); ?>" min="1000" max="5000" class="small-text" /></td>
+                    <td><input type="number" name="hpw_ai_minimum_words" value="<?php echo esc_attr( get_option( 'hpw_ai_minimum_words', 700 ) ); ?>" min="650" max="5000" class="small-text" /></td>
                 </tr>
                 <tr>
                     <th><?php esc_html_e( 'Internal link targets per article', 'holyprofweb' ); ?></th>
@@ -9886,11 +9898,31 @@ function holyprofweb_expand_thin_post_content( $post_id, $force = false ) {
     $content = (string) $post->post_content;
     if ( false !== strpos( $content, '<!-- HPW-AUTO-CONTENT:START -->' ) ) {
         $content = preg_replace( '/<!-- HPW-AUTO-CONTENT:START -->.*?<!-- HPW-AUTO-CONTENT:END -->/si', '', $content );
-        wp_update_post( array(
-            'ID'           => $post_id,
-            'post_content' => trim( (string) $content ),
-        ) );
     }
+
+    $plain      = trim( preg_replace( '/\s+/', ' ', wp_strip_all_tags( (string) $content ) ) );
+    $word_count = str_word_count( $plain );
+    $minimum    = holyprofweb_get_draft_minimum_words();
+
+    if ( ! $force && $word_count >= $minimum && ! holyprofweb_content_looks_repetitive( $content ) ) {
+        return;
+    }
+
+    $auto_content = holyprofweb_build_longform_sections( $post_id );
+    if ( ! $auto_content ) {
+        return;
+    }
+
+    $new_content = trim( (string) $content );
+    if ( '' !== $new_content ) {
+        $new_content .= "\n\n";
+    }
+    $new_content .= $auto_content;
+
+    wp_update_post( array(
+        'ID'           => $post_id,
+        'post_content' => $new_content,
+    ) );
 }
 
 function holyprofweb_expand_existing_thin_posts_once() {
