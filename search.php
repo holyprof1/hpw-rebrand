@@ -58,7 +58,7 @@ if ( 0 === $found_posts && ! empty( $search_term ) ) {
 
         <?php if ( have_posts() ) : ?>
         <div class="tp-list tp-list--cards">
-            <?php while ( have_posts() ) : the_post(); ?>
+            <?php $hpw_search_loop_index = 0; while ( have_posts() ) : the_post(); $hpw_search_loop_index++; ?>
                 <?php
                 $cats    = get_the_category();
                 $rating  = holyprofweb_get_post_rating( get_the_ID() );
@@ -78,6 +78,11 @@ if ( 0 === $found_posts && ! empty( $search_term ) ) {
                     <p class="tp-excerpt"><?php echo esc_html( get_the_excerpt() ); ?></p>
                 </div>
             </article>
+            <?php if ( 0 === $hpw_search_loop_index % 4 ) : ?>
+            <div class="tp-inline-ad">
+                <?php holyprofweb_render_ad_format( 'native', 'archive_inline', 'ad-archive-native ad-archive-native--inline-list' ); ?>
+            </div>
+            <?php endif; ?>
             <?php endwhile; ?>
         </div>
 

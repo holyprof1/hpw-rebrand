@@ -2186,6 +2186,70 @@ ul, ol {
     border-left: 1px solid var(--color-border);
 }
 
+.hpw-page-shell {
+    position: fixed;
+    inset: 0;
+    z-index: 9998;
+    background:
+        radial-gradient(circle at 20% 20%, rgba(244, 183, 64, 0.08), transparent 28%),
+        linear-gradient(135deg, #11161f 0%, #171d27 46%, #11161f 100%);
+    transition: opacity 0.22s ease, visibility 0.22s ease;
+}
+
+.hpw-page-shell__inner {
+    max-width: var(--max-width);
+    margin: 0 auto;
+    padding: 108px 24px 24px;
+    display: grid;
+    grid-template-columns: 220px 1fr;
+    gap: 32px;
+}
+
+.hpw-page-shell__sidebar,
+.hpw-page-shell__hero,
+.hpw-page-shell__row {
+    position: relative;
+    overflow: hidden;
+    border-radius: 22px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.06);
+}
+
+.hpw-page-shell__sidebar::before,
+.hpw-page-shell__hero::before,
+.hpw-page-shell__row::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    transform: translateX(-100%);
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.12), transparent);
+    animation: hpwShellSweep 1.2s ease-in-out infinite;
+}
+
+.hpw-page-shell__sidebar {
+    min-height: 520px;
+}
+
+.hpw-page-shell__hero {
+    height: 148px;
+    margin-bottom: 18px;
+}
+
+.hpw-page-shell__row {
+    height: 168px;
+    margin-bottom: 16px;
+}
+
+.hpw-shell-ready .hpw-page-shell {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+}
+
+@keyframes hpwShellSweep {
+    100% { transform: translateX(100%); }
+}
+
 /* =========================================
    LEFT SIDEBAR NAVIGATION
 ========================================= */
@@ -2278,6 +2342,25 @@ ul, ol {
     display: block;
     padding: 8px 0 0 38px;
     overflow: visible;
+}
+
+.tp-inline-ad {
+    padding: 10px 0 18px;
+}
+
+.tp-inline-ad .ad-wrap {
+    border-radius: 22px;
+    overflow: hidden;
+}
+
+.post-grid-inline-ad {
+    grid-column: 1 / -1;
+    padding: 8px 0 2px;
+}
+
+.post-grid-inline-ad .ad-wrap {
+    border-radius: 22px;
+    overflow: hidden;
 }
 
 .left-nav-children li {

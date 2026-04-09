@@ -61,7 +61,7 @@ if ( $is_blog_archive ) {
         </div>
 
         <div class="tp-list">
-            <?php while ( have_posts() ) : the_post(); ?>
+            <?php $hpw_index_loop_index = 0; while ( have_posts() ) : the_post(); $hpw_index_loop_index++; ?>
                 <?php
                 $cats    = get_the_category();
                 $rating  = holyprofweb_get_post_rating( get_the_ID() );
@@ -93,6 +93,11 @@ if ( $is_blog_archive ) {
                     </div>
                 </div>
             </a>
+            <?php if ( 0 === $hpw_index_loop_index % 4 ) : ?>
+            <div class="tp-inline-ad">
+                <?php holyprofweb_render_ad_format( 'native', 'archive_inline', 'ad-archive-native ad-archive-native--inline-list' ); ?>
+            </div>
+            <?php endif; ?>
             <?php endwhile; ?>
         </div>
 

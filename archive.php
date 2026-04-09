@@ -58,7 +58,8 @@ $card_size = holyprofweb_get_image_size_dimensions( 'holyprofweb-card' );
 
         <!-- Trustpilot-style listing -->
         <div class="tp-list">
-            <?php while ( have_posts() ) : the_post();
+            <?php $hpw_archive_loop_index = 0; while ( have_posts() ) : the_post();
+                $hpw_archive_loop_index++;
                 $cats    = get_the_category();
                 $rating  = holyprofweb_get_post_rating( get_the_ID() );
                 $r_count = holyprofweb_get_review_count( get_the_ID() );
@@ -92,6 +93,11 @@ $card_size = holyprofweb_get_image_size_dimensions( 'holyprofweb-card' );
                 </div>
 
             </a>
+            <?php if ( 0 === $hpw_archive_loop_index % 4 ) : ?>
+            <div class="tp-inline-ad">
+                <?php holyprofweb_render_ad_format( 'native', 'archive_inline', 'ad-archive-native ad-archive-native--inline-list' ); ?>
+            </div>
+            <?php endif; ?>
             <?php endwhile; ?>
         </div>
 

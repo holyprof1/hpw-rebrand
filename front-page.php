@@ -213,17 +213,17 @@ $topic_descriptions = array(
 <div class="stats-bar" aria-label="Platform statistics">
     <div class="stats-bar-inner">
         <div class="stat-item">
-            <span class="stat-number"><?php echo esc_html( holyprofweb_format_display_count( max( 1, $total_posts ) ) ); ?></span>
+            <span class="stat-number"><?php echo esc_html( number_format_i18n( holyprofweb_get_front_stat_display_count( $total_posts ) ) ); ?></span>
             <span class="stat-label"><?php esc_html_e( 'Posts', 'holyprofweb' ); ?></span>
         </div>
         <div class="stat-divider" aria-hidden="true"></div>
         <div class="stat-item">
-            <span class="stat-number"><?php echo esc_html( holyprofweb_format_display_count( max( 1, $total_reviews ) ) ); ?></span>
+            <span class="stat-number"><?php echo esc_html( number_format_i18n( holyprofweb_get_front_stat_display_count( $total_reviews ) ) ); ?></span>
             <span class="stat-label"><?php esc_html_e( 'Reviews', 'holyprofweb' ); ?></span>
         </div>
         <div class="stat-divider" aria-hidden="true"></div>
         <div class="stat-item">
-            <span class="stat-number"><?php echo esc_html( holyprofweb_format_display_count( max( 1, $total_companies ) ) ); ?></span>
+            <span class="stat-number"><?php echo esc_html( number_format_i18n( holyprofweb_get_front_stat_display_count( $total_companies, 'companies' ) ) ); ?></span>
             <span class="stat-label"><?php esc_html_e( 'Companies', 'holyprofweb' ); ?></span>
         </div>
     </div>
@@ -409,8 +409,10 @@ $topic_descriptions = array(
             <div class="post-grid post-grid--compact">
                 <?php
                 if ( $guides_query->have_posts() ) :
+                    $hpw_guides_loop_index = 0;
                     while ( $guides_query->have_posts() ) :
                         $guides_query->the_post();
+                        $hpw_guides_loop_index++;
                 ?>
                 <article class="post-card">
                     <a href="<?php the_permalink(); ?>" class="post-card-thumb-link">
@@ -422,6 +424,11 @@ $topic_descriptions = array(
                         <p class="post-card-excerpt"><?php echo esc_html( get_the_excerpt() ); ?></p>
                     </div>
                 </article>
+                <?php if ( 2 === $hpw_guides_loop_index ) : ?>
+                <div class="post-grid-inline-ad">
+                    <?php holyprofweb_render_ad_format( 'native', 'front_inline', 'ad-front-inline ad-front-inline--blog-grid' ); ?>
+                </div>
+                <?php endif; ?>
                 <?php
                     endwhile;
                     wp_reset_postdata();
