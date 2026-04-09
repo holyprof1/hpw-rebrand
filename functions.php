@@ -4027,6 +4027,10 @@ function holyprofweb_get_generated_svg_image_url( $post_id, $variant = 'card' ) 
 }
 
 function holyprofweb_get_generated_card_image_url( $post_id ) {
+    if ( holyprofweb_post_uses_generated_image_fallback( $post_id ) || holyprofweb_post_has_generated_thumbnail_attachment( $post_id ) ) {
+        return holyprofweb_get_generated_svg_image_url( $post_id, 'card' );
+    }
+
     $cached = trim( (string) get_post_meta( $post_id, '_holyprofweb_gen_image_url', true ) );
     if ( $cached ) {
         if ( 0 === strpos( $cached, 'data:image/svg+xml' ) ) {

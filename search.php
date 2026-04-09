@@ -67,7 +67,7 @@ if ( 0 === $found_posts && ! empty( $search_term ) ) {
                 ?>
             <article class="tp-card">
                 <a href="<?php the_permalink(); ?>" class="tp-logo-wrap">
-                    <img src="<?php echo esc_attr( $thumb ); ?>" alt="<?php echo esc_attr( holyprofweb_get_decoded_post_title() ); ?>" class="tp-logo" loading="lazy" width="<?php echo esc_attr( $card_size['width'] ); ?>" height="<?php echo esc_attr( $card_size['height'] ); ?>" />
+                    <img src="<?php echo esc_attr( $thumb ); ?>" alt="<?php echo esc_attr( holyprofweb_get_decoded_post_title() ); ?>" class="<?php echo esc_attr( holyprofweb_get_post_image_class( get_the_ID(), 'tp-logo' ) ); ?>" loading="lazy" width="<?php echo esc_attr( $card_size['width'] ); ?>" height="<?php echo esc_attr( $card_size['height'] ); ?>" />
                 </a>
                 <div class="tp-body">
                     <div class="tp-rating-row">
