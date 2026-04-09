@@ -2384,12 +2384,13 @@ function holyprofweb_evaluate_draft_readiness( $post ) {
     $plain      = trim( preg_replace( '/\s+/', ' ', wp_strip_all_tags( (string) $post->post_content ) ) );
     $word_count = str_word_count( $plain );
     $minimum    = holyprofweb_get_draft_minimum_words();
+    $floor      = holyprofweb_get_draft_publish_floor_words();
     $needs      = array();
 
     if ( mb_strlen( $title ) < 18 ) {
         $needs[] = 'title';
     }
-    if ( $word_count < $minimum ) {
+    if ( $word_count < $floor ) {
         $needs[] = 'content';
     }
     if ( empty( get_the_category( $post->ID ) ) ) {
@@ -2398,7 +2399,7 @@ function holyprofweb_evaluate_draft_readiness( $post ) {
     if ( ! has_post_thumbnail( $post->ID ) && ! get_post_meta( $post->ID, 'external_image', true ) ) {
         $needs[] = 'image';
     }
-    if ( holyprofweb_content_looks_repetitive( $post->post_content ) ) {
+    if ( $word_count < $minimum && holyprofweb_content_looks_repetitive( $post->post_content ) ) {
         $needs[] = 'repetition';
     }
 
@@ -2406,6 +2407,7 @@ function holyprofweb_evaluate_draft_readiness( $post ) {
         'ready'      => empty( $needs ),
         'needs'      => $needs,
         'word_count' => $word_count,
+        'soft_ready' => ( $word_count >= $minimum ),
     );
 }
 
@@ -4566,6 +4568,10 @@ function holyprofweb_get_front_stat_display_count( $count, $mode = 'real' ) {
 
 function holyprofweb_get_draft_minimum_words() {
     return max( 650, absint( get_option( 'hpw_ai_minimum_words', 700 ) ) );
+}
+
+function holyprofweb_get_draft_publish_floor_words() {
+    return max( 260, min( 420, holyprofweb_get_draft_minimum_words() - 220 ) );
 }
 
 function holyprofweb_get_comment_count_by_type( $post_id, $comment_type ) {
