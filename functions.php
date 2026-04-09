@@ -2458,6 +2458,41 @@ add_action( 'save_post_post', function ( $post_id, $post ) {
     holyprofweb_normalize_post_categories( $post_id );
 }, 30, 2 );
 
+function holyprofweb_maybe_publish_ready_draft( $post_id, $post = null ) {
+    if ( ! get_option( 'hpw_enable_draft_autopublish', 1 ) ) {
+        return;
+    }
+
+    $post = $post ?: get_post( $post_id );
+    if ( ! $post instanceof WP_Post || 'post' !== $post->post_type || 'draft' !== $post->post_status ) {
+        return;
+    }
+
+    holyprofweb_attempt_draft_repairs( $post_id, $post );
+    $post   = get_post( $post_id );
+    $result = $post instanceof WP_Post ? holyprofweb_evaluate_draft_readiness( $post ) : array( 'ready' => false, 'needs' => array() );
+
+    if ( ! $result['ready'] ) {
+        holyprofweb_attempt_draft_repairs( $post_id, $post );
+        $post   = get_post( $post_id );
+        $result = $post instanceof WP_Post ? holyprofweb_evaluate_draft_readiness( $post ) : array( 'ready' => false, 'needs' => array() );
+    }
+
+    if ( $post instanceof WP_Post && $result['ready'] ) {
+        remove_action( 'save_post_post', 'holyprofweb_maybe_publish_ready_draft_on_save', 40 );
+        wp_update_post( array(
+            'ID'          => $post_id,
+            'post_status' => 'publish',
+        ) );
+        add_action( 'save_post_post', 'holyprofweb_maybe_publish_ready_draft_on_save', 40, 2 );
+    }
+}
+
+function holyprofweb_maybe_publish_ready_draft_on_save( $post_id, $post ) {
+    holyprofweb_maybe_publish_ready_draft( $post_id, $post );
+}
+add_action( 'save_post_post', 'holyprofweb_maybe_publish_ready_draft_on_save', 40, 2 );
+
 function holyprofweb_process_draft_queue() {
     if ( ! get_option( 'hpw_enable_draft_autopublish', 1 ) ) {
         return;
@@ -6122,7 +6157,7 @@ function holyprofweb_left_sidebar() {
 }
 
 function holyprofweb_should_show_page_shell_loader() {
-    return ! is_admin() && ( is_archive() || is_search() || is_home() );
+    return ! is_admin() && ( is_archive() || is_search() || is_home() || is_single() );
 }
 
 function holyprofweb_page_shell_body_class( $classes ) {
