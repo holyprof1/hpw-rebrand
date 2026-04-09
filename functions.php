@@ -637,6 +637,25 @@ function holyprofweb_ads_admin_page() {
 
         <form method="post" id="hpw-ads-form">
             <?php wp_nonce_field( 'holyprofweb_save_ads', 'holyprofweb_ads_nonce' ); ?>
+            <style>
+                #hpw-ads-form .form-table {
+                    width: 100%;
+                    max-width: none;
+                }
+                #hpw-ads-form .form-table th {
+                    width: 180px;
+                    padding-left: 0;
+                }
+                #hpw-ads-form .form-table td {
+                    padding-right: 0;
+                }
+                #hpw-ads-form .hpw-ad-code {
+                    min-height: 180px;
+                    width: 100%;
+                    font-size: 12px;
+                    line-height: 1.5;
+                }
+            </style>
 
             <?php
             // ── Section helper ────────────────────────────────────────────
@@ -648,12 +667,12 @@ function holyprofweb_ads_admin_page() {
                 $val = $get_code( $code_key );
                 ?>
                 <tr>
-                    <th scope="row" style="width:200px;">
+                    <th scope="row">
                         <strong><?php echo esc_html( $label ); ?></strong><br>
                         <span style="font-size:11px;color:#888;font-weight:normal;">ID: <?php echo esc_html( $adsterra_id ); ?></span>
                     </th>
                     <td>
-                        <textarea name="<?php echo esc_attr( $field ); ?>" rows="4"
+                        <textarea name="<?php echo esc_attr( $field ); ?>" rows="8"
                                   class="large-text code hpw-ad-code"
                                   placeholder="Paste Adsterra script code here…"><?php echo esc_textarea( $val ); ?></textarea>
                     </td>
@@ -9066,9 +9085,14 @@ function holyprofweb_on_post_publish( $new_status, $old_status, $post ) {
     holyprofweb_expand_thin_post_content( $post->ID );
 
     // 6. Featured image — run async-safe: defer to shutdown so all meta is saved first
+    delete_transient( 'hpw_remote_image_retry_' . $post->ID );
     if ( ! has_post_thumbnail( $post->ID ) ) {
         add_action( 'shutdown', function() use ( $post ) {
             holyprofweb_auto_featured_image( $post->ID, $post, false );
+        } );
+    } elseif ( holyprofweb_post_uses_generated_image_fallback( $post->ID ) || holyprofweb_post_has_generated_thumbnail_attachment( $post->ID ) ) {
+        add_action( 'shutdown', function() use ( $post ) {
+            holyprofweb_upgrade_generated_featured_image( $post->ID, $post );
         } );
     }
 
