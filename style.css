@@ -2187,12 +2187,19 @@ ul, ol {
 }
 
 .hpw-page-shell {
+    --hpw-shell-bg-start: color-mix(in srgb, var(--color-surface) 88%, #ffffff 12%);
+    --hpw-shell-bg-mid: color-mix(in srgb, var(--color-surface-2) 92%, var(--color-bg) 8%);
+    --hpw-shell-bg-end: color-mix(in srgb, var(--color-bg) 94%, var(--color-surface) 6%);
+    --hpw-shell-glow: color-mix(in srgb, var(--color-accent) 16%, transparent);
+    --hpw-shell-card: color-mix(in srgb, var(--color-surface) 86%, var(--color-bg) 14%);
+    --hpw-shell-border: color-mix(in srgb, var(--color-border) 72%, transparent);
+    --hpw-shell-shine: color-mix(in srgb, #ffffff 48%, transparent);
     position: fixed;
     inset: 0;
     z-index: 9998;
     background:
-        radial-gradient(circle at 20% 20%, rgba(244, 183, 64, 0.08), transparent 28%),
-        linear-gradient(135deg, #11161f 0%, #171d27 46%, #11161f 100%);
+        radial-gradient(circle at 20% 20%, var(--hpw-shell-glow), transparent 28%),
+        linear-gradient(135deg, var(--hpw-shell-bg-start) 0%, var(--hpw-shell-bg-mid) 46%, var(--hpw-shell-bg-end) 100%);
     transition: opacity 0.22s ease, visibility 0.22s ease;
 }
 
@@ -2211,8 +2218,8 @@ ul, ol {
     position: relative;
     overflow: hidden;
     border-radius: 22px;
-    background: rgba(255,255,255,0.04);
-    border: 1px solid rgba(255,255,255,0.06);
+    background: var(--hpw-shell-card);
+    border: 1px solid var(--hpw-shell-border);
 }
 
 .hpw-page-shell__sidebar::before,
@@ -2222,7 +2229,7 @@ ul, ol {
     position: absolute;
     inset: 0;
     transform: translateX(-100%);
-    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.12), transparent);
+    background: linear-gradient(90deg, transparent, var(--hpw-shell-shine), transparent);
     animation: hpwShellSweep 1.2s ease-in-out infinite;
 }
 
@@ -2238,6 +2245,16 @@ ul, ol {
 .hpw-page-shell__row {
     height: 168px;
     margin-bottom: 16px;
+}
+
+html[data-theme="dark"] .hpw-page-shell {
+    --hpw-shell-bg-start: #11161f;
+    --hpw-shell-bg-mid: #171d27;
+    --hpw-shell-bg-end: #11161f;
+    --hpw-shell-glow: rgba(244, 183, 64, 0.08);
+    --hpw-shell-card: rgba(255,255,255,0.04);
+    --hpw-shell-border: rgba(255,255,255,0.06);
+    --hpw-shell-shine: rgba(255,255,255,0.12);
 }
 
 .hpw-shell-ready .hpw-page-shell {
