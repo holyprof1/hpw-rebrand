@@ -5776,9 +5776,6 @@ function holyprofweb_auto_featured_image( $post_id, $post, $update ) {
     if ( get_post_meta( $post_id, 'external_image', true ) ) return;
 
     if ( has_post_thumbnail( $post_id ) ) {
-        if ( holyprofweb_post_uses_generated_image_fallback( $post_id ) ) {
-            holyprofweb_upgrade_generated_featured_image( $post_id, $post );
-        }
         return;
     }
 
@@ -5789,11 +5786,6 @@ function holyprofweb_auto_featured_image( $post_id, $post, $update ) {
     if ( holyprofweb_should_defer_featured_image_generation() ) {
         holyprofweb_schedule_featured_image_generation( $post_id );
         return;
-    }
-
-    $image_url = holyprofweb_maybe_get_remote_post_image( $post_id, $post );
-    if ( $image_url ) {
-        holyprofweb_attach_remote_image_to_post( $image_url, $post_id, $post->post_title );
     }
 
     if ( ! has_post_thumbnail( $post_id ) ) {
@@ -5818,15 +5810,6 @@ add_action( 'rest_after_insert_post', function ( $post ) {
     if ( get_post_meta( $post->ID, '_holyprofweb_gen_image_url', true ) ) return;
     if ( get_post_meta( $post->ID, '_holyprofweb_remote_image_url', true ) ) return;
     if ( ! get_option( 'hpw_enable_generated_images', 1 ) ) return;
-
-    // On publish/import, try the better remote/logo image immediately before
-    // falling back to a generated GD image so the first visible image is nicer.
-    delete_transient( 'hpw_remote_image_retry_' . $post->ID );
-    $remote = holyprofweb_maybe_get_remote_post_image( $post->ID, $post );
-    if ( $remote ) {
-        holyprofweb_attach_remote_image_to_post( $remote, $post->ID, $post->post_title );
-    }
-    if ( has_post_thumbnail( $post->ID ) ) return;
 
     holyprofweb_generate_post_image_modern( $post->ID, $post );
 }, 20 );
@@ -9694,39 +9677,9 @@ function holyprofweb_on_post_publish( $new_status, $old_status, $post ) {
     if ( $post->post_type !== 'post' ) return;
     if ( wp_is_post_revision( $post->ID ) || wp_is_post_autosave( $post->ID ) ) return;
 
-    // 1. Auto-excerpt (powers meta description)
-    holyprofweb_auto_set_excerpt( $post->ID, $post );
-
-    // 2. Auto-tags from title + category
-    holyprofweb_auto_set_tags( $post->ID, $post );
-
-    // 3. Cache schema type (Article / Person / Organization / Review / etc.)
-    holyprofweb_cache_schema_type( $post->ID );
-
-    // 4. Store reading time
-    holyprofweb_cache_reading_time( $post->ID, $post );
-
-    // 5. Expand thin content so published pages do not look empty.
-    holyprofweb_expand_thin_post_content( $post->ID );
-
-    // 6. Featured image — run async-safe: defer to shutdown so all meta is saved first
-    delete_transient( 'hpw_remote_image_retry_' . $post->ID );
+    // Keep publish lightweight: defer heavy work to cron.
     if ( ! has_post_thumbnail( $post->ID ) ) {
-        add_action( 'shutdown', function() use ( $post ) {
-            holyprofweb_auto_featured_image( $post->ID, $post, false );
-        } );
-    } elseif ( holyprofweb_post_uses_generated_image_fallback( $post->ID ) || holyprofweb_post_has_generated_thumbnail_attachment( $post->ID ) ) {
-        add_action( 'shutdown', function() use ( $post ) {
-            holyprofweb_upgrade_generated_featured_image( $post->ID, $post );
-        } );
-    }
-
-    if ( holyprofweb_is_high_volume_publish_context() ) {
-        if ( ! wp_next_scheduled( 'holyprofweb_run_content_audit_async' ) ) {
-            wp_schedule_single_event( time() + 60, 'holyprofweb_run_content_audit_async' );
-        }
-    } else {
-        holyprofweb_run_content_audit();
+        holyprofweb_schedule_featured_image_generation( $post->ID );
     }
 }
 
