@@ -9726,6 +9726,12 @@ function holyprofweb_settings_seo_debug_page() {
     $seo_provider = function_exists( 'holyprofweb_detect_active_seo_provider' ) ? holyprofweb_detect_active_seo_provider() : array( 'label' => 'HPW Native SEO', 'native_enabled' => true );
     $draft_cron_overdue = $next_draft_cron && $next_draft_cron < time();
     $audit_cron_overdue = $next_audit_cron && $next_audit_cron < time();
+    $wp_cron_disabled  = defined( 'DISABLE_WP_CRON' ) && DISABLE_WP_CRON;
+    $php_binary        = defined( 'PHP_BINARY' ) ? PHP_BINARY : '';
+    $cron_command      = $php_binary ? ( $php_binary . ' -q ' . ABSPATH . 'wp-cron.php' ) : ( 'php -q ' . ABSPATH . 'wp-cron.php' );
+    $server_time       = time();
+    $wp_time           = current_time( 'timestamp' );
+    $wp_timezone       = wp_timezone_string();
     if ( isset( $_GET['hpw_debug_action'] ) ) {
         $action = sanitize_key( wp_unslash( $_GET['hpw_debug_action'] ) );
         $count  = absint( $_GET['hpw_debug_count'] ?? 0 );
@@ -9803,6 +9809,10 @@ function holyprofweb_settings_seo_debug_page() {
                     <tr><td><?php esc_html_e( 'Home URL', 'holyprofweb' ); ?></td><td><a href="<?php echo esc_url( home_url( '/' ) ); ?>" target="_blank"><?php echo esc_html( home_url( '/' ) ); ?></a></td></tr>
                     <tr><td><?php esc_html_e( 'robots.txt', 'holyprofweb' ); ?></td><td><a href="<?php echo esc_url( home_url( '/robots.txt' ) ); ?>" target="_blank"><?php echo esc_html( home_url( '/robots.txt' ) ); ?></a></td></tr>
                     <tr><td><?php esc_html_e( 'Sitemap', 'holyprofweb' ); ?></td><td><a href="<?php echo esc_url( home_url( '/wp-sitemap.xml' ) ); ?>" target="_blank"><?php echo esc_html( home_url( '/wp-sitemap.xml' ) ); ?></a></td></tr>
+                    <tr><td><?php esc_html_e( 'WP-Cron disabled in wp-config.php', 'holyprofweb' ); ?></td><td><?php echo esc_html( $wp_cron_disabled ? 'Yes' : 'No' ); ?></td></tr>
+                    <tr><td><?php esc_html_e( 'Server time', 'holyprofweb' ); ?></td><td><?php echo esc_html( wp_date( 'Y-m-d H:i:s', $server_time ) ); ?></td></tr>
+                    <tr><td><?php esc_html_e( 'WordPress time', 'holyprofweb' ); ?></td><td><?php echo esc_html( wp_date( 'Y-m-d H:i:s', $wp_time ) . ( $wp_timezone ? ' (' . $wp_timezone . ')' : '' ) ); ?></td></tr>
+                    <tr><td><?php esc_html_e( 'Server cron command', 'holyprofweb' ); ?></td><td><code><?php echo esc_html( $cron_command ); ?></code></td></tr>
                     <tr><td><?php esc_html_e( 'Theme archive posts per page', 'holyprofweb' ); ?></td><td><?php echo esc_html( holyprofweb_get_archive_posts_per_page() ); ?></td></tr>
                     <tr><td><?php esc_html_e( 'WordPress general posts per page', 'holyprofweb' ); ?></td><td><?php echo esc_html( (int) get_option( 'posts_per_page', 10 ) ); ?></td></tr>
                     <tr><td><?php esc_html_e( 'Draft force-publish rule', 'holyprofweb' ); ?></td><td><?php echo esc_html( holyprofweb_get_draft_force_publish_attempts() . ' checks or ' . floor( holyprofweb_get_draft_force_publish_window() / MINUTE_IN_SECONDS ) . ' minutes' ); ?></td></tr>
