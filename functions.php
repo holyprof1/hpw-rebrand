@@ -2655,6 +2655,7 @@ function holyprofweb_process_draft_queue() {
     }
 
     update_option( 'holyprofweb_draft_publish_queue', $queue, false );
+    update_option( 'holyprofweb_draft_audit_last_run', time(), false );
 }
 add_action( 'holyprofweb_draft_publish_audit', 'holyprofweb_process_draft_queue' );
 
@@ -4743,6 +4744,43 @@ function holyprofweb_publish_overdue_drafts_now( $limit = 200 ) {
     }
 
     return $published;
+}
+
+function holyprofweb_get_draft_debug_rows( $limit = 25 ) {
+    $existing_queue = holyprofweb_get_draft_publish_queue();
+    $drafts = get_posts( array(
+        'post_type'      => 'post',
+        'post_status'    => 'draft',
+        'posts_per_page' => max( 1, min( 200, (int) $limit ) ),
+        'orderby'        => 'date',
+        'order'          => 'ASC',
+        'no_found_rows'  => true,
+    ) );
+    $rows = array();
+
+    foreach ( $drafts as $post ) {
+        $queue_item = isset( $existing_queue[ $post->ID ] ) && is_array( $existing_queue[ $post->ID ] ) ? $existing_queue[ $post->ID ] : array();
+        $attempts   = isset( $queue_item['attempts'] ) ? (int) $queue_item['attempts'] : 0;
+        $remaining  = max( 0, holyprofweb_get_draft_force_publish_attempts() - $attempts );
+        $first_seen = isset( $queue_item['first_seen'] ) ? absint( $queue_item['first_seen'] ) : 0;
+
+        if ( ! $first_seen ) {
+            $first_seen = strtotime( (string) $post->post_date_gmt . ' GMT' );
+        }
+
+        $rows[] = array(
+            'post_id'         => (int) $post->ID,
+            'title'           => get_the_title( $post->ID ),
+            'attempts'        => $attempts,
+            'checks_remaining'=> $remaining,
+            'force_ready'     => holyprofweb_should_force_publish_draft( $post, $queue_item ),
+            'needs'           => (array) ( $queue_item['needs'] ?? array() ),
+            'last_checked'    => ! empty( $queue_item['last_checked'] ) ? (int) $queue_item['last_checked'] : 0,
+            'first_seen'      => $first_seen,
+        );
+    }
+
+    return $rows;
 }
 
 function holyprofweb_get_draft_minimum_words() {
@@ -9673,8 +9711,10 @@ function holyprofweb_settings_seo_debug_page() {
     }
 
     $draft_queue     = holyprofweb_get_draft_publish_queue();
+    $draft_debug_rows = holyprofweb_get_draft_debug_rows( 30 );
     $next_draft_cron = wp_next_scheduled( 'holyprofweb_draft_publish_audit' );
     $next_audit_cron = wp_next_scheduled( 'holyprofweb_daily_content_audit' );
+    $last_draft_cron = absint( get_option( 'holyprofweb_draft_audit_last_run', 0 ) );
     $draft_totals    = wp_count_posts( 'post' );
     $sample_post_ids = get_posts( array(
         'post_type'      => 'post',
@@ -9684,6 +9724,8 @@ function holyprofweb_settings_seo_debug_page() {
         'no_found_rows'  => true,
     ) );
     $seo_provider = function_exists( 'holyprofweb_detect_active_seo_provider' ) ? holyprofweb_detect_active_seo_provider() : array( 'label' => 'HPW Native SEO', 'native_enabled' => true );
+    $draft_cron_overdue = $next_draft_cron && $next_draft_cron < time();
+    $audit_cron_overdue = $next_audit_cron && $next_audit_cron < time();
     if ( isset( $_GET['hpw_debug_action'] ) ) {
         $action = sanitize_key( wp_unslash( $_GET['hpw_debug_action'] ) );
         $count  = absint( $_GET['hpw_debug_count'] ?? 0 );
@@ -9720,6 +9762,12 @@ function holyprofweb_settings_seo_debug_page() {
                 <span><?php esc_html_e( 'WordPress search engine visibility', 'holyprofweb' ); ?></span>
             </div>
         </div>
+
+        <?php if ( $draft_cron_overdue || $audit_cron_overdue ) : ?>
+            <div class="notice notice-warning inline" style="margin:0 0 16px;">
+                <p><?php esc_html_e( 'One or more scheduled HPW cron jobs are overdue. This usually means WP-Cron has not been triggered yet by a site request, or the server cron is not calling wp-cron.php reliably.', 'holyprofweb' ); ?></p>
+            </div>
+        <?php endif; ?>
 
         <div style="background:#fff;border:1px solid #dcdcde;border-radius:12px;padding:16px;margin:0 0 24px;">
             <h2 style="margin-top:0;"><?php esc_html_e( 'Automation Controls', 'holyprofweb' ); ?></h2>
@@ -9758,8 +9806,9 @@ function holyprofweb_settings_seo_debug_page() {
                     <tr><td><?php esc_html_e( 'Theme archive posts per page', 'holyprofweb' ); ?></td><td><?php echo esc_html( holyprofweb_get_archive_posts_per_page() ); ?></td></tr>
                     <tr><td><?php esc_html_e( 'WordPress general posts per page', 'holyprofweb' ); ?></td><td><?php echo esc_html( (int) get_option( 'posts_per_page', 10 ) ); ?></td></tr>
                     <tr><td><?php esc_html_e( 'Draft force-publish rule', 'holyprofweb' ); ?></td><td><?php echo esc_html( holyprofweb_get_draft_force_publish_attempts() . ' checks or ' . floor( holyprofweb_get_draft_force_publish_window() / MINUTE_IN_SECONDS ) . ' minutes' ); ?></td></tr>
-                    <tr><td><?php esc_html_e( 'Next draft cron', 'holyprofweb' ); ?></td><td><?php echo esc_html( $next_draft_cron ? wp_date( 'Y-m-d H:i:s', $next_draft_cron ) : 'Not scheduled' ); ?></td></tr>
-                    <tr><td><?php esc_html_e( 'Next content audit cron', 'holyprofweb' ); ?></td><td><?php echo esc_html( $next_audit_cron ? wp_date( 'Y-m-d H:i:s', $next_audit_cron ) : 'Not scheduled' ); ?></td></tr>
+                    <tr><td><?php esc_html_e( 'Last draft cron run', 'holyprofweb' ); ?></td><td><?php echo esc_html( $last_draft_cron ? wp_date( 'Y-m-d H:i:s', $last_draft_cron ) : 'Not recorded yet' ); ?></td></tr>
+                    <tr><td><?php esc_html_e( 'Next draft cron', 'holyprofweb' ); ?></td><td><?php echo esc_html( $next_draft_cron ? wp_date( 'Y-m-d H:i:s', $next_draft_cron ) : 'Not scheduled' ); ?><?php echo $draft_cron_overdue ? esc_html( ' (Overdue)' ) : ''; ?></td></tr>
+                    <tr><td><?php esc_html_e( 'Next content audit cron', 'holyprofweb' ); ?></td><td><?php echo esc_html( $next_audit_cron ? wp_date( 'Y-m-d H:i:s', $next_audit_cron ) : 'Not scheduled' ); ?><?php echo $audit_cron_overdue ? esc_html( ' (Overdue)' ) : ''; ?></td></tr>
                     <tr><td><?php esc_html_e( 'Current draft count', 'holyprofweb' ); ?></td><td><?php echo esc_html( isset( $draft_totals->draft ) ? (int) $draft_totals->draft : 0 ); ?></td></tr>
                 </tbody>
             </table>
@@ -9767,18 +9816,20 @@ function holyprofweb_settings_seo_debug_page() {
 
         <div style="background:#fff;border:1px solid #dcdcde;border-radius:12px;padding:16px;margin:0 0 24px;">
             <h2 style="margin-top:0;"><?php esc_html_e( 'Draft Queue Debug', 'holyprofweb' ); ?></h2>
-            <?php if ( empty( $draft_queue ) ) : ?>
-                <p><?php esc_html_e( 'Draft queue is empty right now.', 'holyprofweb' ); ?></p>
+            <?php if ( empty( $draft_debug_rows ) ) : ?>
+                <p><?php esc_html_e( 'There are no draft posts right now.', 'holyprofweb' ); ?></p>
             <?php else : ?>
                 <table class="widefat striped">
-                    <thead><tr><th><?php esc_html_e( 'Draft', 'holyprofweb' ); ?></th><th><?php esc_html_e( 'Attempts', 'holyprofweb' ); ?></th><th><?php esc_html_e( 'Needs', 'holyprofweb' ); ?></th><th><?php esc_html_e( 'Last checked', 'holyprofweb' ); ?></th></tr></thead>
+                    <thead><tr><th><?php esc_html_e( 'Draft', 'holyprofweb' ); ?></th><th><?php esc_html_e( 'Attempts', 'holyprofweb' ); ?></th><th><?php esc_html_e( 'Checks left', 'holyprofweb' ); ?></th><th><?php esc_html_e( 'Status', 'holyprofweb' ); ?></th><th><?php esc_html_e( 'Needs', 'holyprofweb' ); ?></th><th><?php esc_html_e( 'Last checked', 'holyprofweb' ); ?></th></tr></thead>
                     <tbody>
-                    <?php foreach ( $draft_queue as $post_id => $item ) : ?>
+                    <?php foreach ( $draft_debug_rows as $row ) : ?>
                         <tr>
-                            <td><a href="<?php echo esc_url( get_edit_post_link( $post_id ) ); ?>"><?php echo esc_html( $item['title'] ?? get_the_title( $post_id ) ); ?></a></td>
-                            <td><?php echo esc_html( (int) ( $item['attempts'] ?? 0 ) ); ?></td>
-                            <td><?php echo esc_html( implode( ', ', (array) ( $item['needs'] ?? array() ) ) ); ?></td>
-                            <td><?php echo esc_html( ! empty( $item['last_checked'] ) ? wp_date( 'Y-m-d H:i:s', (int) $item['last_checked'] ) : 'Never' ); ?></td>
+                            <td><a href="<?php echo esc_url( get_edit_post_link( $row['post_id'] ) ); ?>"><?php echo esc_html( $row['title'] ); ?></a></td>
+                            <td><?php echo esc_html( (int) $row['attempts'] ); ?></td>
+                            <td><?php echo esc_html( (int) $row['checks_remaining'] ); ?></td>
+                            <td><?php echo esc_html( $row['force_ready'] ? 'Ready to force-publish' : 'Waiting for next checks' ); ?></td>
+                            <td><?php echo esc_html( implode( ', ', (array) $row['needs'] ) ); ?></td>
+                            <td><?php echo esc_html( ! empty( $row['last_checked'] ) ? wp_date( 'Y-m-d H:i:s', (int) $row['last_checked'] ) : 'Not checked yet' ); ?></td>
                         </tr>
                     <?php endforeach; ?>
                     </tbody>
