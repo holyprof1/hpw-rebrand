@@ -1412,6 +1412,10 @@ function holyprofweb_track_search() {
         return;
     }
 
+    if ( ! empty( $_COOKIE['hpw_search_tracked'] ) ) {
+        return;
+    }
+
     $log = holyprofweb_get_search_log();
     $key = md5( strtolower( trim( $term ) ) );
     $locale = holyprofweb_detect_visitor_locale();
@@ -1475,6 +1479,10 @@ function holyprofweb_track_search() {
     $log = array_slice( $log, 0, holyprofweb_get_search_log_limit(), true );
 
     update_option( 'holyprofweb_search_log', $log, false );
+
+    if ( ! headers_sent() ) {
+        setcookie( 'hpw_search_tracked', '1', time() + HOUR_IN_SECONDS, COOKIEPATH ? COOKIEPATH : '/', COOKIE_DOMAIN, is_ssl(), true );
+    }
 }
 add_action( 'wp', 'holyprofweb_track_search' );
 
@@ -1897,6 +1905,14 @@ function holyprofweb_track_visit_context() {
         return;
     }
 
+    if ( holyprofweb_is_search_request_from_bot() ) {
+        return;
+    }
+
+    if ( ! empty( $_COOKIE['hpw_visit_context_tracked'] ) ) {
+        return;
+    }
+
     $stats  = get_option( 'holyprofweb_visit_stats', array(
         'countries' => array(),
         'languages' => array(),
@@ -1930,6 +1946,10 @@ function holyprofweb_track_visit_context() {
     }
 
     update_option( 'holyprofweb_visit_stats', $stats, false );
+
+    if ( ! headers_sent() ) {
+        setcookie( 'hpw_visit_context_tracked', '1', time() + HOUR_IN_SECONDS, COOKIEPATH ? COOKIEPATH : '/', COOKIE_DOMAIN, is_ssl(), true );
+    }
 }
 add_action( 'wp', 'holyprofweb_track_visit_context' );
 
@@ -2035,16 +2055,37 @@ add_filter( 'cron_schedules', function( $schedules ) {
             'display'  => __( 'Every 5 Minutes', 'holyprofweb' ),
         );
     }
+    if ( empty( $schedules['every_fifteen_minutes'] ) ) {
+        $schedules['every_fifteen_minutes'] = array(
+            'interval' => 15 * MINUTE_IN_SECONDS,
+            'display'  => __( 'Every 15 Minutes', 'holyprofweb' ),
+        );
+    }
     return $schedules;
 } );
 
+function holyprofweb_get_draft_audit_schedule() {
+    $allowed = array( 'every_fifteen_minutes', 'hourly', 'twicedaily', 'daily' );
+    $saved   = sanitize_key( (string) get_option( 'hpw_draft_audit_schedule', 'every_fifteen_minutes' ) );
+
+    return in_array( $saved, $allowed, true ) ? $saved : 'every_fifteen_minutes';
+}
+
 function holyprofweb_schedule_content_audit() {
+    $draft_schedule = holyprofweb_get_draft_audit_schedule();
+    $draft_event    = function_exists( 'wp_get_scheduled_event' ) ? wp_get_scheduled_event( 'holyprofweb_draft_publish_audit' ) : false;
+
     if ( ! wp_next_scheduled( 'holyprofweb_daily_content_audit' ) ) {
         wp_schedule_event( time() + HOUR_IN_SECONDS, 'daily', 'holyprofweb_daily_content_audit' );
     }
 
-    if ( ! wp_next_scheduled( 'holyprofweb_draft_publish_audit' ) ) {
-        wp_schedule_event( time() + ( 5 * MINUTE_IN_SECONDS ), 'every_five_minutes', 'holyprofweb_draft_publish_audit' );
+    if ( $draft_event && ! empty( $draft_event->schedule ) && $draft_event->schedule !== $draft_schedule ) {
+        wp_unschedule_event( $draft_event->timestamp, 'holyprofweb_draft_publish_audit' );
+        $draft_event = false;
+    }
+
+    if ( ! $draft_event && ! wp_next_scheduled( 'holyprofweb_draft_publish_audit' ) ) {
+        wp_schedule_event( time() + ( 15 * MINUTE_IN_SECONDS ), $draft_schedule, 'holyprofweb_draft_publish_audit' );
     }
 }
 
@@ -2887,12 +2928,21 @@ function holyprofweb_create_categories() {
         }
     }
 }
-add_action( 'init', 'holyprofweb_create_categories', 5 );
+
+function holyprofweb_maybe_create_categories() {
+    if ( get_option( 'holyprofweb_categories_bootstrapped', 0 ) ) {
+        return;
+    }
+
+    holyprofweb_create_categories();
+    update_option( 'holyprofweb_categories_bootstrapped', 1, false );
+}
+add_action( 'init', 'holyprofweb_maybe_create_categories', 5 );
 
 function holyprofweb_enforce_permalink_structure() {
     global $wp_rewrite;
 
-    $target = '/%category%/%postname%/';
+    $target = '/%postname%/';
     if ( ! isset( $wp_rewrite ) || ! is_object( $wp_rewrite ) ) {
         return;
     }
@@ -2971,7 +3021,20 @@ function holyprofweb_ensure_placeholder_posts() {
         }
     }
 }
-add_action( 'init', 'holyprofweb_ensure_placeholder_posts', 25 );
+
+function holyprofweb_maybe_ensure_placeholder_posts() {
+    if ( ! holyprofweb_is_local_environment() ) {
+        return;
+    }
+
+    if ( get_option( 'holyprofweb_placeholders_bootstrapped', 0 ) ) {
+        return;
+    }
+
+    holyprofweb_ensure_placeholder_posts();
+    update_option( 'holyprofweb_placeholders_bootstrapped', 1, false );
+}
+add_action( 'init', 'holyprofweb_maybe_ensure_placeholder_posts', 25 );
 
 function holyprofweb_get_category_seed_posts() {
     return array(
@@ -3148,7 +3211,16 @@ function holyprofweb_seed_category_posts() {
         }
     }
 }
-add_action( 'init', 'holyprofweb_seed_category_posts', 26 );
+
+function holyprofweb_maybe_seed_category_posts() {
+    if ( get_option( 'holyprofweb_seed_posts_bootstrapped', 0 ) ) {
+        return;
+    }
+
+    holyprofweb_seed_category_posts();
+    update_option( 'holyprofweb_seed_posts_bootstrapped', 1, false );
+}
+add_action( 'init', 'holyprofweb_maybe_seed_category_posts', 26 );
 
 function holyprofweb_get_uncategorized_term_id() {
     $term = get_term_by( 'slug', 'uncategorized', 'category' );
@@ -3185,7 +3257,16 @@ function holyprofweb_cleanup_uncategorized_category() {
         wp_delete_category( $uncategorized_id, (int) $reviews->term_id );
     }
 }
-add_action( 'init', 'holyprofweb_cleanup_uncategorized_category', 20 );
+
+function holyprofweb_maybe_cleanup_uncategorized_category() {
+    if ( get_option( 'holyprofweb_uncategorized_cleaned', 0 ) ) {
+        return;
+    }
+
+    holyprofweb_cleanup_uncategorized_category();
+    update_option( 'holyprofweb_uncategorized_cleaned', 1, false );
+}
+add_action( 'init', 'holyprofweb_maybe_cleanup_uncategorized_category', 20 );
 
 function holyprofweb_get_visible_categories( $args = array() ) {
     $defaults = array(
