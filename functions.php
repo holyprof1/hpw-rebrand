@@ -2139,11 +2139,31 @@ function holyprofweb_get_draft_force_publish_attempts() {
 }
 
 function holyprofweb_get_draft_force_publish_window() {
-    return 30 * MINUTE_IN_SECONDS;
+    return 10 * MINUTE_IN_SECONDS;
+}
+
+function holyprofweb_is_draft_recently_modified( $post, $minutes = 30 ) {
+    if ( ! $post instanceof WP_Post ) {
+        return false;
+    }
+
+    $minutes = max( 1, (int) $minutes );
+    $modified_gmt = $post->post_modified_gmt ? strtotime( $post->post_modified_gmt . ' GMT' ) : 0;
+    if ( ! $modified_gmt ) {
+        return false;
+    }
+
+    $now_gmt = current_time( 'timestamp', true );
+    return ( $now_gmt - $modified_gmt ) < ( $minutes * MINUTE_IN_SECONDS );
 }
 
 function holyprofweb_should_force_publish_draft( $post, $queue_item = array() ) {
     if ( ! $post instanceof WP_Post ) {
+        return false;
+    }
+
+    // Never force-publish while a human is still editing recently.
+    if ( holyprofweb_is_draft_recently_modified( $post, 30 ) ) {
         return false;
     }
 
@@ -2562,6 +2582,11 @@ function holyprofweb_maybe_publish_ready_draft( $post_id, $post = null ) {
 
     $post = $post ?: get_post( $post_id );
     if ( ! $post instanceof WP_Post || 'post' !== $post->post_type || 'draft' !== $post->post_status ) {
+        return;
+    }
+
+    // If this is a manual admin edit (not cron/import), do not auto-publish.
+    if ( is_admin() && ! wp_doing_cron() && ! wp_doing_ajax() && ! ( defined( 'WP_IMPORTING' ) && WP_IMPORTING ) ) {
         return;
     }
 
