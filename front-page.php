@@ -6,9 +6,9 @@
 get_header();
 
 $total_posts      = (int) wp_count_posts()->publish;
-$total_reviews    = (int) get_comments( array( 'type' => 'review', 'status' => 'approve', 'count' => true ) );
+$total_reviews    = holyprofweb_count_published_posts_in_category_tree( 'reviews' );
 $companies_term   = get_term_by( 'slug', 'companies', 'category' );
-$total_companies  = $companies_term && ! is_wp_error( $companies_term ) ? (int) $companies_term->count : 0;
+$total_companies  = holyprofweb_count_published_posts_in_category_tree( 'companies' );
 $trending_searches = holyprofweb_get_trending_searches( 8 );
 $card_size        = holyprofweb_get_image_size_dimensions( 'holyprofweb-card' );
 $prioritize_image_ids = static function( $ids ) {
@@ -213,12 +213,12 @@ $topic_descriptions = array(
 <div class="stats-bar" aria-label="Platform statistics">
     <div class="stats-bar-inner">
         <div class="stat-item">
-            <span class="stat-number"><?php echo esc_html( number_format_i18n( holyprofweb_get_front_stat_display_count( $total_posts ) ) ); ?></span>
+            <span class="stat-number"><?php echo esc_html( number_format_i18n( holyprofweb_get_front_stat_display_count( $total_posts, 'posts' ) ) ); ?></span>
             <span class="stat-label"><?php esc_html_e( 'Posts', 'holyprofweb' ); ?></span>
         </div>
         <div class="stat-divider" aria-hidden="true"></div>
         <div class="stat-item">
-            <span class="stat-number"><?php echo esc_html( number_format_i18n( holyprofweb_get_front_stat_display_count( $total_reviews ) ) ); ?></span>
+            <span class="stat-number"><?php echo esc_html( number_format_i18n( holyprofweb_get_front_stat_display_count( $total_reviews, 'reviews' ) ) ); ?></span>
             <span class="stat-label"><?php esc_html_e( 'Reviews', 'holyprofweb' ); ?></span>
         </div>
         <div class="stat-divider" aria-hidden="true"></div>
