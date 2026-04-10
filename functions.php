@@ -2048,6 +2048,13 @@ function holyprofweb_schedule_content_audit() {
     }
 }
 
+function holyprofweb_mark_wp_cron_run() {
+    if ( wp_doing_cron() ) {
+        update_option( 'holyprofweb_wp_cron_last_run', time(), false );
+    }
+}
+add_action( 'init', 'holyprofweb_mark_wp_cron_run', 1 );
+
 function holyprofweb_unschedule_content_audit() {
     $timestamp = wp_next_scheduled( 'holyprofweb_daily_content_audit' );
     if ( $timestamp ) {
@@ -8731,6 +8738,11 @@ add_action( 'admin_init', function () {
     if ( 'run_draft_audit' === $action ) {
         holyprofweb_process_draft_queue();
         $count = count( holyprofweb_get_draft_publish_queue() );
+    } elseif ( 'run_wp_cron' === $action ) {
+        if ( function_exists( 'wp_cron' ) ) {
+            wp_cron();
+        }
+        update_option( 'holyprofweb_wp_cron_last_run', time(), false );
     } elseif ( 'publish_overdue' === $action ) {
         $count = holyprofweb_publish_overdue_drafts_now();
         holyprofweb_process_draft_queue();
@@ -9693,6 +9705,7 @@ function holyprofweb_settings_seo_debug_page() {
     $next_draft_cron = wp_next_scheduled( 'holyprofweb_draft_publish_audit' );
     $next_audit_cron = wp_next_scheduled( 'holyprofweb_daily_content_audit' );
     $last_draft_cron = absint( get_option( 'holyprofweb_draft_audit_last_run', 0 ) );
+    $last_wp_cron    = absint( get_option( 'holyprofweb_wp_cron_last_run', 0 ) );
     $draft_totals    = wp_count_posts( 'post' );
     $sample_post_ids = get_posts( array(
         'post_type'      => 'post',
@@ -9710,6 +9723,23 @@ function holyprofweb_settings_seo_debug_page() {
     $server_time       = time();
     $wp_time           = current_time( 'timestamp' );
     $wp_timezone       = wp_timezone_string();
+    $cron_array        = function_exists( '_get_cron_array' ) ? _get_cron_array() : array();
+    $cron_due_count    = 0;
+    if ( is_array( $cron_array ) ) {
+        $now = time();
+        foreach ( $cron_array as $timestamp => $hooks ) {
+            if ( (int) $timestamp > $now ) {
+                continue;
+            }
+            if ( is_array( $hooks ) ) {
+                foreach ( $hooks as $hook => $events ) {
+                    if ( ! empty( $events ) ) {
+                        $cron_due_count += count( $events );
+                    }
+                }
+            }
+        }
+    }
     if ( isset( $_GET['hpw_debug_action'] ) ) {
         $action = sanitize_key( wp_unslash( $_GET['hpw_debug_action'] ) );
         $count  = absint( $_GET['hpw_debug_count'] ?? 0 );
@@ -9718,6 +9748,7 @@ function holyprofweb_settings_seo_debug_page() {
             'publish_overdue'       => sprintf( __( 'Published %d overdue draft(s) immediately.', 'holyprofweb' ), $count ),
             'run_content_audit'     => sprintf( __( 'Content audit completed. %d refresh item(s) are queued.', 'holyprofweb' ), $count ),
             'reschedule_crons'      => __( 'HPW cron events were refreshed.', 'holyprofweb' ),
+            'run_wp_cron'           => __( 'WP-Cron executed. Check "Last WP-Cron run" and due events.', 'holyprofweb' ),
         );
         if ( isset( $messages[ $action ] ) ) {
             echo '<div class="notice notice-success is-dismissible"><p>' . esc_html( $messages[ $action ] ) . '</p></div>';
@@ -9763,6 +9794,11 @@ function holyprofweb_settings_seo_debug_page() {
                 </form>
                 <form method="post" action="<?php echo esc_url( admin_url( 'admin.php?page=hpw-settings-seo-debug' ) ); ?>">
                     <?php wp_nonce_field( 'hpw_debug_actions', 'hpw_debug_actions_nonce' ); ?>
+                    <input type="hidden" name="hpw_debug_action" value="run_wp_cron" />
+                    <?php submit_button( __( 'Run WP-Cron Now', 'holyprofweb' ), 'secondary', 'submit', false ); ?>
+                </form>
+                <form method="post" action="<?php echo esc_url( admin_url( 'admin.php?page=hpw-settings-seo-debug' ) ); ?>">
+                    <?php wp_nonce_field( 'hpw_debug_actions', 'hpw_debug_actions_nonce' ); ?>
                     <input type="hidden" name="hpw_debug_action" value="publish_overdue" />
                     <?php submit_button( __( 'Publish Overdue Drafts Now', 'holyprofweb' ), 'secondary', 'submit', false ); ?>
                 </form>
@@ -9788,6 +9824,8 @@ function holyprofweb_settings_seo_debug_page() {
                     <tr><td><?php esc_html_e( 'robots.txt', 'holyprofweb' ); ?></td><td><a href="<?php echo esc_url( home_url( '/robots.txt' ) ); ?>" target="_blank"><?php echo esc_html( home_url( '/robots.txt' ) ); ?></a></td></tr>
                     <tr><td><?php esc_html_e( 'Sitemap', 'holyprofweb' ); ?></td><td><a href="<?php echo esc_url( home_url( '/wp-sitemap.xml' ) ); ?>" target="_blank"><?php echo esc_html( home_url( '/wp-sitemap.xml' ) ); ?></a></td></tr>
                     <tr><td><?php esc_html_e( 'WP-Cron disabled in wp-config.php', 'holyprofweb' ); ?></td><td><?php echo esc_html( $wp_cron_disabled ? 'Yes' : 'No' ); ?></td></tr>
+                    <tr><td><?php esc_html_e( 'Last WP-Cron run', 'holyprofweb' ); ?></td><td><?php echo esc_html( $last_wp_cron ? wp_date( 'Y-m-d H:i:s', $last_wp_cron ) : 'Not recorded yet' ); ?></td></tr>
+                    <tr><td><?php esc_html_e( 'Due cron events', 'holyprofweb' ); ?></td><td><?php echo esc_html( $cron_due_count ); ?></td></tr>
                     <tr><td><?php esc_html_e( 'Server time', 'holyprofweb' ); ?></td><td><?php echo esc_html( wp_date( 'Y-m-d H:i:s', $server_time ) ); ?></td></tr>
                     <tr><td><?php esc_html_e( 'WordPress time', 'holyprofweb' ); ?></td><td><?php echo esc_html( wp_date( 'Y-m-d H:i:s', $wp_time ) . ( $wp_timezone ? ' (' . $wp_timezone . ')' : '' ) ); ?></td></tr>
                     <tr><td><?php esc_html_e( 'Server cron command', 'holyprofweb' ); ?></td><td><code><?php echo esc_html( $cron_command ); ?></code></td></tr>
