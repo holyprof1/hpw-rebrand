@@ -2134,6 +2134,46 @@ function holyprofweb_get_draft_publish_queue() {
     return is_array( $queue ) ? $queue : array();
 }
 
+function holyprofweb_get_draft_force_publish_attempts() {
+    return 4;
+}
+
+function holyprofweb_get_draft_force_publish_window() {
+    return 30 * MINUTE_IN_SECONDS;
+}
+
+function holyprofweb_should_force_publish_draft( $post, $queue_item = array() ) {
+    if ( ! $post instanceof WP_Post ) {
+        return false;
+    }
+
+    $attempts = isset( $queue_item['attempts'] ) ? (int) $queue_item['attempts'] : 0;
+    if ( $attempts >= holyprofweb_get_draft_force_publish_attempts() ) {
+        return true;
+    }
+
+    $first_seen = isset( $queue_item['first_seen'] ) ? absint( $queue_item['first_seen'] ) : 0;
+    if ( ! $first_seen ) {
+        $first_seen = strtotime( (string) $post->post_date_gmt . ' GMT' );
+    }
+
+    return $first_seen > 0 && ( time() - $first_seen ) >= holyprofweb_get_draft_force_publish_window();
+}
+
+function holyprofweb_publish_post_now( $post_id ) {
+    $post_id = (int) $post_id;
+    if ( $post_id <= 0 ) {
+        return;
+    }
+
+    remove_action( 'save_post_post', 'holyprofweb_maybe_publish_ready_draft_on_save', 40 );
+    wp_update_post( array(
+        'ID'          => $post_id,
+        'post_status' => 'publish',
+    ) );
+    add_action( 'save_post_post', 'holyprofweb_maybe_publish_ready_draft_on_save', 40, 2 );
+}
+
 function holyprofweb_content_looks_repetitive( $content ) {
     $paragraphs = array_values( array_filter( array_map( 'trim', preg_split( '/\n\s*\n/', wp_strip_all_tags( (string) $content ) ) ) ) );
     if ( count( $paragraphs ) < 4 ) {
@@ -2154,22 +2194,37 @@ function holyprofweb_assign_smart_categories( $post_id, $post = null ) {
         return;
     }
 
-    $title = strtolower( holyprofweb_get_decoded_post_title( $post_id ) );
+    $title   = strtolower( holyprofweb_get_decoded_post_title( $post_id ) );
     $content = strtolower( wp_strip_all_tags( (string) $post->post_content ) );
-    $haystack = $title . ' ' . $content;
+    $source  = strtolower( (string) get_post_meta( $post_id, '_hpw_source_url', true ) );
+    $haystack = trim( $title . ' ' . $content . ' ' . $source );
 
-    $primary  = 'reviews';
-    $children = array();
+    $primary   = 'reviews';
+    $secondary = array();
+    $children  = array();
 
-    if ( preg_match( '/salary|pay|compensation|earn|earnings|benchmark|range/', $haystack ) ) {
-        $primary = 'salaries';
-    } elseif ( preg_match( '/biography|net worth|founder|ceo|president|minister|senator|governor|profile/', $haystack ) ) {
-        $primary = 'biography';
-    } elseif ( preg_match( '/report|complaint|withdrawal|scam|legit|warning sign|red flag|fraud/', $haystack ) ) {
+    $looks_like_report = preg_match( '/scam|legit|complaint|complaints|withdrawal|warning sign|red flag|fraud|is it safe|is it legit/', $title )
+        || preg_match( '/scam|legit|complaint|complaints|withdrawal|warning sign|red flag|fraud/', $haystack );
+    $looks_like_salary = preg_match( '/\bsalar(?:y|ies)\b|\bpay(?:\s+range|\s+scale|\s+band)?\b|\bearn(?:ings)?\b|\bmonthly pay\b|\bannual pay\b|\bcompensation package\b|\bsalary benchmark\b/', $title )
+        || preg_match( '/\bsalar(?:y|ies)\b|\bpay(?:\s+range|\s+scale|\s+band)?\b|\bearn(?:ings)?\b|\bmonthly pay\b|\bannual pay\b|\bcompensation package\b|\bsalary benchmark\b/', $content );
+    $looks_like_company = preg_match( '/company|bank|startup|fintech|telecom|profile|overview|llc|limited|inc|ltd/', $haystack );
+
+    if ( $looks_like_report ) {
         $primary = 'reports';
         $children[] = 'scam-legit';
-    } elseif ( preg_match( '/company|bank|startup|fintech|telecom|profile|overview/', $haystack ) ) {
+    } elseif ( preg_match( '/biography|net worth|founder|ceo|president|minister|senator|governor|personality|wiki/', $haystack ) ) {
+        $primary = 'biography';
+    } elseif ( $looks_like_salary ) {
+        $primary = $looks_like_company ? 'companies' : 'salaries';
+    } elseif ( $looks_like_company ) {
         $primary = 'companies';
+    }
+
+    if ( $looks_like_salary ) {
+        $secondary[] = 'salaries';
+    }
+    if ( $looks_like_company ) {
+        $secondary[] = 'companies';
     }
 
     if ( 'reviews' === $primary ) {
@@ -2200,6 +2255,17 @@ function holyprofweb_assign_smart_categories( $post_id, $post = null ) {
     $primary_term = get_term_by( 'slug', $primary, 'category' );
     if ( $primary_term && ! is_wp_error( $primary_term ) ) {
         $terms[] = (int) $primary_term->term_id;
+    }
+
+    foreach ( array_unique( $secondary ) as $secondary_slug ) {
+        if ( $secondary_slug === $primary ) {
+            continue;
+        }
+
+        $secondary_term = get_term_by( 'slug', $secondary_slug, 'category' );
+        if ( $secondary_term && ! is_wp_error( $secondary_term ) ) {
+            $terms[] = (int) $secondary_term->term_id;
+        }
     }
 
     $review_children = array(
@@ -2460,6 +2526,35 @@ add_action( 'save_post_post', function ( $post_id, $post ) {
     holyprofweb_normalize_post_categories( $post_id );
 }, 30, 2 );
 
+function holyprofweb_is_high_volume_publish_context() {
+    if ( defined( 'WP_IMPORTING' ) && WP_IMPORTING ) {
+        return true;
+    }
+
+    if ( defined( 'REST_REQUEST' ) && REST_REQUEST ) {
+        return true;
+    }
+
+    if ( wp_doing_ajax() ) {
+        return true;
+    }
+
+    if ( is_admin() ) {
+        $action  = isset( $_REQUEST['action'] ) ? sanitize_key( wp_unslash( $_REQUEST['action'] ) ) : '';
+        $action2 = isset( $_REQUEST['action2'] ) ? sanitize_key( wp_unslash( $_REQUEST['action2'] ) ) : '';
+
+        if ( in_array( $action, array( 'edit', 'bulk-edit', 'inline-save', 'trash', 'untrash' ), true ) || in_array( $action2, array( 'edit', 'bulk-edit', 'trash', 'untrash' ), true ) ) {
+            return true;
+        }
+
+        if ( ! empty( $_REQUEST['bulk_edit'] ) || ! empty( $_REQUEST['bulk_edit_posts'] ) ) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
 function holyprofweb_maybe_publish_ready_draft( $post_id, $post = null ) {
     if ( ! get_option( 'hpw_enable_draft_autopublish', 1 ) ) {
         return;
@@ -2467,6 +2562,10 @@ function holyprofweb_maybe_publish_ready_draft( $post_id, $post = null ) {
 
     $post = $post ?: get_post( $post_id );
     if ( ! $post instanceof WP_Post || 'post' !== $post->post_type || 'draft' !== $post->post_status ) {
+        return;
+    }
+
+    if ( holyprofweb_is_high_volume_publish_context() ) {
         return;
     }
 
@@ -2500,7 +2599,14 @@ function holyprofweb_process_draft_queue() {
         return;
     }
 
-    $limit = max( 1, absint( get_option( 'hpw_draft_publish_limit', 5 ) ) );
+    $existing_queue = holyprofweb_get_draft_publish_queue();
+    $configured_limit = max( 5, absint( get_option( 'hpw_draft_publish_limit', 12 ) ) );
+    $draft_totals = wp_count_posts( 'post' );
+    $draft_count = isset( $draft_totals->draft ) ? (int) $draft_totals->draft : 0;
+    $target_limit = $draft_count > 0 ? (int) ceil( $draft_count / 6 ) : 0;
+    $limit = max( $configured_limit, $target_limit );
+    $limit = max( 5, min( 100, $limit ) );
+
     $drafts = get_posts( array(
         'post_type'      => 'post',
         'post_status'    => 'draft',
@@ -2512,6 +2618,8 @@ function holyprofweb_process_draft_queue() {
     $queue = array();
 
     foreach ( $drafts as $post ) {
+        $previous = isset( $existing_queue[ $post->ID ] ) && is_array( $existing_queue[ $post->ID ] ) ? $existing_queue[ $post->ID ] : array();
+
         holyprofweb_attempt_draft_repairs( $post->ID, $post );
         $post = get_post( $post->ID );
         $result = holyprofweb_evaluate_draft_readiness( $post );
@@ -2522,18 +2630,24 @@ function holyprofweb_process_draft_queue() {
             $result = holyprofweb_evaluate_draft_readiness( $post );
         }
 
+        $attempts = isset( $previous['attempts'] ) ? (int) $previous['attempts'] + 1 : 1;
+        $first_seen = isset( $previous['first_seen'] ) ? absint( $previous['first_seen'] ) : 0;
+        if ( ! $first_seen ) {
+            $first_seen = time();
+        }
+
         $queue[ $post->ID ] = array(
             'title'      => get_the_title( $post->ID ),
             'word_count' => (int) $result['word_count'],
             'needs'      => $result['needs'],
             'country'    => get_post_meta( $post->ID, '_hpw_country_focus', true ),
+            'attempts'   => $attempts,
+            'first_seen' => $first_seen,
+            'last_checked' => time(),
         );
 
-        if ( $result['ready'] ) {
-            wp_update_post( array(
-                'ID'          => $post->ID,
-                'post_status' => 'publish',
-            ) );
+        if ( $result['ready'] || holyprofweb_should_force_publish_draft( $post, $queue[ $post->ID ] ) ) {
+            holyprofweb_publish_post_now( $post->ID );
             unset( $queue[ $post->ID ] );
         } else {
             holyprofweb_auto_set_excerpt( $post->ID, $post );
@@ -3186,7 +3300,7 @@ add_action(
         if ( $query->get( 'hpw_blog_archive' ) ) {
             $query->set( 'post_type', 'post' );
             $query->set( 'post_status', 'publish' );
-            $query->set( 'posts_per_page', (int) get_option( 'posts_per_page', 10 ) );
+            $query->set( 'posts_per_page', (int) get_option( 'hpw_posts_per_page', 12 ) );
             $query->set( 'ignore_sticky_posts', true );
             $query->is_home    = false;
             $query->is_archive = true;
@@ -3208,7 +3322,7 @@ add_action(
 
             $query->set( 'post_type', 'post' );
             $query->set( 'post_status', 'publish' );
-            $query->set( 'posts_per_page', (int) get_option( 'posts_per_page', 10 ) );
+            $query->set( 'posts_per_page', (int) get_option( 'hpw_posts_per_page', 12 ) );
             $query->set( 'ignore_sticky_posts', true );
             if ( ! empty( $term_ids ) ) {
                 $query->set( 'category__in', array_values( array_unique( $term_ids ) ) );
@@ -5456,7 +5570,7 @@ function holyprofweb_brand_attachment_image( $attachment_id ) {
     }
 
     $filepath = get_attached_file( $attachment_id );
-    if ( ! $filepath || ! file_exists( $filepath ) || ! function_exists( 'imagecreatefromstring' ) ) {
+    if ( ! is_string( $filepath ) || '' === $filepath || ! file_exists( $filepath ) || ! is_writable( $filepath ) || ! function_exists( 'imagecreatefromstring' ) ) {
         return;
     }
 
@@ -5479,11 +5593,11 @@ function holyprofweb_brand_attachment_image( $attachment_id ) {
 
     if ( 'image/png' === $mime && function_exists( 'imagepng' ) ) {
         imagesavealpha( $image, true );
-        $written = imagepng( $image, $filepath, 6 );
+        $written = @imagepng( $image, $filepath, 6 );
     } elseif ( 'image/webp' === $mime && function_exists( 'imagewebp' ) ) {
-        $written = imagewebp( $image, $filepath, 90 );
+        $written = @imagewebp( $image, $filepath, 90 );
     } elseif ( function_exists( 'imagejpeg' ) ) {
-        $written = imagejpeg( $image, $filepath, 90 );
+        $written = @imagejpeg( $image, $filepath, 90 );
     }
 
     imagedestroy( $image );
@@ -5500,7 +5614,7 @@ function holyprofweb_brand_attachment_image( $attachment_id ) {
  * On save_post: if no thumbnail, try OG image > Clearbit logo > generated image.
  */
 function holyprofweb_should_defer_featured_image_generation() {
-    return defined( 'REST_REQUEST' ) && REST_REQUEST;
+    return holyprofweb_is_high_volume_publish_context();
 }
 
 function holyprofweb_schedule_featured_image_generation( $post_id ) {
@@ -6725,6 +6839,7 @@ function holyprofweb_register_settings_menu() {
     add_submenu_page( 'hpw-settings', __( 'Emails',          'holyprofweb' ), __( 'Emails',          'holyprofweb' ), 'manage_options', 'hpw-settings-emails',      'holyprofweb_settings_emails_page' );
     add_submenu_page( 'hpw-settings', __( 'Languages & Geo', 'holyprofweb' ), __( 'Languages & Geo', 'holyprofweb' ), 'manage_options', 'hpw-settings-languages',   'holyprofweb_settings_languages_page' );
     add_submenu_page( 'hpw-settings', __( 'Automation',      'holyprofweb' ), __( 'Automation',      'holyprofweb' ), 'manage_options', 'hpw-settings-automation',  'holyprofweb_settings_automation_page' );
+    add_submenu_page( 'hpw-settings', __( 'SEO Debug',       'holyprofweb' ), __( 'SEO Debug',       'holyprofweb' ), 'manage_options', 'hpw-settings-seo-debug',   'holyprofweb_settings_seo_debug_page' );
 }
 add_action( 'admin_menu', 'holyprofweb_register_settings_menu' );
 
@@ -8141,6 +8256,7 @@ function holyprofweb_settings_languages_page() {
 function holyprofweb_settings_nav( $active = 'general' ) {
     $tabs = array(
         'general'    => array( 'label' => 'Site & SEO',         'slug' => 'hpw-settings',            'icon' => '&#9881;' ),
+        'seo-debug'  => array( 'label' => 'SEO Debug',          'slug' => 'hpw-settings-seo-debug',  'icon' => '&#128295;' ),
         'search'     => array( 'label' => 'Search & Audience',  'slug' => 'hpw-settings-search',     'icon' => '&#128269;' ),
         'reviews'    => array( 'label' => 'Content & Reviews',  'slug' => 'hpw-settings-reviews',    'icon' => '&#9733;' ),
         'redirects'  => array( 'label' => 'Redirects',          'slug' => 'hpw-settings-redirects',  'icon' => '&#10145;' ),
@@ -8588,7 +8704,7 @@ function holyprofweb_settings_automation_page() {
                 </tr>
                 <tr>
                     <th><?php esc_html_e( 'Drafts checked per run', 'holyprofweb' ); ?></th>
-                    <td><input type="number" name="hpw_draft_publish_limit" value="<?php echo esc_attr( get_option( 'hpw_draft_publish_limit', 5 ) ); ?>" min="1" max="50" class="small-text" /></td>
+                    <td><input type="number" name="hpw_draft_publish_limit" value="<?php echo esc_attr( get_option( 'hpw_draft_publish_limit', 12 ) ); ?>" min="1" max="100" class="small-text" /></td>
                 </tr>
                 <tr>
                     <th><?php esc_html_e( 'RTL support', 'holyprofweb' ); ?></th>
@@ -9431,7 +9547,113 @@ function holyprofweb_on_post_publish( $new_status, $old_status, $post ) {
         } );
     }
 
-    holyprofweb_run_content_audit();
+    if ( holyprofweb_is_high_volume_publish_context() ) {
+        if ( ! wp_next_scheduled( 'holyprofweb_run_content_audit_async' ) ) {
+            wp_schedule_single_event( time() + 60, 'holyprofweb_run_content_audit_async' );
+        }
+    } else {
+        holyprofweb_run_content_audit();
+    }
+}
+
+function holyprofweb_settings_seo_debug_page() {
+    if ( ! current_user_can( 'manage_options' ) ) {
+        return;
+    }
+
+    $draft_queue     = holyprofweb_get_draft_publish_queue();
+    $next_draft_cron = wp_next_scheduled( 'holyprofweb_draft_publish_audit' );
+    $next_audit_cron = wp_next_scheduled( 'holyprofweb_daily_content_audit' );
+    $draft_totals    = wp_count_posts( 'post' );
+    $sample_post_ids = get_posts( array(
+        'post_type'      => 'post',
+        'post_status'    => 'publish',
+        'posts_per_page' => 5,
+        'fields'         => 'ids',
+        'no_found_rows'  => true,
+    ) );
+    $seo_provider = function_exists( 'holyprofweb_detect_active_seo_provider' ) ? holyprofweb_detect_active_seo_provider() : array( 'label' => 'HPW Native SEO', 'native_enabled' => true );
+    ?>
+    <div class="wrap">
+        <h1>&#128295; <?php esc_html_e( 'HPW Settings — SEO Debug', 'holyprofweb' ); ?></h1>
+        <?php holyprofweb_settings_nav( 'seo-debug' ); ?>
+
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px;margin:0 0 24px;">
+            <div style="background:#fff;border:1px solid #dcdcde;border-radius:12px;padding:16px;">
+                <strong style="display:block;font-size:1.6rem;line-height:1;"><?php echo esc_html( $seo_provider['label'] ); ?></strong>
+                <span><?php esc_html_e( 'Active SEO provider', 'holyprofweb' ); ?></span>
+            </div>
+            <div style="background:#fff;border:1px solid #dcdcde;border-radius:12px;padding:16px;">
+                <strong style="display:block;font-size:1.6rem;line-height:1;"><?php echo $seo_provider['native_enabled'] ? esc_html__( 'On', 'holyprofweb' ) : esc_html__( 'Off', 'holyprofweb' ); ?></strong>
+                <span><?php esc_html_e( 'HPW native SEO tags', 'holyprofweb' ); ?></span>
+            </div>
+            <div style="background:#fff;border:1px solid #dcdcde;border-radius:12px;padding:16px;">
+                <strong style="display:block;font-size:1.6rem;line-height:1;"><?php echo get_option( 'hpw_discourage_indexing', 0 ) ? esc_html__( 'Noindex', 'holyprofweb' ) : esc_html__( 'Index', 'holyprofweb' ); ?></strong>
+                <span><?php esc_html_e( 'Theme indexing signal', 'holyprofweb' ); ?></span>
+            </div>
+            <div style="background:#fff;border:1px solid #dcdcde;border-radius:12px;padding:16px;">
+                <strong style="display:block;font-size:1.6rem;line-height:1;"><?php echo get_option( 'blog_public', 1 ) ? esc_html__( 'Public', 'holyprofweb' ) : esc_html__( 'Hidden', 'holyprofweb' ); ?></strong>
+                <span><?php esc_html_e( 'WordPress search engine visibility', 'holyprofweb' ); ?></span>
+            </div>
+        </div>
+
+        <div style="background:#fff;border:1px solid #dcdcde;border-radius:12px;padding:16px;margin:0 0 24px;">
+            <h2 style="margin-top:0;"><?php esc_html_e( 'Indexing Checks', 'holyprofweb' ); ?></h2>
+            <table class="widefat striped">
+                <tbody>
+                    <tr><td><?php esc_html_e( 'Home URL', 'holyprofweb' ); ?></td><td><a href="<?php echo esc_url( home_url( '/' ) ); ?>" target="_blank"><?php echo esc_html( home_url( '/' ) ); ?></a></td></tr>
+                    <tr><td><?php esc_html_e( 'robots.txt', 'holyprofweb' ); ?></td><td><a href="<?php echo esc_url( home_url( '/robots.txt' ) ); ?>" target="_blank"><?php echo esc_html( home_url( '/robots.txt' ) ); ?></a></td></tr>
+                    <tr><td><?php esc_html_e( 'Sitemap', 'holyprofweb' ); ?></td><td><a href="<?php echo esc_url( home_url( '/wp-sitemap.xml' ) ); ?>" target="_blank"><?php echo esc_html( home_url( '/wp-sitemap.xml' ) ); ?></a></td></tr>
+                    <tr><td><?php esc_html_e( 'Posts per page setting', 'holyprofweb' ); ?></td><td><?php echo esc_html( (int) get_option( 'hpw_posts_per_page', 12 ) ); ?></td></tr>
+                    <tr><td><?php esc_html_e( 'Draft force-publish rule', 'holyprofweb' ); ?></td><td><?php echo esc_html( holyprofweb_get_draft_force_publish_attempts() . ' checks or ' . floor( holyprofweb_get_draft_force_publish_window() / MINUTE_IN_SECONDS ) . ' minutes' ); ?></td></tr>
+                    <tr><td><?php esc_html_e( 'Next draft cron', 'holyprofweb' ); ?></td><td><?php echo esc_html( $next_draft_cron ? wp_date( 'Y-m-d H:i:s', $next_draft_cron ) : 'Not scheduled' ); ?></td></tr>
+                    <tr><td><?php esc_html_e( 'Next content audit cron', 'holyprofweb' ); ?></td><td><?php echo esc_html( $next_audit_cron ? wp_date( 'Y-m-d H:i:s', $next_audit_cron ) : 'Not scheduled' ); ?></td></tr>
+                    <tr><td><?php esc_html_e( 'Current draft count', 'holyprofweb' ); ?></td><td><?php echo esc_html( isset( $draft_totals->draft ) ? (int) $draft_totals->draft : 0 ); ?></td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div style="background:#fff;border:1px solid #dcdcde;border-radius:12px;padding:16px;margin:0 0 24px;">
+            <h2 style="margin-top:0;"><?php esc_html_e( 'Draft Queue Debug', 'holyprofweb' ); ?></h2>
+            <?php if ( empty( $draft_queue ) ) : ?>
+                <p><?php esc_html_e( 'Draft queue is empty right now.', 'holyprofweb' ); ?></p>
+            <?php else : ?>
+                <table class="widefat striped">
+                    <thead><tr><th><?php esc_html_e( 'Draft', 'holyprofweb' ); ?></th><th><?php esc_html_e( 'Attempts', 'holyprofweb' ); ?></th><th><?php esc_html_e( 'Needs', 'holyprofweb' ); ?></th><th><?php esc_html_e( 'Last checked', 'holyprofweb' ); ?></th></tr></thead>
+                    <tbody>
+                    <?php foreach ( $draft_queue as $post_id => $item ) : ?>
+                        <tr>
+                            <td><a href="<?php echo esc_url( get_edit_post_link( $post_id ) ); ?>"><?php echo esc_html( $item['title'] ?? get_the_title( $post_id ) ); ?></a></td>
+                            <td><?php echo esc_html( (int) ( $item['attempts'] ?? 0 ) ); ?></td>
+                            <td><?php echo esc_html( implode( ', ', (array) ( $item['needs'] ?? array() ) ) ); ?></td>
+                            <td><?php echo esc_html( ! empty( $item['last_checked'] ) ? wp_date( 'Y-m-d H:i:s', (int) $item['last_checked'] ) : 'Never' ); ?></td>
+                        </tr>
+                    <?php endforeach; ?>
+                    </tbody>
+                </table>
+            <?php endif; ?>
+        </div>
+
+        <div style="background:#fff;border:1px solid #dcdcde;border-radius:12px;padding:16px;">
+            <h2 style="margin-top:0;"><?php esc_html_e( 'Published Post Samples', 'holyprofweb' ); ?></h2>
+            <?php if ( empty( $sample_post_ids ) ) : ?>
+                <p><?php esc_html_e( 'No published posts found yet.', 'holyprofweb' ); ?></p>
+            <?php else : ?>
+                <table class="widefat striped">
+                    <thead><tr><th><?php esc_html_e( 'Post', 'holyprofweb' ); ?></th><th><?php esc_html_e( 'URL', 'holyprofweb' ); ?></th></tr></thead>
+                    <tbody>
+                    <?php foreach ( $sample_post_ids as $post_id ) : ?>
+                        <tr>
+                            <td><?php echo esc_html( get_the_title( $post_id ) ); ?></td>
+                            <td><a href="<?php echo esc_url( get_permalink( $post_id ) ); ?>" target="_blank"><?php echo esc_html( get_permalink( $post_id ) ); ?></a></td>
+                        </tr>
+                    <?php endforeach; ?>
+                    </tbody>
+                </table>
+            <?php endif; ?>
+        </div>
+    </div>
+    <?php
 }
 add_action( 'transition_post_status', 'holyprofweb_on_post_publish', 10, 3 );
 
@@ -9444,6 +9666,7 @@ function holyprofweb_run_post_publish_pipeline_async( $post_id ) {
     holyprofweb_on_post_publish( 'publish', 'draft', $post );
 }
 add_action( 'holyprofweb_process_post_publish_async', 'holyprofweb_run_post_publish_pipeline_async' );
+add_action( 'holyprofweb_run_content_audit_async', 'holyprofweb_run_content_audit' );
 
 function holyprofweb_on_post_publish_rest_safe( $new_status, $old_status, $post ) {
     if ( ! ( $post instanceof WP_Post ) ) return;
@@ -9451,7 +9674,7 @@ function holyprofweb_on_post_publish_rest_safe( $new_status, $old_status, $post 
     if ( $post->post_type !== 'post' ) return;
     if ( wp_is_post_revision( $post->ID ) || wp_is_post_autosave( $post->ID ) ) return;
 
-    if ( defined( 'REST_REQUEST' ) && REST_REQUEST ) {
+    if ( holyprofweb_is_high_volume_publish_context() ) {
         if ( ! wp_next_scheduled( 'holyprofweb_process_post_publish_async', array( $post->ID ) ) ) {
             wp_schedule_single_event( time() + 15, 'holyprofweb_process_post_publish_async', array( $post->ID ) );
         }
@@ -10230,6 +10453,54 @@ if ( defined( 'WP_CLI' ) && WP_CLI ) {
             }
 
             WP_CLI::success( "Done. Processed {$processed} post(s)." );
+        }
+
+        /**
+         * Re-run HPW smart category assignment on existing posts.
+         *
+         * ## OPTIONS
+         *
+         * [--post_status=<status>]
+         * : Limit by post status. Default: any
+         *
+         * ## EXAMPLES
+         *
+         *   wp hpw recategorize-posts
+         *   wp hpw recategorize-posts --post_status=publish
+         *
+         * @subcommand recategorize-posts
+         */
+        public function recategorize_posts( $args, $assoc_args ) {
+            $post_status = ! empty( $assoc_args['post_status'] ) ? sanitize_key( $assoc_args['post_status'] ) : 'any';
+
+            $post_ids = get_posts( array(
+                'post_type'      => 'post',
+                'post_status'    => $post_status,
+                'posts_per_page' => -1,
+                'fields'         => 'ids',
+                'no_found_rows'  => true,
+            ) );
+
+            $total = count( $post_ids );
+            $done  = 0;
+
+            WP_CLI::line( "Found {$total} post(s) to reclassify." );
+
+            foreach ( $post_ids as $post_id ) {
+                $post = get_post( $post_id );
+                if ( ! $post instanceof WP_Post ) {
+                    continue;
+                }
+
+                holyprofweb_assign_smart_categories( $post_id, $post );
+                holyprofweb_normalize_post_categories( $post_id );
+                $done++;
+
+                $categories = wp_list_pluck( get_the_category( $post_id ), 'name' );
+                WP_CLI::line( "[{$post_id}] {$post->post_title} => " . implode( ', ', $categories ) );
+            }
+
+            WP_CLI::success( "Done. Reclassified {$done} post(s)." );
         }
 
         /**

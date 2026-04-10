@@ -3,6 +3,38 @@
 // SEO — Meta Description, Open Graph, JSON-LD
 // =========================================
 
+function holyprofweb_detect_active_seo_provider() {
+    if ( defined( 'RANK_MATH_VERSION' ) || class_exists( 'RankMath' ) || defined( 'RANK_MATH_FILE' ) ) {
+        return array(
+            'key'            => 'rank-math',
+            'label'          => 'Rank Math',
+            'native_enabled' => false,
+        );
+    }
+
+    if ( defined( 'WPSEO_VERSION' ) || defined( 'WPSEO_FILE' ) ) {
+        return array(
+            'key'            => 'yoast',
+            'label'          => 'Yoast SEO',
+            'native_enabled' => false,
+        );
+    }
+
+    if ( defined( 'AIOSEO_VERSION' ) || class_exists( '\AIOSEO\Plugin\Common\Main' ) ) {
+        return array(
+            'key'            => 'aioseo',
+            'label'          => 'All in One SEO',
+            'native_enabled' => false,
+        );
+    }
+
+    return array(
+        'key'            => 'hpw',
+        'label'          => 'HPW Native SEO',
+        'native_enabled' => true,
+    );
+}
+
 function holyprofweb_get_seo_publisher_logo_url() {
     $custom_logo_id = (int) get_theme_mod( 'custom_logo' );
     if ( $custom_logo_id ) {
@@ -222,6 +254,10 @@ function holyprofweb_get_archive_schema_items() {
 
 function holyprofweb_seo_head() {
     if ( is_admin() ) return;
+    $seo_provider = holyprofweb_detect_active_seo_provider();
+    if ( empty( $seo_provider['native_enabled'] ) ) {
+        return;
+    }
 
     $post      = get_queried_object();
     $site_name = get_bloginfo( 'name' );
@@ -503,6 +539,36 @@ function holyprofweb_seo_head() {
 
         echo '<script type="application/ld+json">' . wp_json_encode( $archive_schema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE ) . '</script>' . "\n";
         echo '<script type="application/ld+json">' . wp_json_encode( $breadcrumb, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE ) . '</script>' . "\n";
+    } elseif ( is_front_page() || is_home() ) {
+        $publisher_logo = holyprofweb_get_seo_publisher_logo_url();
+        $website_schema = array(
+            '@context'        => 'https://schema.org',
+            '@type'           => 'WebSite',
+            'name'            => $site_name,
+            'url'             => $site_url,
+            'description'     => mb_substr( wp_strip_all_tags( $raw_desc ), 0, 200 ),
+            'potentialAction' => array(
+                '@type'       => 'SearchAction',
+                'target'      => home_url( '/?s={search_term_string}' ),
+                'query-input' => 'required name=search_term_string',
+            ),
+        );
+        $organization_schema = array(
+            '@context' => 'https://schema.org',
+            '@type'    => 'Organization',
+            'name'     => $site_name,
+            'url'      => $site_url,
+        );
+
+        if ( $publisher_logo ) {
+            $organization_schema['logo'] = array(
+                '@type' => 'ImageObject',
+                'url'   => $publisher_logo,
+            );
+        }
+
+        echo '<script type="application/ld+json">' . wp_json_encode( $website_schema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE ) . '</script>' . "\n";
+        echo '<script type="application/ld+json">' . wp_json_encode( $organization_schema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE ) . '</script>' . "\n";
     }
 
     echo '<link rel="canonical" href="' . esc_url( holyprofweb_get_current_seo_url() ) . '" />' . "\n";
