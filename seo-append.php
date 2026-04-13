@@ -252,6 +252,64 @@ function holyprofweb_get_archive_schema_items() {
     return $items;
 }
 
+function holyprofweb_get_home_schema_items( $limit = 8 ) {
+    $items = array();
+    $query = new WP_Query(
+        array(
+            'post_type'              => 'post',
+            'post_status'            => 'publish',
+            'posts_per_page'         => max( 1, (int) $limit ),
+            'ignore_sticky_posts'    => true,
+            'no_found_rows'          => true,
+            'update_post_term_cache' => false,
+            'update_post_meta_cache' => false,
+        )
+    );
+
+    if ( $query->have_posts() ) {
+        $position = 1;
+        foreach ( $query->posts as $entry ) {
+            if ( ! $entry instanceof WP_Post ) {
+                continue;
+            }
+
+            $items[] = array(
+                '@type'    => 'ListItem',
+                'position' => $position,
+                'url'      => get_permalink( $entry ),
+                'name'     => get_the_title( $entry ),
+            );
+            $position++;
+        }
+    }
+
+    wp_reset_postdata();
+    return $items;
+}
+
+function holyprofweb_get_home_schema_navigation() {
+    $links = array(
+        array( 'name' => 'Home',      'url' => home_url( '/' ) ),
+        array( 'name' => 'Reviews',   'url' => home_url( '/category/reviews/' ) ),
+        array( 'name' => 'Companies', 'url' => home_url( '/category/companies/' ) ),
+        array( 'name' => 'Salaries',  'url' => home_url( '/category/salaries/' ) ),
+        array( 'name' => 'Reports',   'url' => home_url( '/reports/' ) ),
+        array( 'name' => 'Submit',    'url' => home_url( '/submit/' ) ),
+        array( 'name' => 'Contact',   'url' => home_url( '/contact/' ) ),
+    );
+
+    $items = array();
+    foreach ( $links as $link ) {
+        $items[] = array(
+            '@type' => 'SiteNavigationElement',
+            'name'  => $link['name'],
+            'url'   => $link['url'],
+        );
+    }
+
+    return $items;
+}
+
 function holyprofweb_seo_head() {
     if ( is_admin() ) return;
     $seo_provider = holyprofweb_detect_active_seo_provider();
@@ -541,9 +599,15 @@ function holyprofweb_seo_head() {
         echo '<script type="application/ld+json">' . wp_json_encode( $breadcrumb, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE ) . '</script>' . "\n";
     } elseif ( is_front_page() || is_home() ) {
         $publisher_logo = holyprofweb_get_seo_publisher_logo_url();
+        $homepage_items = holyprofweb_get_home_schema_items( 8 );
+        $navigation_items = holyprofweb_get_home_schema_navigation();
+        $website_id = trailingslashit( $site_url ) . '#website';
+        $organization_id = trailingslashit( $site_url ) . '#organization';
+        $webpage_id = trailingslashit( $site_url ) . '#webpage';
         $website_schema = array(
             '@context'        => 'https://schema.org',
             '@type'           => 'WebSite',
+            '@id'             => $website_id,
             'name'            => $site_name,
             'url'             => $site_url,
             'description'     => mb_substr( wp_strip_all_tags( $raw_desc ), 0, 200 ),
@@ -556,8 +620,20 @@ function holyprofweb_seo_head() {
         $organization_schema = array(
             '@context' => 'https://schema.org',
             '@type'    => 'Organization',
+            '@id'      => $organization_id,
             'name'     => $site_name,
             'url'      => $site_url,
+        );
+        $webpage_schema = array(
+            '@context'    => 'https://schema.org',
+            '@type'       => 'CollectionPage',
+            '@id'         => $webpage_id,
+            'url'         => $site_url,
+            'name'        => $og_title,
+            'description' => mb_substr( wp_strip_all_tags( $raw_desc ), 0, 200 ),
+            'isPartOf'    => array( '@id' => $website_id ),
+            'about'       => array( '@id' => $organization_id ),
+            'inLanguage'  => $current_hreflang ?: 'en-US',
         );
 
         if ( $publisher_logo ) {
@@ -566,9 +642,38 @@ function holyprofweb_seo_head() {
                 'url'   => $publisher_logo,
             );
         }
+        if ( $og_img ) {
+            $webpage_schema['primaryImageOfPage'] = array(
+                '@type' => 'ImageObject',
+                'url'   => $og_img,
+            );
+        }
+        if ( ! empty( $homepage_items ) ) {
+            $webpage_schema['mainEntity'] = array(
+                '@type'           => 'ItemList',
+                'itemListElement' => $homepage_items,
+            );
+        }
+        if ( ! empty( $navigation_items ) ) {
+            $website_schema['hasPart'] = $navigation_items;
+        }
+        $breadcrumb = array(
+            '@context'        => 'https://schema.org',
+            '@type'           => 'BreadcrumbList',
+            'itemListElement' => array(
+                array(
+                    '@type'    => 'ListItem',
+                    'position' => 1,
+                    'name'     => 'Home',
+                    'item'     => $site_url,
+                ),
+            ),
+        );
 
         echo '<script type="application/ld+json">' . wp_json_encode( $website_schema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE ) . '</script>' . "\n";
         echo '<script type="application/ld+json">' . wp_json_encode( $organization_schema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE ) . '</script>' . "\n";
+        echo '<script type="application/ld+json">' . wp_json_encode( $webpage_schema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE ) . '</script>' . "\n";
+        echo '<script type="application/ld+json">' . wp_json_encode( $breadcrumb, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE ) . '</script>' . "\n";
     }
 
     echo '<link rel="canonical" href="' . esc_url( holyprofweb_get_current_seo_url() ) . '" />' . "\n";

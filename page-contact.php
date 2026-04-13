@@ -9,6 +9,28 @@ get_header();
 $sent    = false;
 $errors  = array();
 $success = false;
+$allowed_subjects = array(
+    'General Enquiry',
+    'Content Correction',
+    'Advertising',
+    'Partnership',
+    'Report a Problem',
+    'Other',
+);
+$spam_phrases = array(
+    'whatsapp',
+    'telegram',
+    'investment opportunity',
+    'guaranteed profit',
+    'earn money fast',
+    'work from home',
+    'crypto signal',
+    'click here',
+    'seo service',
+    'guest post',
+    'casino',
+    'loan offer',
+);
 
 if ( isset( $_POST['hpw_contact_nonce'] ) ) {
     $nonce = sanitize_text_field( wp_unslash( $_POST['hpw_contact_nonce'] ) );
@@ -16,15 +38,72 @@ if ( isset( $_POST['hpw_contact_nonce'] ) ) {
     if ( ! wp_verify_nonce( $nonce, 'hpw_contact_submit' ) ) {
         $errors[] = __( 'Security check failed. Please refresh the page and try again.', 'holyprofweb' );
     } else {
+        $honeypot   = isset( $_POST['contact_website'] ) ? trim( wp_unslash( $_POST['contact_website'] ) ) : '';
+        $form_time  = isset( $_POST['hpw_contact_time'] ) ? (int) $_POST['hpw_contact_time'] : 0;
         $name    = isset( $_POST['contact_name'] )    ? sanitize_text_field( wp_unslash( $_POST['contact_name'] ) )    : '';
         $email   = isset( $_POST['contact_email'] )   ? sanitize_email( wp_unslash( $_POST['contact_email'] ) )         : '';
         $subject = isset( $_POST['contact_subject'] ) ? sanitize_text_field( wp_unslash( $_POST['contact_subject'] ) )  : '';
         $message = isset( $_POST['contact_message'] ) ? sanitize_textarea_field( wp_unslash( $_POST['contact_message'] ) ) : '';
+        $remote_ip = isset( $_SERVER['REMOTE_ADDR'] ) ? sanitize_text_field( wp_unslash( $_SERVER['REMOTE_ADDR'] ) ) : '';
+        $message_plain = strtolower( wp_strip_all_tags( $message ) );
+        $request_host  = wp_parse_url( home_url( '/' ), PHP_URL_HOST );
+        $origin_header = '';
+        $origin_host   = '';
+
+        if ( ! empty( $_SERVER['HTTP_ORIGIN'] ) ) {
+            $origin_header = sanitize_text_field( wp_unslash( $_SERVER['HTTP_ORIGIN'] ) );
+        } elseif ( ! empty( $_SERVER['HTTP_REFERER'] ) ) {
+            $origin_header = esc_url_raw( wp_unslash( $_SERVER['HTTP_REFERER'] ) );
+        }
+
+        if ( $origin_header ) {
+            $origin_host = wp_parse_url( $origin_header, PHP_URL_HOST );
+        }
+
+        if ( '' !== $honeypot ) {
+            $errors[] = __( 'Security check failed. Please try again.', 'holyprofweb' );
+        }
+        if ( $form_time < ( time() - DAY_IN_SECONDS ) || $form_time > time() || ( time() - $form_time ) < 4 ) {
+            $errors[] = __( 'Please wait a few seconds and submit the form again.', 'holyprofweb' );
+        }
+        if ( $origin_host && $request_host && strtolower( $origin_host ) !== strtolower( $request_host ) ) {
+            $errors[] = __( 'Security check failed. Please refresh the page and try again.', 'holyprofweb' );
+        }
 
         if ( strlen( $name ) < 2 )           $errors[] = __( 'Please enter your name.',          'holyprofweb' );
         if ( ! is_email( $email ) )           $errors[] = __( 'Please enter a valid email.',      'holyprofweb' );
-        if ( strlen( $subject ) < 3 )         $errors[] = __( 'Please enter a subject.',          'holyprofweb' );
+        if ( ! in_array( $subject, $allowed_subjects, true ) ) $errors[] = __( 'Please choose a valid subject.', 'holyprofweb' );
         if ( strlen( $message ) < 10 )        $errors[] = __( 'Message must be at least 10 characters.', 'holyprofweb' );
+        if ( strlen( $message ) > 3000 )      $errors[] = __( 'Message is too long. Please keep it under 3000 characters.', 'holyprofweb' );
+        if ( preg_match_all( '#https?://#i', $message ) > 2 ) $errors[] = __( 'Please remove extra links from your message.', 'holyprofweb' );
+
+        foreach ( $spam_phrases as $spam_phrase ) {
+            if ( false !== strpos( $message_plain, $spam_phrase ) ) {
+                $errors[] = __( 'Your message looks like automated spam. Please rewrite it and try again.', 'holyprofweb' );
+                break;
+            }
+        }
+
+        if ( preg_match( '/(.)\\1{7,}/', $message_plain ) || preg_match( '/\\b(\\w+)\\b(?:\\s+\\1\\b){4,}/i', $message_plain ) ) {
+            $errors[] = __( 'Please rewrite the message with a bit more detail.', 'holyprofweb' );
+        }
+
+        $rate_limit_key = 'hpw_contact_rate_' . md5( strtolower( $email ) . '|' . $remote_ip );
+        $burst_limit_key = 'hpw_contact_burst_' . md5( $remote_ip );
+        $duplicate_key   = 'hpw_contact_dup_' . md5( strtolower( $email ) . '|' . strtolower( $subject ) . '|' . $message_plain );
+
+        if ( empty( $errors ) && get_transient( $rate_limit_key ) ) {
+            $errors[] = __( 'Please wait a minute before sending another message.', 'holyprofweb' );
+        }
+        if ( empty( $errors ) && get_transient( $duplicate_key ) ) {
+            $errors[] = __( 'That message was already received. Please wait before sending it again.', 'holyprofweb' );
+        }
+        if ( empty( $errors ) ) {
+            $burst_count = (int) get_transient( $burst_limit_key );
+            if ( $burst_count >= 3 ) {
+                $errors[] = __( 'Too many messages were sent from this connection recently. Please try again later.', 'holyprofweb' );
+            }
+        }
 
         if ( empty( $errors ) ) {
             $to      = get_option( 'hpw_contact_email', get_option( 'admin_email' ) );
@@ -42,6 +121,10 @@ if ( isset( $_POST['hpw_contact_nonce'] ) ) {
             $success = wp_mail( $to, $subject_line, $body, $headers );
             if ( ! $success ) {
                 $errors[] = __( 'Message could not be sent right now. Please email us directly.', 'holyprofweb' );
+            } else {
+                set_transient( $rate_limit_key, 1, MINUTE_IN_SECONDS );
+                set_transient( $duplicate_key, 1, 12 * HOUR_IN_SECONDS );
+                set_transient( $burst_limit_key, (int) get_transient( $burst_limit_key ) + 1, HOUR_IN_SECONDS );
             }
         }
     }
@@ -87,6 +170,11 @@ if ( isset( $_POST['hpw_contact_nonce'] ) ) {
 
                     <form method="post" class="contact-form" novalidate>
                         <?php wp_nonce_field( 'hpw_contact_submit', 'hpw_contact_nonce' ); ?>
+                        <input type="hidden" name="hpw_contact_time" value="<?php echo esc_attr( time() ); ?>" />
+                        <div class="contact-field" style="position:absolute;left:-9999px;opacity:0;pointer-events:none;" aria-hidden="true">
+                            <label for="contact_website"><?php esc_html_e( 'Website', 'holyprofweb' ); ?></label>
+                            <input type="text" id="contact_website" name="contact_website" value="" tabindex="-1" autocomplete="off" />
+                        </div>
 
                         <div class="contact-row contact-row--2col">
                             <div class="contact-field">
