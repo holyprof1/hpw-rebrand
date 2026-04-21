@@ -51,13 +51,17 @@ $prioritize_image_ids = static function( $ids ) {
     return $ids;
 };
 
-$latest_ids = holyprofweb_get_localized_post_ids(
+$latest_ids = holyprofweb_get_personalized_post_ids(
     array(
         'posts_per_page' => 8,
         'orderby'        => 'date',
         'order'          => 'DESC',
     ),
-    8
+    8,
+    array(
+        'scope'  => 'front-page',
+        'module' => 'front_trending',
+    )
 );
 $latest_ids = $prioritize_image_ids( $latest_ids );
 $latest_query = new WP_Query(
@@ -76,13 +80,17 @@ $latest_query = new WP_Query(
         )
 );
 
-$just_added_ids = holyprofweb_get_localized_post_ids(
+$just_added_ids = holyprofweb_get_personalized_post_ids(
     array(
         'posts_per_page' => 6,
         'orderby'        => 'date',
         'order'          => 'DESC',
     ),
-    6
+    6,
+    array(
+        'scope'  => 'front-page',
+        'module' => 'front_just_added',
+    )
 );
 $just_added_ids = $prioritize_image_ids( $just_added_ids );
 $just_added_query = new WP_Query(
@@ -109,14 +117,18 @@ $blog_term_ids     = array_values( array_filter( array(
     $reports_term ? (int) $reports_term->term_id : 0,
     $blog_opinion_term ? (int) $blog_opinion_term->term_id : 0,
 ) ) );
-$guides_ids = holyprofweb_get_localized_post_ids(
+$guides_ids = holyprofweb_get_personalized_post_ids(
     array(
         'posts_per_page' => 4,
         'category__in'   => $blog_term_ids,
         'orderby'        => 'date',
         'order'          => 'DESC',
     ),
-    4
+    4,
+    array(
+        'scope'  => 'front-page',
+        'module' => 'front_blog',
+    )
 );
 $guides_ids = $prioritize_image_ids( $guides_ids );
 $guides_query = new WP_Query(
@@ -233,7 +245,7 @@ $topic_descriptions = array(
     <?php holyprofweb_left_sidebar(); ?>
 
     <main id="primary" class="site-main platform-main">
-        <section class="front-section front-section--carousel" aria-labelledby="trending-now-heading">
+        <section class="front-section front-section--carousel" aria-labelledby="trending-now-heading" data-hpw-rec-module="front_trending">
             <div class="section-header">
                 <h2 id="trending-now-heading" class="section-title"><?php esc_html_e( 'Trending Now', 'holyprofweb' ); ?></h2>
                 <a href="<?php echo esc_url( home_url( '/' ) ); ?>" class="section-link"><?php esc_html_e( 'Check now', 'holyprofweb' ); ?></a>
@@ -242,11 +254,13 @@ $topic_descriptions = array(
             <div class="post-carousel">
                 <?php
                 if ( $latest_query->have_posts() ) :
+                    $hpw_trending_loop_index = 0;
                     while ( $latest_query->have_posts() ) :
                         $latest_query->the_post();
+                        $hpw_trending_loop_index++;
                         $cats = get_the_category();
                 ?>
-                <article class="post-card post-card--carousel">
+                <article class="post-card post-card--carousel" data-post-id="<?php the_ID(); ?>" data-hpw-rec-pos="<?php echo esc_attr( $hpw_trending_loop_index ); ?>" data-card-link="<?php the_permalink(); ?>" tabindex="0" role="link" aria-label="<?php echo esc_attr( sprintf( __( 'Open post: %s', 'holyprofweb' ), holyprofweb_get_decoded_post_title() ) ); ?>">
                     <a href="<?php the_permalink(); ?>" class="post-card-thumb-link">
                         <img src="<?php echo esc_attr( holyprofweb_get_front_page_card_image_url( get_the_ID() ) ); ?>" alt="<?php echo esc_attr( holyprofweb_get_decoded_post_title() ); ?>" loading="lazy" width="<?php echo esc_attr( $card_size['width'] ); ?>" height="<?php echo esc_attr( $card_size['height'] ); ?>" class="<?php echo esc_attr( holyprofweb_get_post_image_class( get_the_ID() ) ); ?>" />
                     </a>
@@ -307,7 +321,7 @@ $topic_descriptions = array(
             </div>
         </section>
 
-        <section class="front-section front-section--carousel" aria-labelledby="just-added-heading">
+        <section class="front-section front-section--carousel" aria-labelledby="just-added-heading" data-hpw-rec-module="front_just_added">
             <div class="section-header">
                 <h2 id="just-added-heading" class="section-title"><?php esc_html_e( 'Just Added', 'holyprofweb' ); ?></h2>
                 <a href="<?php echo esc_url( holyprofweb_get_blog_url() ); ?>" class="section-link"><?php esc_html_e( 'Browse all', 'holyprofweb' ); ?></a>
@@ -316,13 +330,15 @@ $topic_descriptions = array(
             <div class="post-carousel">
                 <?php
                 if ( $just_added_query->have_posts() ) :
+                    $hpw_just_added_loop_index = 0;
                     while ( $just_added_query->have_posts() ) :
                         $just_added_query->the_post();
+                        $hpw_just_added_loop_index++;
                         $cats    = get_the_category();
                         $rating  = holyprofweb_get_post_rating( get_the_ID() );
                         $reviews = holyprofweb_get_review_count( get_the_ID() );
                 ?>
-                <article class="post-card">
+                <article class="post-card" data-post-id="<?php the_ID(); ?>" data-hpw-rec-pos="<?php echo esc_attr( $hpw_just_added_loop_index ); ?>" data-card-link="<?php the_permalink(); ?>" tabindex="0" role="link" aria-label="<?php echo esc_attr( sprintf( __( 'Open post: %s', 'holyprofweb' ), holyprofweb_get_decoded_post_title() ) ); ?>">
                     <a href="<?php the_permalink(); ?>" class="post-card-thumb-link">
                         <img src="<?php echo esc_attr( holyprofweb_get_front_page_card_image_url( get_the_ID() ) ); ?>" alt="<?php echo esc_attr( holyprofweb_get_decoded_post_title() ); ?>" loading="lazy" width="<?php echo esc_attr( $card_size['width'] ); ?>" height="<?php echo esc_attr( $card_size['height'] ); ?>" class="<?php echo esc_attr( holyprofweb_get_post_image_class( get_the_ID() ) ); ?>" />
                     </a>
@@ -400,7 +416,7 @@ $topic_descriptions = array(
 
         <?php holyprofweb_render_ad_format( 'rectangle', 'front_inline', 'ad-front-rectangle' ); ?>
 
-        <section class="front-section" aria-labelledby="guides-heading">
+        <section class="front-section" aria-labelledby="guides-heading" data-hpw-rec-module="front_blog">
             <div class="section-header">
                 <h2 id="guides-heading" class="section-title"><?php esc_html_e( 'From the Blog', 'holyprofweb' ); ?></h2>
                 <a href="<?php echo esc_url( holyprofweb_get_blog_url() ); ?>" class="section-link"><?php esc_html_e( 'Browse all', 'holyprofweb' ); ?></a>
@@ -414,7 +430,7 @@ $topic_descriptions = array(
                         $guides_query->the_post();
                         $hpw_guides_loop_index++;
                 ?>
-                <article class="post-card">
+                <article class="post-card" data-post-id="<?php the_ID(); ?>" data-hpw-rec-pos="<?php echo esc_attr( $hpw_guides_loop_index ); ?>" data-card-link="<?php the_permalink(); ?>" tabindex="0" role="link" aria-label="<?php echo esc_attr( sprintf( __( 'Open post: %s', 'holyprofweb' ), holyprofweb_get_decoded_post_title() ) ); ?>">
                     <a href="<?php the_permalink(); ?>" class="post-card-thumb-link">
                         <img src="<?php echo esc_attr( holyprofweb_get_front_page_card_image_url( get_the_ID() ) ); ?>" alt="<?php echo esc_attr( holyprofweb_get_decoded_post_title() ); ?>" loading="lazy" width="<?php echo esc_attr( $card_size['width'] ); ?>" height="<?php echo esc_attr( $card_size['height'] ); ?>" class="<?php echo esc_attr( holyprofweb_get_post_image_class( get_the_ID() ) ); ?>" />
                     </a>
@@ -441,7 +457,7 @@ $topic_descriptions = array(
                     foreach ( $fallback_posts as $post ) :
                         setup_postdata( $post );
                 ?>
-                <article class="post-card">
+                <article class="post-card" data-post-id="<?php the_ID(); ?>" data-card-link="<?php the_permalink(); ?>" tabindex="0" role="link" aria-label="<?php echo esc_attr( sprintf( __( 'Open post: %s', 'holyprofweb' ), holyprofweb_get_decoded_post_title() ) ); ?>">
                     <a href="<?php the_permalink(); ?>" class="post-card-thumb-link">
                         <img src="<?php echo esc_attr( holyprofweb_get_front_page_card_image_url( get_the_ID() ) ); ?>" alt="<?php echo esc_attr( holyprofweb_get_decoded_post_title() ); ?>" loading="lazy" width="<?php echo esc_attr( $card_size['width'] ); ?>" height="<?php echo esc_attr( $card_size['height'] ); ?>" class="<?php echo esc_attr( holyprofweb_get_post_image_class( get_the_ID() ) ); ?>" />
                     </a>

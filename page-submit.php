@@ -30,24 +30,109 @@ if ( isset( $_POST[ $nonce_field ] ) && wp_verify_nonce(
     'submit_review_action'
 ) ) {
     $name        = isset( $_POST['submit_name'] ) ? sanitize_text_field( wp_unslash( $_POST['submit_name'] ) ) : '';
-    $site_url    = isset( $_POST['submit_url'] ) ? esc_url_raw( wp_unslash( $_POST['submit_url'] ) ) : '';
+    $site_url    = isset( $_POST['submit_url'] ) ? wp_unslash( $_POST['submit_url'] ) : '';
     $category    = isset( $_POST['submit_category'] ) ? sanitize_key( wp_unslash( $_POST['submit_category'] ) ) : 'reviews';
     $description = isset( $_POST['submit_description'] ) ? sanitize_textarea_field( wp_unslash( $_POST['submit_description'] ) ) : '';
     $report_issue= isset( $_POST['report_issue'] ) ? sanitize_textarea_field( wp_unslash( $_POST['report_issue'] ) ) : '';
     $submitter   = isset( $_POST['submit_your_name'] ) ? sanitize_text_field( wp_unslash( $_POST['submit_your_name'] ) ) : '';
     $email       = isset( $_POST['submit_email'] ) ? sanitize_email( wp_unslash( $_POST['submit_email'] ) ) : '';
+    $body_plain  = strtolower( trim( wp_strip_all_tags( 'reports' === $category ? $report_issue : $description ) ) );
+    $duplicate_key = 'hpw_submit_dup_' . md5( strtolower( $name ) . '|' . strtolower( $email ) . '|' . $category . '|' . $body_plain );
+    $submission_fingerprint = function_exists( 'holyprofweb_get_request_fingerprint' ) ? holyprofweb_get_request_fingerprint() : '';
 
-    if ( empty( $name ) ) {
-        $error = 'reports' === $category ? __( 'Please enter the site name.', 'holyprofweb' ) : __( 'Please enter the name of the app or company.', 'holyprofweb' );
-    } elseif ( 'reports' === $category && mb_strlen( $report_issue ) < 20 ) {
-        $error = __( 'Please provide at least 20 characters for the issue description.', 'holyprofweb' );
-    } elseif ( 'reports' !== $category && mb_strlen( $description ) < 20 ) {
-        $error = __( 'Please provide at least 20 characters describing this company or site.', 'holyprofweb' );
-    } elseif ( ! empty( $email ) && ! is_email( $email ) ) {
-        $error = __( 'Please enter a valid email address.', 'holyprofweb' );
+    if ( function_exists( 'holyprofweb_validate_public_form_guard' ) ) {
+        $guard = holyprofweb_validate_public_form_guard( 'submit' );
+        if ( is_wp_error( $guard ) ) {
+            $error = $guard->get_error_message();
+        }
+    }
+
+    if ( ! $error && function_exists( 'holyprofweb_enforce_rate_limit' ) ) {
+        $limited = holyprofweb_enforce_rate_limit( 'submit_listing', 3, HOUR_IN_SECONDS, __( 'Too many submissions were sent from this browser. Please try again later.', 'holyprofweb' ) );
+        if ( is_wp_error( $limited ) ) {
+            $error = $limited->get_error_message();
+        }
+    }
+
+    if ( ! $error && $body_plain && get_transient( $duplicate_key ) ) {
+        $error = __( 'That submission was already received. Please wait before sending it again.', 'holyprofweb' );
+    }
+
+    if ( ! $error && function_exists( 'holyprofweb_enforce_public_cooldown' ) ) {
+        $cooldown_suffix = $email ? strtolower( $email ) : strtolower( $name );
+        $cooldown = holyprofweb_enforce_public_cooldown( 'submit_listing', 5 * MINUTE_IN_SECONDS, __( 'Please wait a few minutes before sending another submission.', 'holyprofweb' ), $cooldown_suffix );
+        if ( is_wp_error( $cooldown ) ) {
+            $error = $cooldown->get_error_message();
+        }
+    }
+
+    if ( ! $error && ( $email || $submission_fingerprint ) ) {
+        global $wpdb;
+
+        $meta_clauses = array();
+        $query_params = array(
+            'post',
+            'pending',
+            'draft',
+            'publish',
+            'future',
+            'private',
+            '_hpw_submission_created_at',
+            time() - ( 5 * MINUTE_IN_SECONDS ),
+        );
+
+        if ( $email ) {
+            $meta_clauses[] = '(pm.meta_key = %s AND pm.meta_value = %s)';
+            $query_params[] = '_hpw_submitter_email';
+            $query_params[] = strtolower( $email );
+        }
+
+        if ( $submission_fingerprint ) {
+            $meta_clauses[] = '(pm.meta_key = %s AND pm.meta_value = %s)';
+            $query_params[] = '_hpw_submission_fingerprint';
+            $query_params[] = $submission_fingerprint;
+        }
+
+        if ( ! empty( $meta_clauses ) ) {
+            $recent_submission_sql = "
+                SELECT p.ID
+                FROM {$wpdb->posts} p
+                INNER JOIN {$wpdb->postmeta} pm ON pm.post_id = p.ID
+                INNER JOIN {$wpdb->postmeta} pm_created ON pm_created.post_id = p.ID
+                WHERE p.post_type = %s
+                  AND p.post_status IN (%s, %s, %s, %s, %s)
+                  AND pm_created.meta_key = %s
+                  AND CAST(pm_created.meta_value AS UNSIGNED) >= %d
+                  AND (" . implode( ' OR ', $meta_clauses ) . ')
+                LIMIT 1
+            ';
+
+            $recent_submission_id = $wpdb->get_var( $wpdb->prepare( $recent_submission_sql, $query_params ) );
+            if ( $recent_submission_id ) {
+                $error = __( 'A submission from this connection is already waiting for review. Please wait a few minutes before sending another one.', 'holyprofweb' );
+            }
+        }
+    }
+
+    if ( function_exists( 'holyprofweb_clean_public_url_submission' ) ) {
+        $site_url = holyprofweb_clean_public_url_submission( $site_url );
     } else {
-        $term    = get_term_by( 'slug', $category, 'category' );
-        $cat_ids = $term ? array( (int) $term->term_id ) : array();
+        $site_url = esc_url_raw( $site_url );
+    }
+
+    if ( ! $error && empty( $name ) ) {
+        $error = 'reports' === $category ? __( 'Please enter the site name.', 'holyprofweb' ) : __( 'Please enter the name of the app or company.', 'holyprofweb' );
+    } elseif ( ! $error && 'reports' === $category && mb_strlen( $report_issue ) < 20 ) {
+        $error = __( 'Please provide at least 20 characters for the issue description.', 'holyprofweb' );
+    } elseif ( ! $error && 'reports' !== $category && mb_strlen( $description ) < 20 ) {
+        $error = __( 'Please provide at least 20 characters describing this company or site.', 'holyprofweb' );
+    } elseif ( ! $error && ! empty( $email ) && ! is_email( $email ) ) {
+        $error = __( 'Please enter a valid email address.', 'holyprofweb' );
+    } elseif ( ! $error && ! empty( $_POST['submit_url'] ) && ! $site_url ) {
+        $error = __( 'Please enter a valid public website URL.', 'holyprofweb' );
+    } else {
+        $term      = get_term_by( 'slug', $category, 'category' );
+        $cat_ids   = $term ? array( (int) $term->term_id ) : array();
         $main_body = 'reports' === $category ? $report_issue : $description;
 
         $content = "<p><strong>Submitted via HolyprofWeb</strong></p>\n"
@@ -55,25 +140,27 @@ if ( isset( $_POST[ $nonce_field ] ) && wp_verify_nonce(
             . ( $submitter ? "<p><strong>Submitted by:</strong> " . esc_html( $submitter ) . "</p>\n" : '' )
             . "<p>" . nl2br( esc_html( $main_body ) ) . "</p>";
 
-        $should_publish = ( 'reports' === $category );
+        $submission_status = 'pending';
 
         $post_id = wp_insert_post( array(
             'post_title'     => sanitize_text_field( $name ),
             'post_content'   => $content,
-            'post_status'    => $should_publish ? 'publish' : 'draft',
+            'post_status'    => $submission_status,
             'post_type'      => 'post',
             'post_category'  => $cat_ids,
             'comment_status' => 'open',
             'meta_input'     => array(
-                '_hpw_submitted_url'   => $site_url,
-                '_hpw_submitter_name'  => $submitter,
-                '_hpw_submitter_email' => $email,
-                '_hpw_submission_type' => 'reports' === $category ? 'report' : 'listing',
+                '_hpw_submitted_url'          => $site_url,
+                '_hpw_submitter_name'         => $submitter,
+                '_hpw_submitter_email'        => strtolower( $email ),
+                '_hpw_submission_fingerprint' => $submission_fingerprint,
+                '_hpw_submission_created_at'  => time(),
+                '_hpw_submission_type'        => 'reports' === $category ? 'report' : 'listing',
             ),
         ) );
 
         if ( $post_id && ! is_wp_error( $post_id ) ) {
-            if ( $site_url ) {
+            if ( $site_url && current_user_can( 'edit_post', $post_id ) ) {
                 holyprofweb_fetch_og_image( $post_id, $site_url );
             }
             if ( ! get_post_thumbnail_id( $post_id ) ) {
@@ -81,6 +168,9 @@ if ( isset( $_POST[ $nonce_field ] ) && wp_verify_nonce(
                 if ( $post ) {
                     holyprofweb_generate_post_image( $post_id, $post );
                 }
+            }
+            if ( $body_plain ) {
+                set_transient( $duplicate_key, 1, 12 * HOUR_IN_SECONDS );
             }
             holyprofweb_notify_submission( $post_id, $name, $site_url, $category, $main_body );
             $submitted = true;
@@ -91,11 +181,11 @@ if ( isset( $_POST[ $nonce_field ] ) && wp_verify_nonce(
 }
 
 $available_cats = array(
-    'reviews'   => array( 'icon' => '★', 'label' => 'Reviews',   'desc' => 'Apps, platforms, services' ),
-    'companies' => array( 'icon' => '🏢', 'label' => 'Companies', 'desc' => 'Company profiles & overviews' ),
-    'salaries'  => array( 'icon' => '💰', 'label' => 'Salaries',  'desc' => 'Compensation & staff data' ),
-    'biography' => array( 'icon' => '👤', 'label' => 'Biography', 'desc' => 'People & founders' ),
-    'reports'   => array( 'icon' => '📋', 'label' => 'Reports',   'desc' => 'Submit a report or complaint' ),
+    'reviews'   => array( 'icon' => '&#9733;', 'label' => 'Reviews', 'desc' => 'Apps, platforms, services' ),
+    'companies' => array( 'icon' => '&#127970;', 'label' => 'Companies', 'desc' => 'Company profiles & overviews' ),
+    'salaries'  => array( 'icon' => '&#128176;', 'label' => 'Salaries', 'desc' => 'Compensation & staff data' ),
+    'biography' => array( 'icon' => '&#128100;', 'label' => 'Biography', 'desc' => 'People & founders' ),
+    'reports'   => array( 'icon' => '&#128203;', 'label' => 'Reports', 'desc' => 'Submit a report or complaint' ),
 );
 $selected_cat = isset( $_POST['submit_category'] ) ? sanitize_key( wp_unslash( $_POST['submit_category'] ) ) : ( $prefill_category ?: 'reviews' );
 $name_label   = 'biography' === $selected_cat
@@ -124,10 +214,7 @@ $page_subtitle = 'biography' === $selected_cat
             <div class="submit-success" role="alert">
                 <div class="submit-success-icon" aria-hidden="true">&#10003;</div>
                 <h2><?php esc_html_e( 'Submission received!', 'holyprofweb' ); ?></h2>
-                <p><?php echo 'reports' === $selected_cat ? esc_html__( 'Your report is now live and searchable on the site.', 'holyprofweb' ) : esc_html__( 'Your submission is now waiting in admin review.', 'holyprofweb' ); ?></p>
-                <?php if ( ! empty( $post_id ) && 'reports' === $selected_cat ) : ?>
-                <p><a class="submit-btn" href="<?php echo esc_url( get_permalink( $post_id ) ); ?>"><?php esc_html_e( 'View published report', 'holyprofweb' ); ?></a></p>
-                <?php endif; ?>
+                <p><?php esc_html_e( 'Your submission is now waiting in admin review before anything goes live.', 'holyprofweb' ); ?></p>
             </div>
             <?php else : ?>
                 <?php if ( $error ) : ?>
@@ -136,6 +223,7 @@ $page_subtitle = 'biography' === $selected_cat
 
                 <form class="submit-form" method="post" novalidate>
                     <?php wp_nonce_field( 'submit_review_action', $nonce_field ); ?>
+                    <?php if ( function_exists( 'holyprofweb_render_public_form_guard' ) ) { holyprofweb_render_public_form_guard( 'submit' ); } ?>
 
                     <div class="submit-form-field">
                         <label class="submit-label"><?php esc_html_e( 'Category', 'holyprofweb' ); ?> <span class="submit-required">*</span></label>
@@ -143,7 +231,7 @@ $page_subtitle = 'biography' === $selected_cat
                             <?php foreach ( $available_cats as $slug => $cat ) : ?>
                             <label class="submit-cat-card<?php echo $selected_cat === $slug ? ' is-selected' : ''; ?>">
                                 <input type="radio" name="submit_category" value="<?php echo esc_attr( $slug ); ?>" class="submit-cat-radio" <?php checked( $selected_cat, $slug ); ?> />
-                                <span class="submit-cat-icon" aria-hidden="true"><?php echo $cat['icon']; ?></span>
+                                <span class="submit-cat-icon" aria-hidden="true"><?php echo wp_kses_post( $cat['icon'] ); ?></span>
                                 <span class="submit-cat-label"><?php echo esc_html( $cat['label'] ); ?></span>
                                 <span class="submit-cat-desc"><?php echo esc_html( $cat['desc'] ); ?></span>
                             </label>

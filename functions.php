@@ -16,6 +16,7 @@ function holyprofweb_setup() {
 
     add_theme_support( 'title-tag' );
     add_theme_support( 'post-thumbnails' );
+    add_theme_support( 'site-icon' );
     set_post_thumbnail_size( 800, 450, true );
     add_image_size( 'holyprofweb-card', 640, 480, true );
     add_image_size( 'holyprofweb-thumb', 360, 360, true );
@@ -343,15 +344,22 @@ function holyprofweb_get_related_posts( $post_id, $count = 3 ) {
         return new WP_Query( array( 'post__in' => array( 0 ) ) );
     }
 
-    return new WP_Query( array(
-        'post__not_in'   => array( $post_id ),
-        'posts_per_page' => $count,
-        'category__in'   => wp_list_pluck( $categories, 'term_id' ),
-        'orderby'        => 'date',
-        'order'          => 'DESC',
-        'post_status'    => 'publish',
-        'no_found_rows'  => true,
-    ) );
+    return holyprofweb_get_personalized_query(
+        array(
+            'post__not_in'   => array( $post_id ),
+            'posts_per_page' => $count,
+            'category__in'   => wp_list_pluck( $categories, 'term_id' ),
+            'orderby'        => 'date',
+            'order'          => 'DESC',
+            'post_status'    => 'publish',
+            'no_found_rows'  => true,
+        ),
+        $count,
+        array(
+            'scope'  => 'single-' . (int) $post_id,
+            'module' => 'related_posts',
+        )
+    );
 }
 
 function holyprofweb_get_inline_also_read_posts( $post_id, $limit = 3 ) {
@@ -387,7 +395,14 @@ function holyprofweb_get_inline_also_read_posts( $post_id, $limit = 3 ) {
         );
     }
 
-    $query = new WP_Query( $query_args );
+    $query = holyprofweb_get_personalized_query(
+        $query_args,
+        $limit,
+        array(
+            'scope'  => 'single-' . (int) $post_id,
+            'module' => 'inline_also_read',
+        )
+    );
     if ( ! empty( $query->posts ) ) {
         return array_slice( $query->posts, 0, $limit );
     }
@@ -604,7 +619,7 @@ function holyprofweb_ads_admin_page() {
                 // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
                 $code = isset( $_POST[ $field ] ) ? wp_unslash( $_POST[ $field ] ) : '';
             }
-            update_option( 'holyprofweb_ad_format_' . $option_suffix, $code );
+            update_option( 'holyprofweb_ad_format_' . $option_suffix, function_exists( 'holyprofweb_sanitize_ad_code' ) ? holyprofweb_sanitize_ad_code( $code ) : $code );
         }
 
         // Density per format group.
@@ -1626,27 +1641,10 @@ function holyprofweb_get_country_name_from_code( $country_code ) {
 }
 
 function holyprofweb_get_public_visitor_ip() {
-    $headers = array(
-        'HTTP_CF_CONNECTING_IP',
-        'HTTP_X_REAL_IP',
-        'HTTP_X_FORWARDED_FOR',
-        'HTTP_CLIENT_IP',
-        'REMOTE_ADDR',
-    );
-
-    foreach ( $headers as $header ) {
-        if ( empty( $_SERVER[ $header ] ) ) {
-            continue;
-        }
-
-        $raw = (string) wp_unslash( $_SERVER[ $header ] );
-        $candidates = 'HTTP_X_FORWARDED_FOR' === $header ? explode( ',', $raw ) : array( $raw );
-
-        foreach ( $candidates as $candidate ) {
-            $candidate = trim( $candidate );
-            if ( filter_var( $candidate, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE ) ) {
-                return $candidate;
-            }
+    if ( function_exists( 'holyprofweb_get_trusted_client_ip' ) ) {
+        $trusted_ip = holyprofweb_get_trusted_client_ip();
+        if ( $trusted_ip ) {
+            return $trusted_ip;
         }
     }
 
@@ -1734,60 +1732,33 @@ function holyprofweb_lookup_geo_from_ip( $ip_address ) {
 }
 
 function holyprofweb_detect_visitor_locale() {
-    $geo_headers = array(
-        'HTTP_CF_IPCOUNTRY',
-        'HTTP_CLOUDFRONT_VIEWER_COUNTRY',
-        'HTTP_X_VERCEL_IP_COUNTRY',
-        'HTTP_FASTLY_COUNTRY_CODE',
-        'HTTP_X_AKAMAI_EDGESCAPE',
-        'HTTP_X_COUNTRY_CODE',
-        'HTTP_X_GEO_COUNTRY',
-        'HTTP_X_APPENGINE_COUNTRY',
-        'HTTP_X_COUNTRY',
-    );
-
-    $region = '';
     $mode = get_option( 'hpw_country_mode', 'headers' );
-    if ( 'headers' === $mode ) {
-        foreach ( $geo_headers as $header_key ) {
-            if ( empty( $_SERVER[ $header_key ] ) ) {
-                continue;
-            }
-
-            $raw_value = strtoupper( sanitize_text_field( wp_unslash( $_SERVER[ $header_key ] ) ) );
-            $candidate = $raw_value;
-
-            if ( 'HTTP_X_AKAMAI_EDGESCAPE' === $header_key && preg_match( '/country_code=([A-Z]{2})/', $raw_value, $matches ) ) {
-                $candidate = $matches[1];
-            }
-
-            if ( preg_match( '/^[A-Z]{2}$/', $candidate ) ) {
-                $region = $candidate;
-                break;
-            }
-        }
-    }
-
     $header = isset( $_SERVER['HTTP_ACCEPT_LANGUAGE'] ) ? strtolower( (string) $_SERVER['HTTP_ACCEPT_LANGUAGE'] ) : '';
     $language = 'en';
-    $source   = 'unknown';
+    $source   = 'default';
+    $language_region = '';
     if ( $header ) {
         $primary = trim( explode( ',', $header )[0] );
         $parts   = preg_split( '/[-_]/', $primary );
         $language = ! empty( $parts[0] ) ? strtolower( $parts[0] ) : 'en';
+        $language_region = ! empty( $parts[1] ) ? holyprofweb_normalize_country_code( $parts[1] ) : '';
+    }
 
-        if ( 'language' === $mode && ! $region && ! empty( $parts[1] ) ) {
-            $region = strtoupper( $parts[1] );
+    $region  = '';
+    $country = '';
+
+    if ( 'headers' === $mode && function_exists( 'holyprofweb_get_trusted_geo_header_country_code' ) ) {
+        $region = holyprofweb_get_trusted_geo_header_country_code();
+        if ( $region ) {
+            $source = 'trusted_geo_header';
         }
     }
 
-    if ( $region ) {
-        $source = 'headers' === $mode ? 'geo_header' : 'accept_language';
-    } elseif ( 'language' === $mode && $header ) {
-        $source = 'accept_language';
+    if ( ! $region && 'language' === $mode && $language_region ) {
+        $region  = $language_region;
+        $country = holyprofweb_get_country_name_from_code( $region );
+        $source  = 'accept_language';
     }
-
-    $country = $region ? holyprofweb_get_country_name_from_code( $region ) : '';
 
     if ( ! $region && 'manual' !== $mode ) {
         $ip_geo = holyprofweb_lookup_geo_from_ip( holyprofweb_get_public_visitor_ip() );
@@ -1802,14 +1773,22 @@ function holyprofweb_detect_visitor_locale() {
         $country = holyprofweb_get_country_name_from_code( $region );
     }
 
+    if ( ! $region && function_exists( 'holyprofweb_get_personalization_cookie_country_code' ) ) {
+        $region = holyprofweb_get_personalization_cookie_country_code();
+        if ( $region ) {
+            $country = holyprofweb_get_country_name_from_code( $region );
+            $source  = 'country_cookie';
+        }
+    }
+
     if ( ! $country ) {
-        $country = 'Unknown';
+        $country = 'Global';
     }
 
     return array(
         'language' => $language,
-        'country'  => $country,
-        'region'   => $region ?: 'XX',
+        'country'  => sanitize_text_field( $country ),
+        'region'   => $region ? holyprofweb_normalize_country_code( $region ) : 'XX',
         'source'   => $source,
     );
 }
@@ -1918,58 +1897,14 @@ function holyprofweb_get_country_priority_values() {
 }
 
 function holyprofweb_get_localized_post_ids( $base_args = array(), $limit = 6 ) {
-    $limit = max( 1, (int) $limit );
-    $base_args = wp_parse_args(
+    return holyprofweb_get_personalized_post_ids(
         $base_args,
+        $limit,
         array(
-            'post_type'      => 'post',
-            'post_status'    => 'publish',
-            'posts_per_page' => $limit,
-            'no_found_rows'  => true,
-            'fields'         => 'ids',
+            'scope'  => 'legacy-localized',
+            'module' => 'legacy_localized',
         )
     );
-    $base_args['posts_per_page'] = $limit;
-    $base_args['fields'] = 'ids';
-
-    $priority_values = holyprofweb_get_country_priority_values();
-    if ( empty( $priority_values ) ) {
-        return get_posts( $base_args );
-    }
-
-    $ordered_ids = array();
-
-    foreach ( $priority_values as $value ) {
-        if ( count( $ordered_ids ) >= $limit ) {
-            break;
-        }
-
-        $match_args = $base_args;
-        $match_args['posts_per_page'] = $limit - count( $ordered_ids );
-        $match_args['meta_query'] = array(
-            array(
-                'key'     => '_hpw_country_focus',
-                'value'   => $value,
-                'compare' => 'LIKE',
-            ),
-        );
-        if ( ! empty( $ordered_ids ) ) {
-            $match_args['post__not_in'] = $ordered_ids;
-        }
-
-        $ordered_ids = array_merge( $ordered_ids, get_posts( $match_args ) );
-    }
-
-    if ( count( $ordered_ids ) < $limit ) {
-        $fallback_args = $base_args;
-        $fallback_args['posts_per_page'] = $limit - count( $ordered_ids );
-        if ( ! empty( $ordered_ids ) ) {
-            $fallback_args['post__not_in'] = $ordered_ids;
-        }
-        $ordered_ids = array_merge( $ordered_ids, get_posts( $fallback_args ) );
-    }
-
-    return array_values( array_unique( array_map( 'intval', $ordered_ids ) ) );
 }
 
 function holyprofweb_get_geo_header_debug() {
@@ -4750,6 +4685,13 @@ function holyprofweb_live_search_ajax() {
         wp_send_json_error( 'Invalid nonce', 403 );
     }
 
+    if ( function_exists( 'holyprofweb_enforce_rate_limit' ) ) {
+        $limited = holyprofweb_enforce_rate_limit( 'live_search', 60, HOUR_IN_SECONDS, __( 'Too many search requests. Please slow down.', 'holyprofweb' ) );
+        if ( is_wp_error( $limited ) ) {
+            wp_send_json_error( $limited->get_error_message(), 429 );
+        }
+    }
+
     // Get and validate search term
     $term = isset( $_GET['q'] ) ? sanitize_text_field( wp_unslash( $_GET['q'] ) ) : '';
     if ( mb_strlen( $term ) < 2 ) {
@@ -5120,6 +5062,22 @@ function holyprofweb_submit_review_ajax() {
         wp_send_json_error( 'Security check failed.' );
     }
 
+    if ( function_exists( 'holyprofweb_validate_public_form_guard' ) ) {
+        $guard = holyprofweb_validate_public_form_guard( 'review' );
+        if ( is_wp_error( $guard ) ) {
+            ob_clean();
+            wp_send_json_error( $guard->get_error_message(), 400 );
+        }
+    }
+
+    if ( function_exists( 'holyprofweb_enforce_rate_limit' ) ) {
+        $limited = holyprofweb_enforce_rate_limit( 'submit_review', 4, HOUR_IN_SECONDS, __( 'Too many review attempts. Please try again later.', 'holyprofweb' ) );
+        if ( is_wp_error( $limited ) ) {
+            ob_clean();
+            wp_send_json_error( $limited->get_error_message(), 429 );
+        }
+    }
+
     $post_id  = isset( $_POST['post_id'] )         ? (int) $_POST['post_id']                                          : 0;
     $name     = isset( $_POST['reviewer_name'] )   ? sanitize_text_field( wp_unslash( $_POST['reviewer_name'] ) )    : '';
     $email    = isset( $_POST['reviewer_email'] )  ? sanitize_email( wp_unslash( $_POST['reviewer_email'] ) )        : '';
@@ -5243,6 +5201,20 @@ function holyprofweb_submit_salary_ajax() {
     $nonce = isset( $_POST['nonce'] ) ? sanitize_text_field( wp_unslash( $_POST['nonce'] ) ) : '';
     if ( ! wp_verify_nonce( $nonce, 'holyprofweb_submit_salary' ) ) {
         wp_send_json_error( 'Security check failed.' );
+    }
+
+    if ( function_exists( 'holyprofweb_validate_public_form_guard' ) ) {
+        $guard = holyprofweb_validate_public_form_guard( 'salary' );
+        if ( is_wp_error( $guard ) ) {
+            wp_send_json_error( $guard->get_error_message(), 400 );
+        }
+    }
+
+    if ( function_exists( 'holyprofweb_enforce_rate_limit' ) ) {
+        $limited = holyprofweb_enforce_rate_limit( 'submit_salary', 3, HOUR_IN_SECONDS, __( 'Too many salary submissions. Please try again later.', 'holyprofweb' ) );
+        if ( is_wp_error( $limited ) ) {
+            wp_send_json_error( $limited->get_error_message(), 429 );
+        }
     }
 
     $post_id   = isset( $_POST['post_id'] ) ? (int) $_POST['post_id'] : 0;
@@ -5394,8 +5366,22 @@ function holyprofweb_reaction_ajax() {
         wp_send_json_error( 'Invalid request' );
     }
 
+    if ( function_exists( 'holyprofweb_enforce_rate_limit' ) ) {
+        $limited = holyprofweb_enforce_rate_limit( 'reaction_vote', 20, HOUR_IN_SECONDS, __( 'Too many reactions from this browser. Please slow down.', 'holyprofweb' ) );
+        if ( is_wp_error( $limited ) ) {
+            wp_send_json_error( $limited->get_error_message(), 429 );
+        }
+    }
+
     $cookie_name = holyprofweb_get_reaction_cookie_name( $post_id );
     $existing    = isset( $_COOKIE[ $cookie_name ] ) ? sanitize_key( wp_unslash( $_COOKIE[ $cookie_name ] ) ) : '';
+
+    if ( function_exists( 'holyprofweb_get_saved_reaction_for_request' ) ) {
+        $saved_reaction = holyprofweb_get_saved_reaction_for_request( $post_id );
+        if ( $saved_reaction ) {
+            $existing = $saved_reaction;
+        }
+    }
 
     if ( $existing && in_array( $existing, $allowed, true ) ) {
         if ( $existing === $reaction ) {
@@ -5417,6 +5403,9 @@ function holyprofweb_reaction_ajax() {
 
     setcookie( $cookie_name, $reaction, time() + YEAR_IN_SECONDS, COOKIEPATH ? COOKIEPATH : '/', COOKIE_DOMAIN, is_ssl(), true );
     $_COOKIE[ $cookie_name ] = $reaction;
+    if ( function_exists( 'holyprofweb_store_reaction_for_request' ) ) {
+        holyprofweb_store_reaction_for_request( $post_id, $reaction );
+    }
 
     wp_send_json_success( array( 'reaction' => $reaction, 'count' => $count, 'locked' => true ) );
 }
@@ -5591,11 +5580,22 @@ function holyprofweb_fetch_og_image_url( $source_url ) {
         return '';
     }
 
+    if ( function_exists( 'holyprofweb_clean_public_url_submission' ) ) {
+        $source_url = holyprofweb_clean_public_url_submission( $source_url );
+    } else {
+        $source_url = esc_url_raw( $source_url );
+    }
+    if ( ! $source_url ) {
+        return '';
+    }
+
     $response = wp_remote_get(
         $source_url,
         array(
             'timeout'     => 6,
             'redirection' => 3,
+            'sslverify'   => true,
+            'user-agent'  => 'Mozilla/5.0 (compatible; HolyprofWeb/1.0)',
         )
     );
 
@@ -5623,6 +5623,15 @@ function holyprofweb_fetch_remote_page_body( $source_url ) {
         return '';
     }
 
+    if ( function_exists( 'holyprofweb_clean_public_url_submission' ) ) {
+        $source_url = holyprofweb_clean_public_url_submission( $source_url );
+    } else {
+        $source_url = esc_url_raw( $source_url );
+    }
+    if ( ! $source_url ) {
+        return '';
+    }
+
     $cache_key = '_holyprofweb_cached_remote_page_' . md5( $source_url );
     $cached = get_transient( $cache_key );
     if ( false !== $cached ) {
@@ -5634,6 +5643,8 @@ function holyprofweb_fetch_remote_page_body( $source_url ) {
         array(
             'timeout'     => 8,
             'redirection' => 4,
+            'sslverify'   => true,
+            'user-agent'  => 'Mozilla/5.0 (compatible; HolyprofWeb/1.0)',
         )
     );
 
@@ -5726,7 +5737,11 @@ function holyprofweb_get_landing_page_capture_url( $source_url ) {
 
 function holyprofweb_pick_working_remote_image_url( $candidates ) {
     foreach ( (array) $candidates as $candidate ) {
-        $candidate = esc_url_raw( (string) $candidate );
+        if ( function_exists( 'holyprofweb_clean_public_url_submission' ) ) {
+            $candidate = holyprofweb_clean_public_url_submission( (string) $candidate );
+        } else {
+            $candidate = esc_url_raw( (string) $candidate );
+        }
         if ( ! $candidate ) {
             continue;
         }
@@ -5736,6 +5751,8 @@ function holyprofweb_pick_working_remote_image_url( $candidates ) {
             array(
                 'timeout'     => 5,
                 'redirection' => 3,
+                'sslverify'   => true,
+                'user-agent'  => 'Mozilla/5.0 (compatible; HolyprofWeb/1.0)',
             )
         );
 
@@ -6636,18 +6653,32 @@ function holyprofweb_email_capture_ajax() {
         wp_send_json_error( 'Invalid nonce', 403 );
     }
 
+    if ( function_exists( 'holyprofweb_validate_public_form_guard' ) ) {
+        $guard = holyprofweb_validate_public_form_guard( 'subscribe' );
+        if ( is_wp_error( $guard ) ) {
+            wp_send_json_error( $guard->get_error_message(), 400 );
+        }
+    }
+
+    if ( function_exists( 'holyprofweb_enforce_rate_limit' ) ) {
+        $limited = holyprofweb_enforce_rate_limit( 'email_capture', 5, HOUR_IN_SECONDS, __( 'Too many subscription attempts. Please try again later.', 'holyprofweb' ) );
+        if ( is_wp_error( $limited ) ) {
+            wp_send_json_error( $limited->get_error_message(), 429 );
+        }
+    }
+
     $email = isset( $_POST['email'] ) ? sanitize_email( wp_unslash( $_POST['email'] ) ) : '';
     if ( ! is_email( $email ) ) {
         wp_send_json_error( 'Invalid email' );
     }
 
-    $list   = get_option( 'holyprofweb_email_list', array() );
+    $list   = function_exists( 'holyprofweb_get_subscriber_store' ) ? holyprofweb_get_subscriber_store() : get_option( 'holyprofweb_email_list', array() );
     $key    = md5( strtolower( $email ) );
 
     if ( ! isset( $list[ $key ] ) ) {
         $list[ $key ] = array(
-            'email' => $email,
-            'ts'    => time(),
+            'encrypted_email' => function_exists( 'holyprofweb_encrypt_private_value' ) ? holyprofweb_encrypt_private_value( $email ) : $email,
+            'ts'              => time(),
         );
         update_option( 'holyprofweb_email_list', $list, false );
     }
@@ -6668,7 +6699,7 @@ add_action( 'admin_menu', 'holyprofweb_subscribers_admin_menu' );
 function holyprofweb_subscribers_admin_page() {
     if ( ! current_user_can( 'manage_options' ) ) return;
 
-    $list  = get_option( 'holyprofweb_email_list', array() );
+    $list  = function_exists( 'holyprofweb_get_subscriber_store' ) ? holyprofweb_get_subscriber_store() : get_option( 'holyprofweb_email_list', array() );
     $total = count( $list );
     ?>
     <div class="wrap">
@@ -6685,7 +6716,7 @@ function holyprofweb_subscribers_admin_page() {
             <tbody>
                 <?php foreach ( $list as $entry ) : ?>
                 <tr>
-                    <td><?php echo esc_html( $entry['email'] ); ?></td>
+                    <td><?php echo esc_html( function_exists( 'holyprofweb_get_subscriber_email' ) ? holyprofweb_get_subscriber_email( $entry ) : ( $entry['email'] ?? '' ) ); ?></td>
                     <td><?php echo esc_html( gmdate( 'Y-m-d H:i', $entry['ts'] ) ); ?></td>
                 </tr>
                 <?php endforeach; ?>
@@ -9321,6 +9352,7 @@ function holyprofweb_notify_new_review( $comment_id, $comment ) {
     $type = $comment->comment_type ?? '';
     if ( ! in_array( $type, array( 'review', 'salary_submission' ), true ) ) return;
     if ( ! get_option( 'hpw_email_notify_review', 1 ) ) return;
+    if ( function_exists( 'holyprofweb_can_send_throttled_notification' ) && ! holyprofweb_can_send_throttled_notification( 'review_notice', 12, HOUR_IN_SECONDS ) ) return;
 
     $to      = get_option( 'hpw_email_notify_address', get_option( 'admin_email' ) );
     $post    = get_post( $comment->comment_post_ID );
@@ -9762,6 +9794,11 @@ add_filter( 'wp_robots', function( $robots ) {
 } );
 
 function holyprofweb_virtual_robots_txt( $output, $public ) {
+    $sitemap_url = home_url( '/wp-sitemap.xml' );
+    if ( function_exists( 'holyprofweb_is_rank_math_active' ) && holyprofweb_is_rank_math_active() ) {
+        $sitemap_url = home_url( '/sitemap_index.xml' );
+    }
+
     $lines = array(
         'User-agent: *',
     );
@@ -9779,7 +9816,7 @@ function holyprofweb_virtual_robots_txt( $output, $public ) {
         $lines[] = '';
         $lines[] = 'User-agent: CCBot';
         $lines[] = 'Allow: /';
-        $lines[] = 'Sitemap: ' . esc_url_raw( home_url( '/wp-sitemap.xml' ) );
+        $lines[] = 'Sitemap: ' . esc_url_raw( $sitemap_url );
     }
 
     return implode( "\n", $lines ) . "\n";
@@ -10972,6 +11009,9 @@ if ( defined( 'WP_CLI' ) && WP_CLI ) {
     WP_CLI::add_command( 'hpw', 'HPW_CLI_Command' );
 }
 
+require_once get_template_directory() . '/inc/security-hardening.php';
+require_once get_template_directory() . '/inc/country-personalization.php';
 
 // Load SEO + submission helpers
 require_once get_template_directory() . '/seo-append.php';
+require_once get_template_directory() . '/inc/seo-rankmath-compat.php';

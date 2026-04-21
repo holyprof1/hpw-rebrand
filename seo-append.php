@@ -461,7 +461,14 @@ function holyprofweb_seo_head() {
                 'name'  => get_the_title( $post ),
             );
             if ( $source_url ) {
-                $schema['itemReviewed']['sameAs'] = esc_url_raw( $source_url );
+                if ( function_exists( 'holyprofweb_clean_public_url_submission' ) ) {
+                    $source_url = holyprofweb_clean_public_url_submission( $source_url );
+                } else {
+                    $source_url = esc_url_raw( $source_url );
+                }
+                if ( $source_url ) {
+                    $schema['itemReviewed']['sameAs'] = $source_url;
+                }
             }
             if ( ! empty( $verdict['label'] ) ) {
                 $schema['reviewAspect'] = $verdict['label'];
@@ -692,11 +699,19 @@ add_action( 'wp_head', 'holyprofweb_seo_head', 2 );
 function holyprofweb_fetch_og_image( $post_id, $site_url ) {
     if ( ! $site_url || ! filter_var( $site_url, FILTER_VALIDATE_URL ) ) return;
     if ( get_post_thumbnail_id( $post_id ) ) return;
+    if ( function_exists( 'holyprofweb_clean_public_url_submission' ) ) {
+        $site_url = holyprofweb_clean_public_url_submission( $site_url );
+    } else {
+        $site_url = esc_url_raw( $site_url );
+    }
+    if ( ! $site_url ) return;
+    if ( ! current_user_can( 'edit_post', (int) $post_id ) ) return;
 
     $response = wp_remote_get( esc_url_raw( $site_url ), array(
         'timeout'    => 8,
         'user-agent' => 'Mozilla/5.0 (compatible; HolyprofWeb/1.0)',
-        'sslverify'  => false,
+        'sslverify'  => true,
+        'redirection'=> 3,
     ) );
     if ( is_wp_error( $response ) ) return;
 
@@ -721,7 +736,14 @@ function holyprofweb_fetch_og_image( $post_id, $site_url ) {
     require_once ABSPATH . 'wp-admin/includes/file.php';
     require_once ABSPATH . 'wp-admin/includes/image.php';
 
-    $tmp = download_url( esc_url_raw( $img_url ), 10 );
+    if ( function_exists( 'holyprofweb_clean_public_url_submission' ) ) {
+        $img_url = holyprofweb_clean_public_url_submission( $img_url );
+    } else {
+        $img_url = esc_url_raw( $img_url );
+    }
+    if ( ! $img_url ) return;
+
+    $tmp = download_url( $img_url, 10 );
     if ( is_wp_error( $tmp ) ) return;
 
     $file = array(
@@ -744,6 +766,10 @@ function holyprofweb_fetch_og_image( $post_id, $site_url ) {
 // =========================================
 
 function holyprofweb_notify_submission( $post_id, $name, $site_url, $category, $message ) {
+    if ( function_exists( 'holyprofweb_can_send_throttled_notification' ) && ! holyprofweb_can_send_throttled_notification( 'submission_notice', 10, HOUR_IN_SECONDS ) ) {
+        return;
+    }
+
     $to      = get_option( 'hpw_email_notify_address', get_option( 'admin_email' ) );
     $from    = get_option( 'hpw_email_from_name', get_bloginfo( 'name' ) );
     $subject = '[HPW] New submission: "' . $name . '"';

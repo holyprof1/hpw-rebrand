@@ -30,6 +30,27 @@
         xhr.send(body);
     }
 
+    function serializeFormFields(form) {
+        if (!form || !form.elements) return '';
+
+        var pairs = [];
+        Array.prototype.forEach.call(form.elements, function (field) {
+            if (!field || !field.name || field.disabled) return;
+            if ((field.type === 'checkbox' || field.type === 'radio') && !field.checked) return;
+            if (field.tagName === 'SELECT' && field.multiple) {
+                Array.prototype.forEach.call(field.options || [], function (option) {
+                    if (option.selected) {
+                        pairs.push(encodeURIComponent(field.name) + '=' + encodeURIComponent(option.value));
+                    }
+                });
+                return;
+            }
+            pairs.push(encodeURIComponent(field.name) + '=' + encodeURIComponent(field.value || ''));
+        });
+
+        return pairs.join('&');
+    }
+
     var themeToggle = document.getElementById('theme-toggle');
     var themeRoot = document.documentElement;
     var themeOrder = ['default', 'dark', 'light'];
@@ -594,7 +615,8 @@
                 '&salary_range=' + encodeURIComponent((form.querySelector('[name="salary_range"]') || {}).value || '') +
                 '&interview_stage=' + encodeURIComponent((form.querySelector('[name="interview_stage"]') || {}).value || '') +
                 '&experience_issue=' + encodeURIComponent((form.querySelector('[name="experience_issue"]') || {}).value || '') +
-                '&site_url=' + encodeURIComponent((form.querySelector('[name="site_url"]') || {}).value || '');
+                '&site_url=' + encodeURIComponent((form.querySelector('[name="site_url"]') || {}).value || '') +
+                '&' + serializeFormFields(form);
         },
         onSuccess: function (form, data) {
             var wrap = form.closest('.review-form-wrap');
@@ -634,7 +656,8 @@
                 '&salary_amount=' + encodeURIComponent((form.querySelector('[name="salary_amount"]') || {}).value || '') +
                 '&salary_location=' + encodeURIComponent((form.querySelector('[name="salary_location"]') || {}).value || '') +
                 '&salary_currency=' + encodeURIComponent((form.querySelector('[name="salary_currency"]') || {}).value || '') +
-                '&salary_work_life=' + encodeURIComponent((form.querySelector('[name="salary_work_life"]') || {}).value || '');
+                '&salary_work_life=' + encodeURIComponent((form.querySelector('[name="salary_work_life"]') || {}).value || '') +
+                '&' + serializeFormFields(form);
         },
         onSuccess: function (form, data) {
             var wrap = form.closest('.review-form-wrap');
@@ -653,7 +676,8 @@
             request(
                 'action=holyprofweb_email_capture' +
                 '&email=' + encodeURIComponent(input.value) +
-                '&nonce=' + encodeURIComponent(config.nonce || ''),
+                '&nonce=' + encodeURIComponent(config.nonce || '') +
+                '&' + serializeFormFields(form),
                 function (err, json) {
                     if (err || !json || !json.success) return;
                     var box = form.closest('.email-capture-box');
@@ -663,5 +687,67 @@
                 }
             );
         });
+    });
+
+    document.addEventListener('click', function (event) {
+        var link = event.target.closest('[data-hpw-rec-module] a[href], a[data-hpw-rec-module][href]');
+        if (!link || !config.personalization_nonce) return;
+
+        var moduleNode = link.closest('[data-hpw-rec-module]') || link;
+        var cardNode = link.closest('[data-post-id]');
+        var module = moduleNode ? moduleNode.getAttribute('data-hpw-rec-module') : '';
+        var postId = cardNode ? cardNode.getAttribute('data-post-id') : (link.getAttribute('data-hpw-rec-post') || '');
+        var position = cardNode ? (cardNode.getAttribute('data-hpw-rec-pos') || '0') : (link.getAttribute('data-hpw-rec-pos') || '0');
+
+        if (!module || !postId) return;
+
+        var payload = new FormData();
+        payload.append('action', 'holyprofweb_track_personalized_click');
+        payload.append('nonce', config.personalization_nonce);
+        payload.append('module', module);
+        payload.append('post_id', postId);
+        payload.append('position', position);
+
+        if (navigator.sendBeacon) {
+            navigator.sendBeacon(config.ajaxurl || '/wp-admin/admin-ajax.php', payload);
+            return;
+        }
+
+        request(
+            'action=holyprofweb_track_personalized_click' +
+            '&nonce=' + encodeURIComponent(config.personalization_nonce) +
+            '&module=' + encodeURIComponent(module) +
+            '&post_id=' + encodeURIComponent(postId) +
+            '&position=' + encodeURIComponent(position),
+            function () {}
+        );
+    });
+
+    function isInteractiveNode(node) {
+        return !!(node && node.closest('a, button, input, select, textarea, label, summary, [role="button"], [role="link"]'));
+    }
+
+    document.addEventListener('click', function (event) {
+        var card = event.target.closest('[data-card-link]');
+        if (!card) return;
+        if (event.target.closest('a[href]')) return;
+        if (isInteractiveNode(event.target) && event.target !== card) return;
+
+        var href = card.getAttribute('data-card-link');
+        if (href) {
+            window.location.href = href;
+        }
+    });
+
+    document.addEventListener('keydown', function (event) {
+        var card = event.target.closest('[data-card-link]');
+        if (!card) return;
+        if (event.key !== 'Enter' && event.key !== ' ') return;
+
+        event.preventDefault();
+        var href = card.getAttribute('data-card-link');
+        if (href) {
+            window.location.href = href;
+        }
     });
 })();

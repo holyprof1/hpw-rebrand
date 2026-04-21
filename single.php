@@ -189,6 +189,23 @@ get_header();
                     <?php the_content(); ?>
                 </div>
 
+                <?php $next_best_read = function_exists( 'holyprofweb_get_next_best_read_query' ) ? holyprofweb_get_next_best_read_query( $post_id, 1 ) : null; ?>
+                <?php if ( $next_best_read instanceof WP_Query && $next_best_read->have_posts() ) : $next_best_read->the_post(); ?>
+                <aside class="next-best-read" data-hpw-rec-module="next_best_read" aria-label="<?php esc_attr_e( 'Next best read', 'holyprofweb' ); ?>">
+                    <p class="next-best-read__eyebrow"><?php esc_html_e( 'Next Best Read', 'holyprofweb' ); ?></p>
+                    <article class="next-best-read__card" data-post-id="<?php the_ID(); ?>" data-hpw-rec-pos="1">
+                        <a href="<?php the_permalink(); ?>" class="next-best-read__thumb">
+                            <img src="<?php echo esc_attr( holyprofweb_get_post_card_image_url( get_the_ID() ) ); ?>" alt="<?php echo esc_attr( holyprofweb_get_decoded_post_title() ); ?>" loading="lazy" class="<?php echo esc_attr( holyprofweb_get_post_image_class( get_the_ID() ) ); ?>" />
+                        </a>
+                        <div class="next-best-read__body">
+                            <h2 class="next-best-read__title"><a href="<?php the_permalink(); ?>"><?php holyprofweb_the_decoded_title(); ?></a></h2>
+                            <p class="next-best-read__excerpt"><?php echo esc_html( wp_trim_words( get_the_excerpt(), 24 ) ); ?></p>
+                            <a href="<?php the_permalink(); ?>" class="next-best-read__link"><?php esc_html_e( 'Read next', 'holyprofweb' ); ?></a>
+                        </div>
+                    </article>
+                </aside>
+                <?php wp_reset_postdata(); endif; ?>
+
                 <?php if ( ! $is_biography_post && ! $is_company_post ) : ?>
                 <!-- Reactions bar -->
                 <div class="reactions-bar" data-post-id="<?php the_ID(); ?>">
@@ -220,6 +237,7 @@ get_header();
                     <p class="email-capture-title"><?php echo $is_company_post ? esc_html__( 'Preparing for an interview or checking this company properly?', 'holyprofweb' ) : ( $is_biography_post ? esc_html__( 'Want updates about this person?', 'holyprofweb' ) : esc_html__( 'Evaluating this platform properly?', 'holyprofweb' ) ); ?></p>
                     <p class="email-capture-sub"><?php echo $is_company_post ? esc_html__( 'Get company reviews, interview signals, salary context and reports straight to your inbox.', 'holyprofweb' ) : ( $is_biography_post ? esc_html__( 'Get profile updates, biography corrections and related stories straight to your inbox.', 'holyprofweb' ) : esc_html__( 'Get reviews, salary signals and reports straight to your inbox.', 'holyprofweb' ) ); ?></p>
                     <form class="email-capture-form" novalidate>
+                        <?php if ( function_exists( 'holyprofweb_render_public_form_guard' ) ) { holyprofweb_render_public_form_guard( 'subscribe' ); } ?>
                         <input type="email" class="email-capture-input"
                                placeholder="you@example.com" autocomplete="email" required />
                         <button type="submit" class="email-capture-btn">Subscribe</button>
@@ -364,6 +382,7 @@ get_header();
                         <h3 class="review-form-title"><?php esc_html_e( 'Submit your salary', 'holyprofweb' ); ?></h3>
                         <p class="review-form-sub"><?php esc_html_e( 'Share your salary data privately. It will appear in admin immediately for moderation.', 'holyprofweb' ); ?></p>
                         <form class="review-form salary-form" id="salary-form" novalidate data-post-id="<?php echo esc_attr( $post_id ); ?>">
+                            <?php if ( function_exists( 'holyprofweb_render_public_form_guard' ) ) { holyprofweb_render_public_form_guard( 'salary' ); } ?>
                             <div class="review-form-row">
                                 <div class="review-form-field">
                                     <label class="review-form-label" for="salary-name">Your Name <span class="review-required">*</span></label>
@@ -411,6 +430,7 @@ get_header();
                         <h3 class="review-form-title"><?php echo $show_company_review_mode ? esc_html__( 'Share your company experience', 'holyprofweb' ) : esc_html__( 'Have you used this?', 'holyprofweb' ); ?></h3>
                         <p class="review-form-sub"><?php echo $show_company_review_mode ? esc_html__( 'Current staff, former staff, interview candidates, partners, and customers can all share useful company context here.', 'holyprofweb' ) : esc_html__( 'Share your experience — your review helps others make better decisions.', 'holyprofweb' ); ?></p>
                         <form class="review-form" id="review-form" novalidate data-post-id="<?php echo esc_attr( $post_id ); ?>">
+                            <?php if ( function_exists( 'holyprofweb_render_public_form_guard' ) ) { holyprofweb_render_public_form_guard( 'review' ); } ?>
                             <div class="review-form-field">
                                 <label class="review-form-label">Your Rating <span class="review-required">*</span></label>
                                 <div class="review-star-picker" role="radiogroup" aria-label="Star rating">
@@ -510,40 +530,68 @@ get_header();
 
                 <?php
                 $related       = holyprofweb_get_related_posts( $post_id, 3 );
-                $similar_posts = new WP_Query( array(
-                    'post_type'      => 'post',
-                    'post_status'    => 'publish',
-                    'posts_per_page' => 3,
-                    'post__not_in'   => array( $post_id ),
-                    'category__in'   => $primary_cat ? array( (int) $primary_cat->term_id ) : array(),
-                    'no_found_rows'  => true,
-                ) );
-                $compare_posts = new WP_Query( array(
-                    'post_type'      => 'post',
-                    'post_status'    => 'publish',
-                    'posts_per_page' => 3,
-                    'post__not_in'   => array( $post_id ),
-                    'tag__in'        => $tags ? wp_list_pluck( $tags, 'term_id' ) : array(),
-                    'no_found_rows'  => true,
-                ) );
+                $similar_posts = holyprofweb_get_personalized_query(
+                    array(
+                        'post_type'      => 'post',
+                        'post_status'    => 'publish',
+                        'posts_per_page' => 3,
+                        'post__not_in'   => array( $post_id ),
+                        'category__in'   => $primary_cat ? array( (int) $primary_cat->term_id ) : array(),
+                        'no_found_rows'  => true,
+                    ),
+                    3,
+                    array(
+                        'scope'  => 'single-' . (int) $post_id,
+                        'module' => 'single_similar',
+                    )
+                );
+                $compare_posts = holyprofweb_get_personalized_query(
+                    array(
+                        'post_type'      => 'post',
+                        'post_status'    => 'publish',
+                        'posts_per_page' => 3,
+                        'post__not_in'   => array( $post_id ),
+                        'tag__in'        => $tags ? wp_list_pluck( $tags, 'term_id' ) : array(),
+                        'no_found_rows'  => true,
+                    ),
+                    3,
+                    array(
+                        'scope'  => 'single-' . (int) $post_id,
+                        'module' => 'single_compare',
+                    )
+                );
                 $search_terms   = holyprofweb_get_trending_searches( 5 );
-                $salary_links   = new WP_Query( array(
-                    'post_type'      => 'post',
-                    'post_status'    => 'publish',
-                    'posts_per_page' => 3,
-                    'post__not_in'   => array( $post_id ),
-                    'category_name'  => 'salaries',
-                    's'              => wp_trim_words( get_the_title(), 3, '' ),
-                    'no_found_rows'  => true,
-                ) );
-                $tips_links     = new WP_Query( array(
-                    'post_type'      => 'post',
-                    'post_status'    => 'publish',
-                    'posts_per_page' => 3,
-                    'post__not_in'   => array( $post_id ),
-                    'category_name'  => 'reports',
-                    'no_found_rows'  => true,
-                ) );
+                $salary_links   = holyprofweb_get_personalized_query(
+                    array(
+                        'post_type'      => 'post',
+                        'post_status'    => 'publish',
+                        'posts_per_page' => 3,
+                        'post__not_in'   => array( $post_id ),
+                        'category_name'  => 'salaries',
+                        's'              => wp_trim_words( get_the_title(), 3, '' ),
+                        'no_found_rows'  => true,
+                    ),
+                    3,
+                    array(
+                        'scope'  => 'single-' . (int) $post_id,
+                        'module' => 'single_salary_links',
+                    )
+                );
+                $tips_links     = holyprofweb_get_personalized_query(
+                    array(
+                        'post_type'      => 'post',
+                        'post_status'    => 'publish',
+                        'posts_per_page' => 3,
+                        'post__not_in'   => array( $post_id ),
+                        'category_name'  => 'reports',
+                        'no_found_rows'  => true,
+                    ),
+                    3,
+                    array(
+                        'scope'  => 'single-' . (int) $post_id,
+                        'module' => 'single_interview_tips',
+                    )
+                );
                 ?>
                 <?php if ( $related instanceof WP_Query && $related->have_posts() ) : ?>
                 <p class="also-read-inline">
@@ -559,7 +607,7 @@ get_header();
                     ?>
                 </p>
                 <?php endif; ?>
-                <section class="related-posts related-posts--stack" aria-labelledby="related-title">
+                <section class="related-posts related-posts--stack" aria-labelledby="related-title" data-hpw-rec-module="single_related">
                     <h2 id="related-title" class="related-posts-title">Keep Exploring</h2>
                     <?php if ( ! empty( $search_terms ) ) : ?>
                     <div class="search-also-searched">
@@ -576,9 +624,9 @@ get_header();
                         <?php if ( $similar_posts->have_posts() ) : ?>
                         <div>
                             <h3 class="related-posts-title">Similar Platforms</h3>
-                            <div class="related-grid">
+                            <div class="related-grid" data-hpw-rec-module="single_similar">
                                 <?php while ( $similar_posts->have_posts() ) : $similar_posts->the_post(); ?>
-                                <article class="related-card">
+                                <article class="related-card" data-post-id="<?php the_ID(); ?>" data-hpw-rec-pos="<?php echo esc_attr( $similar_posts->current_post + 1 ); ?>">
                                     <a href="<?php the_permalink(); ?>" class="related-card-thumb"><img src="<?php echo esc_attr( holyprofweb_get_post_card_image_url( get_the_ID() ) ); ?>" alt="<?php echo esc_attr( holyprofweb_get_decoded_post_title() ); ?>" loading="lazy" class="<?php echo esc_attr( holyprofweb_get_post_image_class( get_the_ID() ) ); ?>" /></a>
                                     <h4 class="related-card-title"><a href="<?php the_permalink(); ?>"><?php holyprofweb_the_decoded_title(); ?></a></h4>
                                 </article>
@@ -590,9 +638,9 @@ get_header();
                         <?php if ( $compare_posts->have_posts() ) : ?>
                         <div>
                             <h3 class="related-posts-title">Compare With</h3>
-                            <div class="related-grid">
+                            <div class="related-grid" data-hpw-rec-module="single_compare">
                                 <?php while ( $compare_posts->have_posts() ) : $compare_posts->the_post(); ?>
-                                <article class="related-card">
+                                <article class="related-card" data-post-id="<?php the_ID(); ?>" data-hpw-rec-pos="<?php echo esc_attr( $compare_posts->current_post + 1 ); ?>">
                                     <a href="<?php the_permalink(); ?>" class="related-card-thumb"><img src="<?php echo esc_attr( holyprofweb_get_post_card_image_url( get_the_ID() ) ); ?>" alt="<?php echo esc_attr( holyprofweb_get_decoded_post_title() ); ?>" loading="lazy" class="<?php echo esc_attr( holyprofweb_get_post_image_class( get_the_ID() ) ); ?>" /></a>
                                     <h4 class="related-card-title"><a href="<?php the_permalink(); ?>"><?php holyprofweb_the_decoded_title(); ?></a></h4>
                                 </article>
@@ -604,9 +652,9 @@ get_header();
                         <?php if ( $is_company_post && $salary_links->have_posts() ) : ?>
                         <div>
                             <h3 class="related-posts-title">Salary Insights</h3>
-                            <div class="related-grid">
+                            <div class="related-grid" data-hpw-rec-module="single_salary_links">
                                 <?php while ( $salary_links->have_posts() ) : $salary_links->the_post(); ?>
-                                <article class="related-card">
+                                <article class="related-card" data-post-id="<?php the_ID(); ?>" data-hpw-rec-pos="<?php echo esc_attr( $salary_links->current_post + 1 ); ?>">
                                     <a href="<?php the_permalink(); ?>" class="related-card-thumb"><img src="<?php echo esc_attr( holyprofweb_get_post_card_image_url( get_the_ID() ) ); ?>" alt="<?php echo esc_attr( holyprofweb_get_decoded_post_title() ); ?>" loading="lazy" class="<?php echo esc_attr( holyprofweb_get_post_image_class( get_the_ID() ) ); ?>" /></a>
                                     <h4 class="related-card-title"><a href="<?php the_permalink(); ?>"><?php holyprofweb_the_decoded_title(); ?></a></h4>
                                 </article>
@@ -618,9 +666,9 @@ get_header();
                         <?php if ( $is_company_post && $tips_links->have_posts() ) : ?>
                         <div>
                             <h3 class="related-posts-title">Preparing For Interview</h3>
-                            <div class="related-grid">
+                            <div class="related-grid" data-hpw-rec-module="single_interview_tips">
                                 <?php while ( $tips_links->have_posts() ) : $tips_links->the_post(); ?>
-                                <article class="related-card">
+                                <article class="related-card" data-post-id="<?php the_ID(); ?>" data-hpw-rec-pos="<?php echo esc_attr( $tips_links->current_post + 1 ); ?>">
                                     <a href="<?php the_permalink(); ?>" class="related-card-thumb"><img src="<?php echo esc_attr( holyprofweb_get_post_card_image_url( get_the_ID() ) ); ?>" alt="<?php echo esc_attr( holyprofweb_get_decoded_post_title() ); ?>" loading="lazy" class="<?php echo esc_attr( holyprofweb_get_post_image_class( get_the_ID() ) ); ?>" /></a>
                                     <h4 class="related-card-title"><a href="<?php the_permalink(); ?>"><?php holyprofweb_the_decoded_title(); ?></a></h4>
                                 </article>

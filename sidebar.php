@@ -18,22 +18,29 @@ function holyprofweb_default_sidebar() {
     global $post;
 
     // Recent Posts
-    $recent = new WP_Query( array(
-        'posts_per_page' => 5,
-        'orderby'        => 'date',
-        'order'          => 'DESC',
-        'post_status'    => 'publish',
-        'no_found_rows'  => true,
-        'post__not_in'   => $post ? array( $post->ID ) : array(),
-    ) );
+    $recent = holyprofweb_get_personalized_query(
+        array(
+            'posts_per_page' => 5,
+            'orderby'        => 'date',
+            'order'          => 'DESC',
+            'post_status'    => 'publish',
+            'no_found_rows'  => true,
+            'post__not_in'   => $post ? array( $post->ID ) : array(),
+        ),
+        5,
+        array(
+            'scope'  => $post ? 'single-' . (int) $post->ID : 'sidebar',
+            'module' => 'sidebar_recent_posts',
+        )
+    );
 
     if ( $recent->have_posts() ) :
     ?>
-    <div class="widget">
+    <div class="widget" data-hpw-rec-module="sidebar_recent_posts">
         <h3 class="widget-title"><?php esc_html_e( 'Recent Posts', 'holyprofweb' ); ?></h3>
         <ul>
             <?php while ( $recent->have_posts() ) : $recent->the_post(); ?>
-            <li>
+            <li data-post-id="<?php the_ID(); ?>" data-hpw-rec-pos="<?php echo esc_attr( $recent->current_post + 1 ); ?>">
                 <a href="<?php the_permalink(); ?>"><?php the_title(); ?></a>
             </li>
             <?php endwhile; wp_reset_postdata(); ?>

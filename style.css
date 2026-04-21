@@ -9169,9 +9169,9 @@ body.hpw-no-copy label {
 
 .home .front-section[aria-labelledby="just-added-heading"] .post-carousel > .post-card > .post-card-thumb-link img.post-image--generated,
 .home .front-section[aria-labelledby="just-added-heading"] .post-carousel > .post-card > .post-card-thumb img.post-image--generated {
-    object-fit: contain !important;
-    object-position: center center !important;
-    padding: 8px !important;
+    object-fit: cover !important;
+    object-position: center top !important;
+    padding: 0 !important;
     background: transparent !important;
 }
 
@@ -10881,9 +10881,35 @@ html[data-theme="dark"] .post-tags a {
     max-height: 420px !important;
     border-radius: 22px !important;
     object-fit: cover !important;
-    object-position: center center !important;
+    object-position: center top !important;
     padding: 0 !important;
     filter: saturate(1.02) contrast(1.02) brightness(0.98) !important;
+}
+
+.home .front-section[aria-labelledby="trending-now-heading"] .post-card-thumb-link img.post-image--generated,
+.home .front-section[aria-labelledby="just-added-heading"] .post-carousel .post-card-thumb-link img.post-image--generated,
+.home .front-section[aria-labelledby="guides-heading"] .post-card-thumb-link img.post-image--generated,
+.home .front-section[aria-labelledby="trending-now-heading"] .post-card-thumb img.post-image--generated,
+.home .front-section[aria-labelledby="just-added-heading"] .post-carousel .post-card-thumb img.post-image--generated,
+.home .front-section[aria-labelledby="guides-heading"] .post-card-thumb img.post-image--generated,
+.home .front-section[aria-labelledby="trending-now-heading"] .post-card-thumb-link img.post-image--person,
+.home .front-section[aria-labelledby="just-added-heading"] .post-carousel .post-card-thumb-link img.post-image--person,
+.home .front-section[aria-labelledby="guides-heading"] .post-card-thumb-link img.post-image--person,
+.home .front-section[aria-labelledby="trending-now-heading"] .post-card-thumb img.post-image--person,
+.home .front-section[aria-labelledby="just-added-heading"] .post-carousel .post-card-thumb img.post-image--person,
+.home .front-section[aria-labelledby="guides-heading"] .post-card-thumb img.post-image--person,
+.single .next-best-read__thumb img.post-image--generated,
+.single .related-card-thumb img.post-image--generated,
+.single .next-best-read__thumb img.post-image--person,
+.single .related-card-thumb img.post-image--person {
+    object-fit: cover !important;
+    object-position: center top !important;
+    padding: 0 !important;
+    background: none !important;
+}
+
+.post-card[data-card-link] {
+    cursor: pointer;
 }
 
 @media (max-width: 900px) {
