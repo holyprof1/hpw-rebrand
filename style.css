@@ -9488,13 +9488,17 @@ body.hpw-no-copy label {
     order: 9;
 }
 
-.related-posts--stack {
+.next-best-read {
     order: 10;
+}
+
+.related-posts--stack {
+    order: 11;
 }
 
 .comment-respond,
 .comments-area {
-    order: 11;
+    order: 12;
 }
 
 .single-sidebar {
@@ -10952,7 +10956,13 @@ html[data-theme="dark"] .post-tags a {
 .single .next-best-read__thumb img.post-image--person,
 .single .related-card-thumb img.post-image--person,
 .single .next-best-read__thumb img.post-image--remote.post-image--person,
-.single .related-card-thumb img.post-image--remote.post-image--person {
+.single .related-card-thumb img.post-image--remote.post-image--person,
+.archive .tp-logo.post-image--person,
+.search .tp-logo.post-image--person,
+.archive .tp-logo.post-image--remote.post-image--person,
+.search .tp-logo.post-image--remote.post-image--person,
+.archive .tp-logo.post-image--generated.post-image--person,
+.search .tp-logo.post-image--generated.post-image--person {
     object-fit: cover !important;
     object-position: center top !important;
     padding: 0 !important;
