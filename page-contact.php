@@ -210,6 +210,17 @@ if ( isset( $_POST['hpw_contact_nonce'] ) ) {
 
                 <aside class="contact-info-col" aria-label="<?php esc_attr_e( 'Contact information', 'holyprofweb' ); ?>">
 
+                    <div class="contact-skeleton-card" aria-hidden="true">
+                        <span class="contact-skeleton-chip"></span>
+                        <span class="contact-skeleton-line contact-skeleton-line--title"></span>
+                        <span class="contact-skeleton-line contact-skeleton-line--wide"></span>
+                        <span class="contact-skeleton-line"></span>
+                        <div class="contact-skeleton-meta">
+                            <span class="contact-skeleton-pill"></span>
+                            <span class="contact-skeleton-pill contact-skeleton-pill--short"></span>
+                        </div>
+                    </div>
+
                     <div class="contact-info-card">
                         <h3 class="contact-info-heading"><?php esc_html_e( 'Direct Email', 'holyprofweb' ); ?></h3>
                         <a href="mailto:admin@holyprofweb.com" class="contact-email-link">admin@holyprofweb.com</a>

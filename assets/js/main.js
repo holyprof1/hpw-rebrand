@@ -199,6 +199,7 @@
 
         function startAutoPlay() {
             stopAutoPlay();
+            if (!isMobileReviewsCarousel()) return;
 
             timer = window.setInterval(function () {
                 syncActiveIndex();
@@ -224,11 +225,17 @@
 
         window.addEventListener('resize', function () {
             syncActiveIndex();
+            if (!isMobileReviewsCarousel()) {
+                stopAutoPlay();
+                return;
+            }
             startAutoPlay();
         });
 
         syncActiveIndex();
-        startAutoPlay();
+        if (isMobileReviewsCarousel()) {
+            startAutoPlay();
+        }
     });
 
     if (config.copy_protection_enabled) {

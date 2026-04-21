@@ -147,11 +147,29 @@ $guides_query = new WP_Query(
             'category__in'   => $blog_term_ids,
         )
 );
+$guides_display_posts = $guides_query->have_posts() ? $guides_query->posts : array();
+if ( count( $guides_display_posts ) < 4 ) {
+    $guide_fill_ids = array_values( array_filter( array_map( 'intval', wp_list_pluck( $guides_display_posts, 'ID' ) ) ) );
+    $guides_fill_posts = get_posts(
+        array(
+            'posts_per_page' => 4 - count( $guides_display_posts ),
+            'post_status'    => 'publish',
+            'post__not_in'   => $guide_fill_ids,
+            'orderby'        => 'date',
+            'order'          => 'DESC',
+            'no_found_rows'  => true,
+        )
+    );
+    if ( ! empty( $guides_fill_posts ) ) {
+        $guides_display_posts = array_merge( $guides_display_posts, $guides_fill_posts );
+    }
+}
+$guides_display_posts = array_slice( $guides_display_posts, 0, 4 );
 
 $live_reviews = get_comments( array(
     'type'   => 'review',
     'status' => 'approve',
-    'number' => 6,
+    'number' => 4,
 ) );
 if ( ! empty( $live_reviews ) ) {
     usort(
@@ -173,7 +191,9 @@ if ( ! empty( $live_reviews ) ) {
             return strtotime( $b->comment_date_gmt ) <=> strtotime( $a->comment_date_gmt );
         }
     );
+    $live_reviews = array_slice( $live_reviews, 0, 4 );
 }
+$live_review_placeholder_items = array_slice( $trending_searches, 0, max( 0, 4 - count( $live_reviews ) ) );
 $featured_topics = holyprofweb_get_frontpage_topic_categories( 6 );
 $topic_descriptions = array(
     'reviews'         => __( 'Platform reviews, scam checks, user complaints, and trust signals in one place.', 'holyprofweb' ),
@@ -398,8 +418,9 @@ $topic_descriptions = array(
                         <time class="live-review-time" datetime="<?php echo esc_attr( get_comment_date( 'c', $review ) ); ?>"><?php echo esc_html( get_comment_date( 'M j, Y', $review ) ); ?></time>
                     </article>
                     <?php endforeach; ?>
-                <?php else : ?>
-                    <?php foreach ( array_slice( $trending_searches, 0, 3 ) as $item ) : ?>
+                <?php endif; ?>
+                <?php if ( ! empty( $live_review_placeholder_items ) ) : ?>
+                    <?php foreach ( $live_review_placeholder_items as $item ) : ?>
                     <article class="live-review-card live-review-card--placeholder">
                         <div class="live-review-header">
                             <div class="live-review-copy">
@@ -426,11 +447,13 @@ $topic_descriptions = array(
 
             <div class="post-grid post-grid--compact">
                 <?php
-                if ( $guides_query->have_posts() ) :
+                if ( ! empty( $guides_display_posts ) ) :
                     $hpw_guides_loop_index = 0;
-                    while ( $guides_query->have_posts() ) :
-                        $guides_query->the_post();
+                    foreach ( $guides_display_posts as $post ) :
+                        setup_postdata( $post );
                         $hpw_guides_loop_index++;
+                        $guide_cats = get_the_category();
+                        $guide_cat_label = ! empty( $guide_cats ) ? $guide_cats[0]->name : __( 'Latest', 'holyprofweb' );
                 ?>
                 <article class="post-card" data-post-id="<?php the_ID(); ?>" data-hpw-rec-pos="<?php echo esc_attr( $hpw_guides_loop_index ); ?>" data-card-link="<?php the_permalink(); ?>" tabindex="0" role="link" aria-label="<?php echo esc_attr( sprintf( __( 'Open post: %s', 'holyprofweb' ), holyprofweb_get_decoded_post_title() ) ); ?>">
                     <a href="<?php the_permalink(); ?>" class="post-card-hitarea" aria-label="<?php echo esc_attr( sprintf( __( 'Open post: %s', 'holyprofweb' ), holyprofweb_get_decoded_post_title() ) ); ?>"></a>
@@ -438,39 +461,16 @@ $topic_descriptions = array(
                         <img src="<?php echo esc_attr( holyprofweb_get_front_page_card_image_url( get_the_ID() ) ); ?>" alt="<?php echo esc_attr( holyprofweb_get_decoded_post_title() ); ?>" loading="lazy" width="<?php echo esc_attr( $card_size['width'] ); ?>" height="<?php echo esc_attr( $card_size['height'] ); ?>" class="<?php echo esc_attr( holyprofweb_get_post_image_class( get_the_ID() ) ); ?>" />
                     </a>
                     <div class="post-card-body">
-                        <span class="post-card-category"><?php esc_html_e( 'Reports', 'holyprofweb' ); ?></span>
+                        <span class="post-card-category"><?php echo esc_html( $guide_cat_label ); ?></span>
                         <h3 class="post-card-title"><a href="<?php the_permalink(); ?>"><?php holyprofweb_the_decoded_title(); ?></a></h3>
                         <p class="post-card-excerpt"><?php echo esc_html( get_the_excerpt() ); ?></p>
                     </div>
                 </article>
-                <?php if ( 2 === $hpw_guides_loop_index ) : ?>
-                <div class="post-grid-inline-ad">
-                    <?php holyprofweb_render_ad_format( 'native', 'front_inline', 'ad-front-inline ad-front-inline--blog-grid' ); ?>
-                </div>
-                <?php endif; ?>
                 <?php
-                    endwhile;
+                    endforeach;
                     wp_reset_postdata();
-                else :
-                    $fallback_posts = get_posts( array(
-                        'posts_per_page' => 4,
-                        'post_status'    => 'publish',
-                        'no_found_rows'  => true,
-                    ) );
-                    foreach ( $fallback_posts as $post ) :
-                        setup_postdata( $post );
+                endif;
                 ?>
-                <article class="post-card" data-post-id="<?php the_ID(); ?>" data-card-link="<?php the_permalink(); ?>" tabindex="0" role="link" aria-label="<?php echo esc_attr( sprintf( __( 'Open post: %s', 'holyprofweb' ), holyprofweb_get_decoded_post_title() ) ); ?>">
-                    <a href="<?php the_permalink(); ?>" class="post-card-hitarea" aria-label="<?php echo esc_attr( sprintf( __( 'Open post: %s', 'holyprofweb' ), holyprofweb_get_decoded_post_title() ) ); ?>"></a>
-                    <a href="<?php the_permalink(); ?>" class="post-card-thumb-link">
-                        <img src="<?php echo esc_attr( holyprofweb_get_front_page_card_image_url( get_the_ID() ) ); ?>" alt="<?php echo esc_attr( holyprofweb_get_decoded_post_title() ); ?>" loading="lazy" width="<?php echo esc_attr( $card_size['width'] ); ?>" height="<?php echo esc_attr( $card_size['height'] ); ?>" class="<?php echo esc_attr( holyprofweb_get_post_image_class( get_the_ID() ) ); ?>" />
-                    </a>
-                    <div class="post-card-body">
-                        <span class="post-card-category"><?php esc_html_e( 'Latest', 'holyprofweb' ); ?></span>
-                        <h3 class="post-card-title"><a href="<?php the_permalink(); ?>"><?php holyprofweb_the_decoded_title(); ?></a></h3>
-                    </div>
-                </article>
-                <?php endforeach; wp_reset_postdata(); endif; ?>
             </div>
         </section>
 

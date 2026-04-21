@@ -6075,6 +6075,78 @@ html[data-theme="light"] .theme-toggle-icon--sun {
     gap: 20px;
 }
 
+.contact-skeleton-card {
+    position: relative;
+    display: grid;
+    gap: 12px;
+    padding: 22px;
+    border-radius: 18px;
+    border: 1px solid rgba(196, 145, 0, 0.14);
+    background:
+        radial-gradient(circle at top right, rgba(196, 145, 0, 0.18), transparent 38%),
+        linear-gradient(180deg, rgba(255,255,255,0.96), rgba(250,246,237,0.96));
+    overflow: hidden;
+}
+
+.contact-skeleton-card::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    transform: translateX(-100%);
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.34), transparent);
+    animation: hpw-contact-shimmer 2.8s ease-in-out infinite;
+    pointer-events: none;
+}
+
+.contact-skeleton-chip,
+.contact-skeleton-line,
+.contact-skeleton-pill {
+    display: block;
+    border-radius: 999px;
+    background: rgba(17, 24, 39, 0.09);
+}
+
+.contact-skeleton-chip {
+    width: 92px;
+    height: 12px;
+}
+
+.contact-skeleton-line {
+    height: 14px;
+    width: 68%;
+}
+
+.contact-skeleton-line--title {
+    width: 84%;
+    height: 28px;
+    border-radius: 12px;
+}
+
+.contact-skeleton-line--wide {
+    width: 100%;
+}
+
+.contact-skeleton-meta {
+    display: flex;
+    gap: 10px;
+    margin-top: 8px;
+}
+
+.contact-skeleton-pill {
+    width: 122px;
+    height: 34px;
+}
+
+.contact-skeleton-pill--short {
+    width: 86px;
+}
+
+@keyframes hpw-contact-shimmer {
+    100% {
+        transform: translateX(100%);
+    }
+}
+
 .contact-info-card {
     background: var(--color-surface);
     border: 1px solid var(--color-border);
@@ -10336,6 +10408,10 @@ html[data-theme="dark"] .live-search-backdrop {
     min-width: 0 !important;
     max-width: none !important;
     flex: initial !important;
+}
+
+.home .front-section[aria-labelledby="live-reviews-heading"] .live-review-card:nth-child(n+5) {
+    display: none !important;
 }
 
 @media (max-width: 900px) {

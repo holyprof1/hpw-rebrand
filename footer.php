@@ -66,9 +66,9 @@
                 <ul>
                     <?php
                     $company_links = array(
-                        'Work with us' => '/contact/',
-                        'Advertise'    => '/contact/',
-                        'About'        => '/contact/',
+                        'Work with us' => '/work-with-us/',
+                        'Advertise'    => '/advertise/',
+                        'About'        => '/about/',
                     );
                     foreach ( $company_links as $label => $path ) :
                     ?>
