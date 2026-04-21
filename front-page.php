@@ -261,6 +261,7 @@ $topic_descriptions = array(
                         $cats = get_the_category();
                 ?>
                 <article class="post-card post-card--carousel" data-post-id="<?php the_ID(); ?>" data-hpw-rec-pos="<?php echo esc_attr( $hpw_trending_loop_index ); ?>" data-card-link="<?php the_permalink(); ?>" tabindex="0" role="link" aria-label="<?php echo esc_attr( sprintf( __( 'Open post: %s', 'holyprofweb' ), holyprofweb_get_decoded_post_title() ) ); ?>">
+                    <a href="<?php the_permalink(); ?>" class="post-card-hitarea" aria-label="<?php echo esc_attr( sprintf( __( 'Open post: %s', 'holyprofweb' ), holyprofweb_get_decoded_post_title() ) ); ?>"></a>
                     <a href="<?php the_permalink(); ?>" class="post-card-thumb-link">
                         <img src="<?php echo esc_attr( holyprofweb_get_front_page_card_image_url( get_the_ID() ) ); ?>" alt="<?php echo esc_attr( holyprofweb_get_decoded_post_title() ); ?>" loading="lazy" width="<?php echo esc_attr( $card_size['width'] ); ?>" height="<?php echo esc_attr( $card_size['height'] ); ?>" class="<?php echo esc_attr( holyprofweb_get_post_image_class( get_the_ID() ) ); ?>" />
                     </a>
@@ -339,6 +340,7 @@ $topic_descriptions = array(
                         $reviews = holyprofweb_get_review_count( get_the_ID() );
                 ?>
                 <article class="post-card" data-post-id="<?php the_ID(); ?>" data-hpw-rec-pos="<?php echo esc_attr( $hpw_just_added_loop_index ); ?>" data-card-link="<?php the_permalink(); ?>" tabindex="0" role="link" aria-label="<?php echo esc_attr( sprintf( __( 'Open post: %s', 'holyprofweb' ), holyprofweb_get_decoded_post_title() ) ); ?>">
+                    <a href="<?php the_permalink(); ?>" class="post-card-hitarea" aria-label="<?php echo esc_attr( sprintf( __( 'Open post: %s', 'holyprofweb' ), holyprofweb_get_decoded_post_title() ) ); ?>"></a>
                     <a href="<?php the_permalink(); ?>" class="post-card-thumb-link">
                         <img src="<?php echo esc_attr( holyprofweb_get_front_page_card_image_url( get_the_ID() ) ); ?>" alt="<?php echo esc_attr( holyprofweb_get_decoded_post_title() ); ?>" loading="lazy" width="<?php echo esc_attr( $card_size['width'] ); ?>" height="<?php echo esc_attr( $card_size['height'] ); ?>" class="<?php echo esc_attr( holyprofweb_get_post_image_class( get_the_ID() ) ); ?>" />
                     </a>
@@ -431,6 +433,7 @@ $topic_descriptions = array(
                         $hpw_guides_loop_index++;
                 ?>
                 <article class="post-card" data-post-id="<?php the_ID(); ?>" data-hpw-rec-pos="<?php echo esc_attr( $hpw_guides_loop_index ); ?>" data-card-link="<?php the_permalink(); ?>" tabindex="0" role="link" aria-label="<?php echo esc_attr( sprintf( __( 'Open post: %s', 'holyprofweb' ), holyprofweb_get_decoded_post_title() ) ); ?>">
+                    <a href="<?php the_permalink(); ?>" class="post-card-hitarea" aria-label="<?php echo esc_attr( sprintf( __( 'Open post: %s', 'holyprofweb' ), holyprofweb_get_decoded_post_title() ) ); ?>"></a>
                     <a href="<?php the_permalink(); ?>" class="post-card-thumb-link">
                         <img src="<?php echo esc_attr( holyprofweb_get_front_page_card_image_url( get_the_ID() ) ); ?>" alt="<?php echo esc_attr( holyprofweb_get_decoded_post_title() ); ?>" loading="lazy" width="<?php echo esc_attr( $card_size['width'] ); ?>" height="<?php echo esc_attr( $card_size['height'] ); ?>" class="<?php echo esc_attr( holyprofweb_get_post_image_class( get_the_ID() ) ); ?>" />
                     </a>
@@ -458,6 +461,7 @@ $topic_descriptions = array(
                         setup_postdata( $post );
                 ?>
                 <article class="post-card" data-post-id="<?php the_ID(); ?>" data-card-link="<?php the_permalink(); ?>" tabindex="0" role="link" aria-label="<?php echo esc_attr( sprintf( __( 'Open post: %s', 'holyprofweb' ), holyprofweb_get_decoded_post_title() ) ); ?>">
+                    <a href="<?php the_permalink(); ?>" class="post-card-hitarea" aria-label="<?php echo esc_attr( sprintf( __( 'Open post: %s', 'holyprofweb' ), holyprofweb_get_decoded_post_title() ) ); ?>"></a>
                     <a href="<?php the_permalink(); ?>" class="post-card-thumb-link">
                         <img src="<?php echo esc_attr( holyprofweb_get_front_page_card_image_url( get_the_ID() ) ); ?>" alt="<?php echo esc_attr( holyprofweb_get_decoded_post_title() ); ?>" loading="lazy" width="<?php echo esc_attr( $card_size['width'] ); ?>" height="<?php echo esc_attr( $card_size['height'] ); ?>" class="<?php echo esc_attr( holyprofweb_get_post_image_class( get_the_ID() ) ); ?>" />
                     </a>

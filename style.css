@@ -6554,12 +6554,22 @@ html[data-theme="light"] .theme-toggle-icon--sun {
     display: flex;
     flex-direction: column;
     min-height: 100%;
+    position: relative;
+}
+
+.post-card-hitarea {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    border-radius: inherit;
 }
 
 .post-card-thumb-link {
     display: block;
     border-radius: 18px 18px 0 0;
     overflow: hidden;
+    position: relative;
+    z-index: 2;
 }
 
 .post-card-thumb-link img,
@@ -6593,6 +6603,8 @@ html[data-theme="light"] .theme-toggle-icon--sun {
     flex-direction: column;
     gap: 12px;
     padding: 18px 22px 20px;
+    position: relative;
+    pointer-events: none;
 }
 
 .post-card-meta {
@@ -6613,6 +6625,9 @@ html[data-theme="light"] .theme-toggle-icon--sun {
     -webkit-box-orient: vertical;
     -webkit-line-clamp: 3;
     overflow: hidden;
+    position: relative;
+    z-index: 4;
+    pointer-events: auto;
 }
 
 .post-card-excerpt {
@@ -9087,6 +9102,20 @@ body.hpw-no-copy label {
 .also-read-inline a {
     color: var(--color-accent);
     text-decoration: none;
+    position: relative;
+    z-index: 4;
+    pointer-events: auto;
+}
+
+.post-card-category a {
+    position: relative;
+    z-index: 4;
+    pointer-events: auto;
+}
+
+.post-card-thumb-link,
+.post-card-hitarea {
+    pointer-events: auto;
 }
 
 .also-read-inline a:hover {
@@ -10856,6 +10885,20 @@ html[data-theme="dark"] .post-tags a {
     object-position: center top !important;
 }
 
+.platform-wrap--single .single-featured-image--inline img.post-image--remote.post-image--person,
+.platform-wrap--single .single-featured-image img.post-image--remote.post-image--person,
+.single-featured-image--inline img.post-image--remote.post-image--person,
+.single-featured-image img.post-image--remote.post-image--person {
+    width: 100% !important;
+    margin-inline: 0 !important;
+    aspect-ratio: 16 / 9 !important;
+    max-height: 420px !important;
+    object-fit: cover !important;
+    object-position: center top !important;
+    background: none !important;
+    padding: 0 !important;
+}
+
 .platform-wrap--single .single-featured-image--inline img.post-image--remote,
 .platform-wrap--single .single-featured-image img.post-image--remote,
 .single-featured-image--inline img.post-image--remote,
@@ -10898,10 +10941,18 @@ html[data-theme="dark"] .post-tags a {
 .home .front-section[aria-labelledby="trending-now-heading"] .post-card-thumb img.post-image--person,
 .home .front-section[aria-labelledby="just-added-heading"] .post-carousel .post-card-thumb img.post-image--person,
 .home .front-section[aria-labelledby="guides-heading"] .post-card-thumb img.post-image--person,
+.home .front-section[aria-labelledby="trending-now-heading"] .post-card-thumb-link img.post-image--remote.post-image--person,
+.home .front-section[aria-labelledby="just-added-heading"] .post-carousel .post-card-thumb-link img.post-image--remote.post-image--person,
+.home .front-section[aria-labelledby="guides-heading"] .post-card-thumb-link img.post-image--remote.post-image--person,
+.home .front-section[aria-labelledby="trending-now-heading"] .post-card-thumb img.post-image--remote.post-image--person,
+.home .front-section[aria-labelledby="just-added-heading"] .post-carousel .post-card-thumb img.post-image--remote.post-image--person,
+.home .front-section[aria-labelledby="guides-heading"] .post-card-thumb img.post-image--remote.post-image--person,
 .single .next-best-read__thumb img.post-image--generated,
 .single .related-card-thumb img.post-image--generated,
 .single .next-best-read__thumb img.post-image--person,
-.single .related-card-thumb img.post-image--person {
+.single .related-card-thumb img.post-image--person,
+.single .next-best-read__thumb img.post-image--remote.post-image--person,
+.single .related-card-thumb img.post-image--remote.post-image--person {
     object-fit: cover !important;
     object-position: center top !important;
     padding: 0 !important;

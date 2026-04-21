@@ -3201,6 +3201,7 @@ function holyprofweb_seed_category_posts() {
 
         $post_data = array(
             'post_title'     => wp_strip_all_tags( $seed['title'] ),
+            'post_name'      => sanitize_title( wp_strip_all_tags( $seed['title'] ) ),
             'post_excerpt'   => isset( $seed['excerpt'] ) ? $seed['excerpt'] : '',
             'post_content'   => $seed['content'],
             'post_status'    => 'publish',
@@ -3253,6 +3254,48 @@ function holyprofweb_maybe_seed_category_posts() {
     update_option( 'holyprofweb_seed_posts_bootstrapped', 1, false );
 }
 add_action( 'init', 'holyprofweb_maybe_seed_category_posts', 26 );
+
+function holyprofweb_migrate_seed_post_slugs() {
+    if ( get_option( 'holyprofweb_seed_slug_migration_v1', 0 ) ) {
+        return;
+    }
+
+    $posts = get_posts(
+        array(
+            'post_type'      => 'post',
+            'post_status'    => array( 'publish', 'draft', 'pending', 'future', 'private' ),
+            'posts_per_page' => -1,
+            'no_found_rows'  => true,
+            'meta_key'       => '_hpw_seed_post',
+            'meta_value'     => 1,
+        )
+    );
+
+    foreach ( $posts as $post ) {
+        if ( ! $post instanceof WP_Post ) {
+            continue;
+        }
+
+        if ( false === strpos( (string) $post->post_name, '-placeholder-overview' ) ) {
+            continue;
+        }
+
+        $new_slug = sanitize_title( $post->post_title );
+        if ( ! $new_slug || $new_slug === $post->post_name ) {
+            continue;
+        }
+
+        wp_update_post(
+            array(
+                'ID'        => $post->ID,
+                'post_name' => $new_slug,
+            )
+        );
+    }
+
+    update_option( 'holyprofweb_seed_slug_migration_v1', 1, false );
+}
+add_action( 'init', 'holyprofweb_migrate_seed_post_slugs', 27 );
 
 function holyprofweb_get_uncategorized_term_id() {
     $term = get_term_by( 'slug', 'uncategorized', 'category' );
