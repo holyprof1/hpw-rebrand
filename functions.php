@@ -9817,6 +9817,38 @@ function holyprofweb_handle_redirect_rules() {
 }
 add_action( 'template_redirect', 'holyprofweb_handle_redirect_rules', 1 );
 
+function holyprofweb_block_author_enumeration() {
+    if ( is_admin() || wp_doing_ajax() || ( defined( 'REST_REQUEST' ) && REST_REQUEST ) ) {
+        return;
+    }
+
+    $author_param = isset( $_GET['author'] ) ? wp_unslash( $_GET['author'] ) : '';
+    if ( '' === $author_param && ! is_author() ) {
+        return;
+    }
+
+    nocache_headers();
+    wp_safe_redirect( home_url( '/' ), 302 );
+    exit;
+}
+add_action( 'template_redirect', 'holyprofweb_block_author_enumeration', 0 );
+
+function holyprofweb_disable_author_canonical_redirects( $redirect_url, $requested_url ) {
+    if ( is_admin() || wp_doing_ajax() || ( defined( 'REST_REQUEST' ) && REST_REQUEST ) ) {
+        return $redirect_url;
+    }
+
+    $author_param = isset( $_GET['author'] ) ? wp_unslash( $_GET['author'] ) : '';
+    $request_path = (string) wp_parse_url( (string) $requested_url, PHP_URL_PATH );
+
+    if ( '' !== $author_param || is_author() || preg_match( '#/(?:author)(?:/|$)#i', $request_path ) ) {
+        return false;
+    }
+
+    return $redirect_url;
+}
+add_filter( 'redirect_canonical', 'holyprofweb_disable_author_canonical_redirects', 10, 2 );
+
 add_filter( 'wp_robots', function( $robots ) {
     if ( get_option( 'hpw_discourage_indexing', 0 ) ) {
         $robots['noindex']  = true;
