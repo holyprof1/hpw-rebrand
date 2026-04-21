@@ -10321,6 +10321,51 @@ html[data-theme="dark"] .live-search-backdrop {
     }
 }
 
+/* Final fix: keep Live Reviews as a real desktop grid; use carousel only on mobile */
+.home .front-section[aria-labelledby="live-reviews-heading"] .live-reviews-grid {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 24px !important;
+    padding: 0 !important;
+    overflow: visible !important;
+    scroll-snap-type: none !important;
+}
+
+.home .front-section[aria-labelledby="live-reviews-heading"] .live-review-card {
+    width: auto !important;
+    min-width: 0 !important;
+    max-width: none !important;
+    flex: initial !important;
+}
+
+@media (max-width: 900px) {
+    .home .front-section[aria-labelledby="live-reviews-heading"] .live-reviews-grid {
+        display: grid !important;
+        grid-auto-flow: column !important;
+        grid-template-columns: none !important;
+        grid-auto-columns: minmax(84%, 84%) !important;
+        gap: 12px !important;
+        padding: 0 14px 8px 0 !important;
+        overflow-x: auto !important;
+        overflow-y: hidden !important;
+        scroll-snap-type: x mandatory !important;
+    }
+
+    .home .front-section[aria-labelledby="live-reviews-heading"] .live-review-card {
+        width: auto !important;
+        min-width: 0 !important;
+        max-width: none !important;
+        flex: 0 0 auto !important;
+    }
+}
+
+@media (max-width: 520px) {
+    .home .front-section[aria-labelledby="live-reviews-heading"] .live-reviews-grid {
+        grid-auto-columns: minmax(86%, 86%) !important;
+        padding-right: 18px !important;
+    }
+}
+
 /* Launch polish: hero, language globe, cleaner hovers, and better theme coverage */
 html[data-theme="light"] .hero-section--home {
     background:
