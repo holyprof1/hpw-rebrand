@@ -34,6 +34,9 @@
                 <p class="footer-tagline">
                     <?php esc_html_e( 'Global web intelligence platform for reviews, companies, salaries and user insights.', 'holyprofweb' ); ?>
                 </p>
+                <p class="footer-trust-copy">
+                    <?php esc_html_e( 'HolyprofWeb helps readers research websites, apps, products, and online opportunities before they trust.', 'holyprofweb' ); ?>
+                </p>
             </div>
 
             <!-- Column 2: Platform -->
@@ -60,17 +63,15 @@
                 </ul>
             </nav>
 
-            <!-- Column 3: Company -->
-            <nav class="footer-col footer-col--nav" aria-label="<?php esc_attr_e( 'Company links', 'holyprofweb' ); ?>">
-                <h3 class="footer-col-title"><?php esc_html_e( 'Company', 'holyprofweb' ); ?></h3>
+            <!-- Column 3: Resources -->
+            <nav class="footer-col footer-col--nav" aria-label="<?php esc_attr_e( 'Resource links', 'holyprofweb' ); ?>">
+                <h3 class="footer-col-title"><?php esc_html_e( 'Resources', 'holyprofweb' ); ?></h3>
                 <ul>
                     <?php
-                    $company_links = array(
-                        'Work with us' => '/work-with-us/',
-                        'Advertise'    => '/advertise/',
-                        'About'        => '/about/',
-                    );
-                    foreach ( $company_links as $label => $path ) :
+                    $resource_links = function_exists( 'holyprofweb_get_footer_resource_links' )
+                        ? holyprofweb_get_footer_resource_links()
+                        : array();
+                    foreach ( $resource_links as $label => $path ) :
                     ?>
                     <li>
                         <a href="<?php echo esc_url( home_url( $path ) ); ?>">
@@ -87,7 +88,8 @@
                 <ul>
                     <?php
                     $legal_links = array(
-                        'Contact' => array( 'href' => '/contact/', 'external' => false ),
+                        'Work With Us' => array( 'href' => '/work-with-us/', 'external' => false ),
+                        'Advertise'    => array( 'href' => '/advertise/', 'external' => false ),
                         'Privacy' => array( 'href' => '/privacy-policy/', 'external' => false ),
                     );
                     foreach ( $legal_links as $label => $link ) :

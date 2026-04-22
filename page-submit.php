@@ -203,6 +203,7 @@ $page_subtitle = 'biography' === $selected_cat
     <?php holyprofweb_left_sidebar(); ?>
 
     <main id="primary" class="site-main platform-main">
+        <?php holyprofweb_render_page_breadcrumbs( get_queried_object_id() ); ?>
         <div class="submit-page-wrap">
             <header class="submit-page-header">
                 <div class="submit-page-badge">+ Submit</div>

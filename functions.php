@@ -9868,6 +9868,20 @@ add_filter( 'wp_robots', function( $robots ) {
     return $robots;
 } );
 
+function holyprofweb_force_trust_pages_indexable( $robots ) {
+    if ( is_admin() || wp_doing_ajax() || ! is_page() ) {
+        return $robots;
+    }
+
+    if ( ! holyprofweb_is_trust_resource_page( get_queried_object_id() ) ) {
+        return $robots;
+    }
+
+    unset( $robots['noindex'], $robots['nofollow'] );
+    return $robots;
+}
+add_filter( 'wp_robots', 'holyprofweb_force_trust_pages_indexable', 20 );
+
 function holyprofweb_virtual_robots_txt( $output, $public ) {
     $sitemap_url = home_url( '/wp-sitemap.xml' );
     if ( function_exists( 'holyprofweb_is_rank_math_active' ) && holyprofweb_is_rank_math_active() ) {
@@ -10747,6 +10761,44 @@ function holyprofweb_cache_reading_time( $post_id, $post ) {
     update_post_meta( $post_id, '_hpw_reading_time', $minutes );
 }
 
+function holyprofweb_get_footer_resource_links() {
+    return array(
+        'About HolyprofWeb'       => '/about/',
+        'How We Review'           => '/how-we-review/',
+        'Editorial Policy'        => '/editorial-policy/',
+        'Corrections and Updates' => '/corrections-updates-policy/',
+        'Disclaimer'              => '/disclaimer/',
+        'Contact HolyprofWeb'     => '/contact/',
+    );
+}
+
+function holyprofweb_get_trust_page_slugs() {
+    return array( 'about', 'how-we-review', 'editorial-policy', 'corrections-updates-policy', 'disclaimer', 'contact' );
+}
+
+function holyprofweb_is_trust_resource_page( $post = null ) {
+    $post = get_post( $post );
+    if ( ! $post instanceof WP_Post || 'page' !== $post->post_type ) {
+        return false;
+    }
+
+    return in_array( $post->post_name, holyprofweb_get_trust_page_slugs(), true );
+}
+
+function holyprofweb_render_page_breadcrumbs( $post = null ) {
+    $post = get_post( $post );
+    if ( ! $post instanceof WP_Post ) {
+        return;
+    }
+    ?>
+    <nav class="single-breadcrumb" aria-label="<?php esc_attr_e( 'Breadcrumb', 'holyprofweb' ); ?>">
+        <a href="<?php echo esc_url( home_url( '/' ) ); ?>"><?php esc_html_e( 'Home', 'holyprofweb' ); ?></a>
+        <span aria-hidden="true">/</span>
+        <span aria-current="page"><?php echo esc_html( get_the_title( $post ) ); ?></span>
+    </nav>
+    <?php
+}
+
 
 // =========================================
 // STATIC PAGES — About, Work With Us, etc.
@@ -10763,6 +10815,22 @@ function holyprofweb_create_static_pages() {
         'about' => array(
             'title'   => 'About HolyprofWeb',
             'content' => '<h2>About Us</h2><p>HolyprofWeb is a global web intelligence platform built to help you research before you decide. We cover reviews, company profiles, salary data, biographies, and reports across industries.</p><h2>Our Mission</h2><p>We believe every financial and career decision deserves solid research. Our platform aggregates trusted information, user reviews, and verified data in one place.</p><h2>What We Cover</h2><ul><li><strong>Reviews</strong> — Honest user reviews of fintech apps, loan platforms, crypto exchanges, and more.</li><li><strong>Companies</strong> — Profiles of banks, fintechs, and startups across Africa.</li><li><strong>Salaries</strong> — Real salary data for tech and finance roles.</li><li><strong>Biography</strong> — Profiles of founders, influencers, and business leaders.</li><li><strong>Reports</strong> — Scam alerts, user complaint trends, and industry analysis.</li></ul><p>Have feedback or a tip? <a href="mailto:admin@holyprofweb.com">Contact us.</a></p>',
+        ),
+        'how-we-review' => array(
+            'title'   => 'How We Review',
+            'content' => '<p>HolyprofWeb reviews websites, apps, products, and online opportunities using a research-first process. We compare public claims, user experience signals, policies, pricing, reputation patterns, and where relevant, safety or scam indicators.</p><h2>Our Review Process</h2><ol><li>We identify what the platform claims to offer.</li><li>We check website quality, transparency, ownership, and contact signals.</li><li>We review public feedback, complaints, and reputation trends.</li><li>We compare findings against our editorial standards before publishing.</li></ol><p>For broader publishing standards, see our <a href="' . esc_url( home_url( '/editorial-policy/' ) ) . '">Editorial Policy</a> and <a href="' . esc_url( home_url( '/corrections-updates-policy/' ) ) . '">Corrections and Updates Policy</a>.</p>',
+        ),
+        'editorial-policy' => array(
+            'title'   => 'Editorial Policy',
+            'content' => '<p>HolyprofWeb publishes content to help readers make safer, more informed decisions. We aim for accuracy, clarity, and useful context in reviews, company profiles, salary guides, and reports.</p><h2>Editorial Standards</h2><ul><li>We prioritize verifiable facts and clearly label opinion or analysis.</li><li>We update content when better evidence becomes available.</li><li>We avoid deceptive headlines and misleading claims.</li><li>We separate commercial relationships from editorial judgment.</li></ul><p>Read <a href="' . esc_url( home_url( '/how-we-review/' ) ) . '">How We Review</a> for our evaluation process.</p>',
+        ),
+        'corrections-updates-policy' => array(
+            'title'   => 'Corrections and Updates Policy',
+            'content' => '<p>When we discover a factual error, outdated claim, or missing clarification, we correct the content as quickly as possible. Material updates may include revised language, clearer sourcing, or a refreshed explanation.</p><h2>How to Request a Correction</h2><p>If you spot an issue, please <a href="' . esc_url( home_url( '/contact/' ) ) . '">contact us</a> with the page URL and the correction you believe is needed. We review credible requests and update content where appropriate.</p>',
+        ),
+        'disclaimer' => array(
+            'title'   => 'Disclaimer',
+            'content' => '<p>HolyprofWeb content is provided for research and informational purposes only. Our articles are not legal, financial, investment, or employment advice. Readers should use independent judgment and consult qualified professionals where appropriate.</p><p>Using HolyprofWeb does not create a client relationship. Please also review our <a href="' . esc_url( home_url( '/editorial-policy/' ) ) . '">Editorial Policy</a> and <a href="' . esc_url( home_url( '/how-we-review/' ) ) . '">How We Review</a> page.</p>',
         ),
         'work-with-us' => array(
             'title'   => 'Work With Us',

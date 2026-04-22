@@ -1444,6 +1444,14 @@ ul, ol {
     max-width: 240px;
 }
 
+.footer-trust-copy {
+    margin-top: 14px;
+    font-size: 0.82rem;
+    color: rgba(255, 255, 255, 0.62);
+    line-height: 1.7;
+    max-width: 320px;
+}
+
 .footer-col-title {
     font-size: 0.68rem;
     font-weight: 700;

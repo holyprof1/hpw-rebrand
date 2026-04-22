@@ -364,6 +364,11 @@ function holyprofweb_seo_head() {
         $current_hreflang = holyprofweb_normalize_hreflang_code( get_option( 'hpw_default_language', 'en_US' ) );
     }
 
+    $publisher_logo   = holyprofweb_get_seo_publisher_logo_url();
+    $website_id       = trailingslashit( $site_url ) . '#website';
+    $organization_id  = trailingslashit( $site_url ) . '#organization';
+    $navigation_items = holyprofweb_get_home_schema_navigation();
+
     echo "\n<!-- HPW SEO -->\n";
     echo '<meta name="description" content="' . $description . '" />' . "\n";
     echo '<meta property="og:type"        content="' . esc_attr( $og_type ) . '" />' . "\n";
@@ -396,8 +401,131 @@ function holyprofweb_seo_head() {
     echo '<meta name="twitter:title"       content="' . esc_attr( $og_title ) . '" />' . "\n";
     echo '<meta name="twitter:description" content="' . $description . '" />' . "\n";
 
+    $website_schema = array(
+        '@context'        => 'https://schema.org',
+        '@type'           => 'WebSite',
+        '@id'             => $website_id,
+        'name'            => 'HolyprofWeb',
+        'url'             => $site_url,
+        'description'     => mb_substr( wp_strip_all_tags( $raw_desc ), 0, 200 ),
+        'potentialAction' => array(
+            '@type'       => 'SearchAction',
+            'target'      => home_url( '/?s={search_term_string}' ),
+            'query-input' => 'required name=search_term_string',
+        ),
+    );
+    if ( ! empty( $navigation_items ) ) {
+        $website_schema['hasPart'] = $navigation_items;
+    }
+
+    $organization_schema = array(
+        '@context' => 'https://schema.org',
+        '@type'    => 'Organization',
+        '@id'      => $organization_id,
+        'name'     => 'HolyprofWeb',
+        'url'      => $site_url,
+    );
+    if ( $publisher_logo ) {
+        $organization_schema['logo'] = array(
+            '@type' => 'ImageObject',
+            'url'   => $publisher_logo,
+        );
+    }
+
+    echo '<script type="application/ld+json">' . wp_json_encode( $website_schema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE ) . '</script>' . "\n";
+    echo '<script type="application/ld+json">' . wp_json_encode( $organization_schema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE ) . '</script>' . "\n";
+
     // JSON-LD
-    if ( is_singular() && isset( $post ) && $post instanceof WP_Post ) {
+    if ( is_front_page() || is_home() ) {
+        $homepage_items = holyprofweb_get_home_schema_items( 8 );
+        $webpage_id     = trailingslashit( $site_url ) . '#webpage';
+        $webpage_schema = array(
+            '@context'    => 'https://schema.org',
+            '@type'       => 'CollectionPage',
+            '@id'         => $webpage_id,
+            'url'         => $site_url,
+            'name'        => $og_title,
+            'description' => mb_substr( wp_strip_all_tags( $raw_desc ), 0, 200 ),
+            'isPartOf'    => array( '@id' => $website_id ),
+            'about'       => array( '@id' => $organization_id ),
+            'inLanguage'  => $current_hreflang ?: 'en-US',
+        );
+
+        if ( $og_img ) {
+            $webpage_schema['primaryImageOfPage'] = array(
+                '@type' => 'ImageObject',
+                'url'   => $og_img,
+            );
+        }
+        if ( ! empty( $homepage_items ) ) {
+            $webpage_schema['mainEntity'] = array(
+                '@type'           => 'ItemList',
+                'itemListElement' => $homepage_items,
+            );
+        }
+        $breadcrumb = array(
+            '@context'        => 'https://schema.org',
+            '@type'           => 'BreadcrumbList',
+            'itemListElement' => array(
+                array(
+                    '@type'    => 'ListItem',
+                    'position' => 1,
+                    'name'     => 'Home',
+                    'item'     => $site_url,
+                ),
+            ),
+        );
+
+        echo '<script type="application/ld+json">' . wp_json_encode( $webpage_schema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE ) . '</script>' . "\n";
+        echo '<script type="application/ld+json">' . wp_json_encode( $breadcrumb, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE ) . '</script>' . "\n";
+    } elseif ( is_singular() && isset( $post ) && $post instanceof WP_Post && 'page' === $post->post_type ) {
+        $page_slug      = $post->post_name;
+        $page_schema_id = trailingslashit( get_permalink( $post ) ) . '#webpage';
+        $page_type      = 'WebPage';
+
+        if ( 'about' === $page_slug ) {
+            $page_type = 'AboutPage';
+        } elseif ( 'contact' === $page_slug ) {
+            $page_type = 'ContactPage';
+        } elseif ( 'how-we-review' === $page_slug ) {
+            $page_type = 'WebPage';
+        }
+
+        $page_schema = array(
+            '@context'    => 'https://schema.org',
+            '@type'       => $page_type,
+            '@id'         => $page_schema_id,
+            'url'         => get_permalink( $post ),
+            'name'        => get_the_title( $post ),
+            'description' => mb_substr( wp_strip_all_tags( $raw_desc ), 0, 200 ),
+            'isPartOf'    => array( '@id' => $website_id ),
+            'about'       => array( '@id' => $organization_id ),
+            'inLanguage'  => $current_hreflang ?: 'en-US',
+            'dateModified' => get_the_modified_date( 'c', $post ),
+        );
+
+        if ( $og_img ) {
+            $page_schema['primaryImageOfPage'] = array(
+                '@type' => 'ImageObject',
+                'url'   => $og_img,
+            );
+        }
+        if ( 'about' === $page_slug ) {
+            $page_schema['mainEntity'] = array( '@id' => $organization_id );
+        }
+
+        $breadcrumb = array(
+            '@context'        => 'https://schema.org',
+            '@type'           => 'BreadcrumbList',
+            'itemListElement' => array(
+                array( '@type' => 'ListItem', 'position' => 1, 'name' => 'Home', 'item' => $site_url ),
+                array( '@type' => 'ListItem', 'position' => 2, 'name' => get_the_title( $post ), 'item' => get_permalink( $post ) ),
+            ),
+        );
+
+        echo '<script type="application/ld+json">' . wp_json_encode( $page_schema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE ) . '</script>' . "\n";
+        echo '<script type="application/ld+json">' . wp_json_encode( $breadcrumb, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE ) . '</script>' . "\n";
+    } elseif ( is_singular() && isset( $post ) && $post instanceof WP_Post ) {
         $cats     = get_the_category( $post->ID );
         $cat_name = ! empty( $cats ) ? $cats[0]->name : '';
 
@@ -425,8 +553,6 @@ function holyprofweb_seo_head() {
         $source_url   = function_exists( 'holyprofweb_get_post_source_url' ) ? holyprofweb_get_post_source_url( $post->ID, $post ) : '';
         $verdict      = function_exists( 'holyprofweb_get_review_verdict' ) ? holyprofweb_get_review_verdict( $post->ID ) : array( 'label' => '' );
         $is_review    = (bool) array_intersect( array( 'reviews', 'scam-legit', 'app-reviews', 'website-reviews', 'loan-finance', 'shopping', 'scholarship', 'tech', 'blog-opinion', 'loan-apps', 'crypto', 'betting', 'earning-platforms' ), $cat_slugs );
-
-        $publisher_logo = holyprofweb_get_seo_publisher_logo_url();
 
         $schema = array(
             '@context'      => 'https://schema.org',
@@ -603,83 +729,6 @@ function holyprofweb_seo_head() {
         );
 
         echo '<script type="application/ld+json">' . wp_json_encode( $archive_schema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE ) . '</script>' . "\n";
-        echo '<script type="application/ld+json">' . wp_json_encode( $breadcrumb, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE ) . '</script>' . "\n";
-    } elseif ( is_front_page() || is_home() ) {
-        $publisher_logo = holyprofweb_get_seo_publisher_logo_url();
-        $homepage_items = holyprofweb_get_home_schema_items( 8 );
-        $navigation_items = holyprofweb_get_home_schema_navigation();
-        $website_id = trailingslashit( $site_url ) . '#website';
-        $organization_id = trailingslashit( $site_url ) . '#organization';
-        $webpage_id = trailingslashit( $site_url ) . '#webpage';
-        $website_schema = array(
-            '@context'        => 'https://schema.org',
-            '@type'           => 'WebSite',
-            '@id'             => $website_id,
-            'name'            => $site_name,
-            'url'             => $site_url,
-            'description'     => mb_substr( wp_strip_all_tags( $raw_desc ), 0, 200 ),
-            'potentialAction' => array(
-                '@type'       => 'SearchAction',
-                'target'      => home_url( '/?s={search_term_string}' ),
-                'query-input' => 'required name=search_term_string',
-            ),
-        );
-        $organization_schema = array(
-            '@context' => 'https://schema.org',
-            '@type'    => 'Organization',
-            '@id'      => $organization_id,
-            'name'     => $site_name,
-            'url'      => $site_url,
-        );
-        $webpage_schema = array(
-            '@context'    => 'https://schema.org',
-            '@type'       => 'CollectionPage',
-            '@id'         => $webpage_id,
-            'url'         => $site_url,
-            'name'        => $og_title,
-            'description' => mb_substr( wp_strip_all_tags( $raw_desc ), 0, 200 ),
-            'isPartOf'    => array( '@id' => $website_id ),
-            'about'       => array( '@id' => $organization_id ),
-            'inLanguage'  => $current_hreflang ?: 'en-US',
-        );
-
-        if ( $publisher_logo ) {
-            $organization_schema['logo'] = array(
-                '@type' => 'ImageObject',
-                'url'   => $publisher_logo,
-            );
-        }
-        if ( $og_img ) {
-            $webpage_schema['primaryImageOfPage'] = array(
-                '@type' => 'ImageObject',
-                'url'   => $og_img,
-            );
-        }
-        if ( ! empty( $homepage_items ) ) {
-            $webpage_schema['mainEntity'] = array(
-                '@type'           => 'ItemList',
-                'itemListElement' => $homepage_items,
-            );
-        }
-        if ( ! empty( $navigation_items ) ) {
-            $website_schema['hasPart'] = $navigation_items;
-        }
-        $breadcrumb = array(
-            '@context'        => 'https://schema.org',
-            '@type'           => 'BreadcrumbList',
-            'itemListElement' => array(
-                array(
-                    '@type'    => 'ListItem',
-                    'position' => 1,
-                    'name'     => 'Home',
-                    'item'     => $site_url,
-                ),
-            ),
-        );
-
-        echo '<script type="application/ld+json">' . wp_json_encode( $website_schema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE ) . '</script>' . "\n";
-        echo '<script type="application/ld+json">' . wp_json_encode( $organization_schema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE ) . '</script>' . "\n";
-        echo '<script type="application/ld+json">' . wp_json_encode( $webpage_schema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE ) . '</script>' . "\n";
         echo '<script type="application/ld+json">' . wp_json_encode( $breadcrumb, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE ) . '</script>' . "\n";
     }
 
