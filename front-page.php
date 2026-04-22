@@ -223,22 +223,27 @@ $topic_descriptions = array(
         <div class="hero-search-wrap">
             <?php get_search_form(); ?>
         </div>
-        <div class="hero-quick-links" aria-label="<?php esc_attr_e( 'Homepage quick actions', 'holyprofweb' ); ?>">
-            <a href="<?php echo esc_url( home_url( '/category/reviews/' ) ); ?>" class="hero-quick-link">
-                <span class="hero-quick-label"><?php esc_html_e( 'Browse Reviews', 'holyprofweb' ); ?></span>
-                <span class="hero-quick-copy"><?php esc_html_e( 'Real experiences from apps, platforms, and services.', 'holyprofweb' ); ?></span>
-            </a>
-            <a href="<?php echo esc_url( home_url( '/category/companies/' ) ); ?>" class="hero-quick-link">
-                <span class="hero-quick-label"><?php esc_html_e( 'Browse Companies', 'holyprofweb' ); ?></span>
-                <span class="hero-quick-copy"><?php esc_html_e( 'Check salary gist, company profile, and reputation fast.', 'holyprofweb' ); ?></span>
-            </a>
-            <a href="<?php echo esc_url( home_url( '/submit/' ) ); ?>" class="hero-quick-link">
-                <span class="hero-quick-label"><?php esc_html_e( 'Submit a Report', 'holyprofweb' ); ?></span>
-                <span class="hero-quick-copy"><?php esc_html_e( 'Add a review, correction, complaint, or warning signal.', 'holyprofweb' ); ?></span>
-            </a>
-        </div>
     </div>
 </section>
+
+<div class="stats-bar" aria-label="Platform statistics">
+    <div class="stats-bar-inner">
+        <div class="stat-item">
+            <span class="stat-number"><?php echo esc_html( number_format_i18n( holyprofweb_get_front_stat_display_count( $total_posts, 'posts' ) ) ); ?></span>
+            <span class="stat-label"><?php esc_html_e( 'Posts', 'holyprofweb' ); ?></span>
+        </div>
+        <div class="stat-divider" aria-hidden="true"></div>
+        <div class="stat-item">
+            <span class="stat-number"><?php echo esc_html( number_format_i18n( holyprofweb_get_front_stat_display_count( $total_reviews, 'reviews' ) ) ); ?></span>
+            <span class="stat-label"><?php esc_html_e( 'Reviews', 'holyprofweb' ); ?></span>
+        </div>
+        <div class="stat-divider" aria-hidden="true"></div>
+        <div class="stat-item">
+            <span class="stat-number"><?php echo esc_html( number_format_i18n( holyprofweb_get_front_stat_display_count( $total_companies, 'companies' ) ) ); ?></span>
+            <span class="stat-label"><?php esc_html_e( 'Companies', 'holyprofweb' ); ?></span>
+        </div>
+    </div>
+</div>
 
 <section class="home-focus-section" aria-labelledby="home-focus-title">
     <div class="home-focus-inner">
@@ -275,25 +280,6 @@ $topic_descriptions = array(
 </section>
 
 <?php holyprofweb_render_ad_format( 'leaderboard', 'front_inline', 'ad-front-inline' ); ?>
-
-<div class="stats-bar" aria-label="Platform statistics">
-    <div class="stats-bar-inner">
-        <div class="stat-item">
-            <span class="stat-number"><?php echo esc_html( number_format_i18n( holyprofweb_get_front_stat_display_count( $total_posts, 'posts' ) ) ); ?></span>
-            <span class="stat-label"><?php esc_html_e( 'Posts', 'holyprofweb' ); ?></span>
-        </div>
-        <div class="stat-divider" aria-hidden="true"></div>
-        <div class="stat-item">
-            <span class="stat-number"><?php echo esc_html( number_format_i18n( holyprofweb_get_front_stat_display_count( $total_reviews, 'reviews' ) ) ); ?></span>
-            <span class="stat-label"><?php esc_html_e( 'Reviews', 'holyprofweb' ); ?></span>
-        </div>
-        <div class="stat-divider" aria-hidden="true"></div>
-        <div class="stat-item">
-            <span class="stat-number"><?php echo esc_html( number_format_i18n( holyprofweb_get_front_stat_display_count( $total_companies, 'companies' ) ) ); ?></span>
-            <span class="stat-label"><?php esc_html_e( 'Companies', 'holyprofweb' ); ?></span>
-        </div>
-    </div>
-</div>
 
 <div class="platform-wrap">
     <?php holyprofweb_left_sidebar(); ?>
