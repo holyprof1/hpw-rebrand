@@ -218,8 +218,8 @@ $topic_descriptions = array(
 <section class="hero-section hero-section--home" aria-labelledby="hero-title">
     <div class="hero-inner">
         <div class="hero-eyebrow"><?php esc_html_e( 'Research first. Decide with confidence.', 'holyprofweb' ); ?></div>
-        <h1 id="hero-title" class="hero-title"><?php esc_html_e( 'Discover what people are saying before you decide', 'holyprofweb' ); ?></h1>
-        <p class="hero-subtitle"><?php esc_html_e( 'Search trusted reviews, salary stories, company profiles, and practical guides in one place.', 'holyprofweb' ); ?></p>
+        <h1 id="hero-title" class="hero-title"><?php esc_html_e( 'Honest Reviews, Scam Checks & Company Insights You Can Trust', 'holyprofweb' ); ?></h1>
+        <p class="hero-subtitle"><?php esc_html_e( 'HolyprofWeb helps you verify websites, apps, products, and online opportunities through trusted reviews, scam checks, and company insights before you spend money or share personal information.', 'holyprofweb' ); ?></p>
         <div class="hero-search-wrap">
             <?php get_search_form(); ?>
         </div>
