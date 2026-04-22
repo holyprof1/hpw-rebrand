@@ -11021,6 +11021,33 @@ html[data-theme="dark"] .post-tags a {
     line-height: 1.7;
 }
 
+.home-focus-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 22px;
+}
+
+.home-focus-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 44px;
+    padding: 0 16px;
+    border-radius: 999px;
+    border: 1px solid rgba(240, 184, 74, 0.28);
+    background: rgba(240, 184, 74, 0.08);
+    color: var(--color-text);
+    font-weight: 600;
+    transition: transform var(--transition), border-color var(--transition), background-color var(--transition);
+}
+
+.home-focus-link:hover {
+    transform: translateY(-1px);
+    border-color: rgba(240, 184, 74, 0.42);
+    background: rgba(240, 184, 74, 0.14);
+}
+
 .platform-wrap--single .single-header--refined,
 .platform-wrap--single .single-featured-image--inline,
 .platform-wrap--single .single-header-copy {

@@ -265,6 +265,12 @@ $topic_descriptions = array(
                 <p class="home-focus-card-copy"><?php esc_html_e( 'Review companies and earning platforms with clearer context on reputation, payouts, and reliability.', 'holyprofweb' ); ?></p>
             </article>
         </div>
+
+        <nav class="home-focus-links" aria-label="<?php esc_attr_e( 'Learn more about HolyprofWeb', 'holyprofweb' ); ?>">
+            <a href="<?php echo esc_url( home_url( '/about/' ) ); ?>" class="home-focus-link"><?php esc_html_e( 'About', 'holyprofweb' ); ?></a>
+            <a href="<?php echo esc_url( home_url( '/how-we-review/' ) ); ?>" class="home-focus-link"><?php esc_html_e( 'How We Review', 'holyprofweb' ); ?></a>
+            <a href="<?php echo esc_url( home_url( '/editorial-policy/' ) ); ?>" class="home-focus-link"><?php esc_html_e( 'Editorial Policy', 'holyprofweb' ); ?></a>
+        </nav>
     </div>
 </section>
 
