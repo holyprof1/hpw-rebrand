@@ -10969,6 +10969,58 @@ html[data-theme="dark"] .post-tags a {
     color: rgba(244, 247, 251, 0.78);
 }
 
+.home-focus-section {
+    margin: 28px auto 0;
+}
+
+.home-focus-inner {
+    width: min(1180px, calc(100% - 32px));
+    margin: 0 auto;
+    padding: 28px;
+    border-radius: 28px;
+    border: 1px solid var(--color-border);
+    background: var(--color-surface);
+    box-shadow: var(--shadow-sm);
+}
+
+.section-header--left {
+    text-align: left;
+    margin-bottom: 20px;
+}
+
+.home-focus-intro {
+    margin: 10px 0 0;
+    max-width: 760px;
+    color: var(--color-text-muted);
+    font-size: 1rem;
+    line-height: 1.75;
+}
+
+.home-focus-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+}
+
+.home-focus-card {
+    padding: 20px 22px;
+    border-radius: 20px;
+    border: 1px solid var(--color-border);
+    background: linear-gradient(180deg, rgba(240, 184, 74, 0.08), rgba(240, 184, 74, 0.02));
+}
+
+.home-focus-card-title {
+    margin: 0 0 8px;
+    font-size: 1.04rem;
+    line-height: 1.3;
+}
+
+.home-focus-card-copy {
+    margin: 0;
+    color: var(--color-text-muted);
+    line-height: 1.7;
+}
+
 .platform-wrap--single .single-header--refined,
 .platform-wrap--single .single-featured-image--inline,
 .platform-wrap--single .single-header-copy {
@@ -11183,6 +11235,15 @@ html[data-theme="light"] .platform-wrap--single .single-header-copy {
 @media (max-width: 900px) {
     .hero-quick-links {
         grid-template-columns: 1fr;
+    }
+
+    .home-focus-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .home-focus-inner {
+        width: min(100%, calc(100% - 24px));
+        padding: 22px;
     }
 }
 

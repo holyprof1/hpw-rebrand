@@ -240,6 +240,34 @@ $topic_descriptions = array(
     </div>
 </section>
 
+<section class="home-focus-section" aria-labelledby="home-focus-title">
+    <div class="home-focus-inner">
+        <div class="section-header section-header--left">
+            <h2 id="home-focus-title" class="section-title"><?php esc_html_e( 'What We Do', 'holyprofweb' ); ?></h2>
+            <p class="home-focus-intro"><?php esc_html_e( 'We help people research online platforms, offers, and brands before they trust them with money, time, or personal details.', 'holyprofweb' ); ?></p>
+        </div>
+
+        <div class="home-focus-grid">
+            <article class="home-focus-card">
+                <h3 class="home-focus-card-title"><?php esc_html_e( 'Scam checks', 'holyprofweb' ); ?></h3>
+                <p class="home-focus-card-copy"><?php esc_html_e( 'Find out if a website, app, or opportunity looks legit or shows common scam signals.', 'holyprofweb' ); ?></p>
+            </article>
+            <article class="home-focus-card">
+                <h3 class="home-focus-card-title"><?php esc_html_e( 'Product reviews', 'holyprofweb' ); ?></h3>
+                <p class="home-focus-card-copy"><?php esc_html_e( 'Read practical reviews before you buy, subscribe, or depend on a product.', 'holyprofweb' ); ?></p>
+            </article>
+            <article class="home-focus-card">
+                <h3 class="home-focus-card-title"><?php esc_html_e( 'App and website analysis', 'holyprofweb' ); ?></h3>
+                <p class="home-focus-card-copy"><?php esc_html_e( 'Check trust signals, complaints, usability issues, and warning signs around online services.', 'holyprofweb' ); ?></p>
+            </article>
+            <article class="home-focus-card">
+                <h3 class="home-focus-card-title"><?php esc_html_e( 'Company and earning platform reviews', 'holyprofweb' ); ?></h3>
+                <p class="home-focus-card-copy"><?php esc_html_e( 'Review companies and earning platforms with clearer context on reputation, payouts, and reliability.', 'holyprofweb' ); ?></p>
+            </article>
+        </div>
+    </div>
+</section>
+
 <?php holyprofweb_render_ad_format( 'leaderboard', 'front_inline', 'ad-front-inline' ); ?>
 
 <div class="stats-bar" aria-label="Platform statistics">
