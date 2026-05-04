@@ -658,7 +658,7 @@ function holyprofweb_ads_admin_page() {
             if ( 'rigid' === $val ) {
                 $val = 'advanced';
             }
-            update_option( 'holyprofweb_ad_density_' . $group, in_array( $val, array( 'basic', 'normal', 'advanced' ), true ) ? $val : 'basic' );
+            holyprofweb_store_ad_setting( 'holyprofweb_ad_density_' . $group, in_array( $val, array( 'basic', 'normal', 'advanced' ), true ) ? $val : 'basic' );
         }
 
         $saved = true;
@@ -1059,7 +1059,7 @@ function holyprofweb_get_ad_format_code( $format ) {
 }
 
 function holyprofweb_get_ad_density( $format ) {
-    $density = sanitize_key( (string) get_option( 'holyprofweb_ad_density_' . sanitize_key( $format ), 'basic' ) );
+    $density = sanitize_key( holyprofweb_get_saved_ad_setting( 'holyprofweb_ad_density_' . sanitize_key( $format ), 'basic' ) );
     return 'rigid' === $density ? 'advanced' : $density;
 }
 
