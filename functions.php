@@ -5531,12 +5531,21 @@ function holyprofweb_public_comment_content_is_publishable( $content ) {
     $word_count  = is_array( $words ) ? count( $words ) : 0;
     $char_count  = function_exists( 'mb_strlen' ) ? mb_strlen( $plain ) : strlen( $plain );
     $digit_count = preg_match_all( '/\d/u', $plain );
+    $long_words  = preg_match_all( '/\b[\p{L}]{3,}\b/u', $plain );
 
     if ( $word_count < 8 || $char_count < 48 ) {
         return false;
     }
 
+    if ( is_int( $long_words ) && $long_words < 4 ) {
+        return false;
+    }
+
     if ( is_int( $digit_count ) && $digit_count > max( 12, (int) floor( $char_count / 3 ) ) ) {
+        return false;
+    }
+
+    if ( preg_match( '/(.)\1{5,}/u', $plain ) ) {
         return false;
     }
 
