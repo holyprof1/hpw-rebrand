@@ -690,7 +690,7 @@ function holyprofweb_ads_admin_page() {
         <?php endif; ?>
 
         <p style="color:#666;margin-bottom:24px;">
-            <?php esc_html_e( 'Manage the 8 ad units here. Choose Basic, Normal, or Advanced placement per ad group, and switch any unit off without deleting its code.', 'holyprofweb' ); ?>
+            <?php esc_html_e( 'Manage the 8 ad units here. Choose Basic, Normal, or Advanced placement per ad group, and switch any unit off without deleting its code. HPW now keeps a backup copy of each ad setting in WordPress options so blank save payloads can self-heal.', 'holyprofweb' ); ?>
         </p>
 
         <form method="post" id="hpw-ads-form">
@@ -798,6 +798,7 @@ function holyprofweb_ads_admin_page() {
                         <textarea name="<?php echo esc_attr( $field ); ?>" rows="8"
                                   class="large-text code hpw-ad-code"
                                   placeholder="Paste Adsterra script code here…"><?php echo esc_textarea( $val ); ?></textarea>
+                        <p class="description"><?php esc_html_e( 'Turning this ad off keeps the saved code in the database. Use "Clear saved code on next save" only when you really want to remove it.', 'holyprofweb' ); ?></p>
                     </td>
                 </tr>
                 <?php
