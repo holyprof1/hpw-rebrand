@@ -5477,6 +5477,26 @@ function holyprofweb_public_text_has_link_markers( $content ) {
     return (bool) preg_match( '#https?://|www\.|href\s*=|<[^>]+>|\b(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,}(?:/[^\s<]*)?#iu', (string) $content );
 }
 
+function holyprofweb_public_text_spam_score( $content ) {
+    $content  = strtolower( trim( (string) $content ) );
+    $patterns = array(
+        '/\b(?:usdt|btc|bitcoin|eth|ethereum|crypto)\b/u',
+        '/\b(?:withdraw|withdrawal|cashout|payout|transfer|deposit)\b/u',
+        '/\b(?:balance|profit|bonus|earn|investment|return)\b/u',
+        '/\b(?:telegram|whatsapp|t\.me|dm|contact me|support agent)\b/u',
+        '/\b(?:click|claim|continue|proceed|verify|unlock)\b/u',
+    );
+    $score    = 0;
+
+    foreach ( $patterns as $pattern ) {
+        if ( preg_match( $pattern, $content ) ) {
+            $score++;
+        }
+    }
+
+    return $score;
+}
+
 function holyprofweb_sanitize_public_comment_content( $content ) {
     $content = wp_kses( (string) $content, array() );
     $content = holyprofweb_strip_public_urls( $content );
@@ -5532,12 +5552,13 @@ function holyprofweb_public_comment_content_is_publishable( $content ) {
     $char_count  = function_exists( 'mb_strlen' ) ? mb_strlen( $plain ) : strlen( $plain );
     $digit_count = preg_match_all( '/\d/u', $plain );
     $long_words  = preg_match_all( '/\b[\p{L}]{3,}\b/u', $plain );
+    $spam_score  = holyprofweb_public_text_spam_score( $plain );
 
-    if ( $word_count < 8 || $char_count < 48 ) {
+    if ( $word_count < 5 || $char_count < 24 ) {
         return false;
     }
 
-    if ( is_int( $long_words ) && $long_words < 4 ) {
+    if ( is_int( $long_words ) && $long_words < 3 ) {
         return false;
     }
 
@@ -5546,6 +5567,10 @@ function holyprofweb_public_comment_content_is_publishable( $content ) {
     }
 
     if ( preg_match( '/(.)\1{5,}/u', $plain ) ) {
+        return false;
+    }
+
+    if ( $spam_score >= 2 ) {
         return false;
     }
 
@@ -5630,13 +5655,18 @@ function holyprofweb_mark_empty_or_link_only_comments_as_spam( $approved, $comme
         return $approved;
     }
 
-    $content = isset( $commentdata['comment_content'] ) ? trim( (string) $commentdata['comment_content'] ) : '';
+    $content    = isset( $commentdata['comment_content'] ) ? trim( (string) $commentdata['comment_content'] ) : '';
+    $spam_score = holyprofweb_public_text_spam_score( $content );
     if ( '' === $content || ! holyprofweb_public_comment_author_is_valid( $commentdata['comment_author'] ?? '' ) ) {
         return 'spam';
     }
 
-    if ( ! empty( $GLOBALS['holyprofweb_comment_had_link_markers'] ) && ! holyprofweb_public_comment_quality_gate( $commentdata ) ) {
+    if ( ! empty( $GLOBALS['holyprofweb_comment_had_link_markers'] ) && $spam_score >= 1 ) {
         return 'spam';
+    }
+
+    if ( ! empty( $GLOBALS['holyprofweb_comment_had_link_markers'] ) && ! holyprofweb_public_comment_quality_gate( $commentdata ) ) {
+        return 0;
     }
 
     return $approved;
@@ -5652,7 +5682,9 @@ function holyprofweb_auto_publish_salvaged_public_comments( $approved, $commentd
         return $approved;
     }
 
-    if ( ! empty( $GLOBALS['holyprofweb_comment_had_link_markers'] ) && holyprofweb_public_comment_quality_gate( $commentdata ) ) {
+    $content = isset( $commentdata['comment_content'] ) ? (string) $commentdata['comment_content'] : '';
+
+    if ( ! empty( $GLOBALS['holyprofweb_comment_had_link_markers'] ) && 0 === holyprofweb_public_text_spam_score( $content ) && holyprofweb_public_comment_quality_gate( $commentdata ) ) {
         return 1;
     }
 
