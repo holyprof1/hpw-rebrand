@@ -5578,6 +5578,13 @@ function holyprofweb_guard_public_comment_submission( $commentdata ) {
         }
     }
 
+    if ( function_exists( 'holyprofweb_enforce_public_cooldown' ) ) {
+        $cooldown = holyprofweb_enforce_public_cooldown( 'submit_comment', 30, __( 'Please wait a little before posting another comment.', 'holyprofweb' ) );
+        if ( is_wp_error( $cooldown ) ) {
+            wp_die( esc_html( $cooldown->get_error_message() ), esc_html__( 'Comment blocked', 'holyprofweb' ), array( 'response' => 429 ) );
+        }
+    }
+
     return $commentdata;
 }
 add_filter( 'preprocess_comment', 'holyprofweb_guard_public_comment_submission', 5 );
