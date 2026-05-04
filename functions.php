@@ -5487,6 +5487,8 @@ function holyprofweb_sanitize_public_comment_content( $content ) {
 function holyprofweb_sanitize_public_comment_author( $author ) {
     $author = wp_strip_all_tags( (string) $author );
     $author = html_entity_decode( $author, ENT_QUOTES, get_bloginfo( 'charset' ) ? get_bloginfo( 'charset' ) : 'UTF-8' );
+    $author = preg_replace( '/[A-Z0-9._%+\-]+@[A-Z0-9.\-]+\.[A-Z]{2,}/iu', '', (string) $author );
+    $author = preg_replace( '/\b(?:telegram|whatsapp|t\.me|bit\.ly|tinyurl|goo\.gl)\b/iu', '', (string) $author );
     $author = holyprofweb_strip_public_urls( $author );
     $author = sanitize_text_field( $author );
     $author = preg_replace( '/\s{2,}/u', ' ', (string) $author );
@@ -5496,6 +5498,10 @@ function holyprofweb_sanitize_public_comment_author( $author ) {
 function holyprofweb_public_comment_author_is_valid( $author ) {
     $author = trim( (string) $author );
     if ( '' === $author || holyprofweb_public_text_has_link_markers( $author ) ) {
+        return false;
+    }
+
+    if ( preg_match( '/\b(?:telegram|whatsapp|t\.me|bit\.ly|tinyurl|goo\.gl|crypto|withdraw)\b/iu', $author ) ) {
         return false;
     }
 
