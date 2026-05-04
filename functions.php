@@ -647,7 +647,7 @@ function holyprofweb_ads_admin_page() {
             'banner_300x250' => 'hpw_ad_300x250',
         );
         foreach ( $ad_units as $option_suffix => $field ) {
-            update_option( 'holyprofweb_ad_enabled_' . $option_suffix, empty( $_POST[ $field . '_enabled' ] ) ? '0' : '1' );
+            holyprofweb_store_ad_setting( 'holyprofweb_ad_enabled_' . $option_suffix, empty( $_POST[ $field . '_enabled' ] ) ? '0' : '1' );
             $code = $get_posted_ad_code( $option_suffix, $field );
             holyprofweb_store_ad_unit_code( $option_suffix, $code );
         }
@@ -669,7 +669,7 @@ function holyprofweb_ads_admin_page() {
         return holyprofweb_get_saved_ad_unit_code( $key );
     };
     $is_unit_enabled = function( $key ) {
-        return '0' !== (string) get_option( 'holyprofweb_ad_enabled_' . $key, '1' );
+        return '0' !== holyprofweb_get_saved_ad_setting( 'holyprofweb_ad_enabled_' . $key, '1' );
     };
     $density_label = function( $group ) {
         $d = holyprofweb_get_ad_density( $group );
@@ -996,7 +996,7 @@ function holyprofweb_get_ad_unit_code( $unit ) {
         return '';
     }
 
-    if ( '0' === (string) get_option( 'holyprofweb_ad_enabled_' . $unit, '1' ) ) {
+    if ( '0' === holyprofweb_get_saved_ad_setting( 'holyprofweb_ad_enabled_' . $unit, '1' ) ) {
         return '';
     }
 
