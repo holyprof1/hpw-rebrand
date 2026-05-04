@@ -633,7 +633,7 @@ function holyprofweb_ads_admin_page() {
         isset( $_POST['holyprofweb_ads_nonce'] ) &&
         wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['holyprofweb_ads_nonce'] ) ), 'holyprofweb_save_ads' )
     ) {
-        update_option( 'holyprofweb_ads_enabled', empty( $_POST['hpw_ads_enabled'] ) ? '0' : '1' );
+        holyprofweb_store_ad_setting( 'holyprofweb_ads_enabled', empty( $_POST['hpw_ads_enabled'] ) ? '0' : '1' );
 
         // Ad unit codes — base64-encoded by JS to bypass server WAF.
         $ad_units = array(
@@ -743,7 +743,7 @@ function holyprofweb_ads_admin_page() {
                     <th scope="row"><?php esc_html_e( 'Global Ads Switch', 'holyprofweb' ); ?></th>
                     <td>
                         <label class="hpw-ad-switch">
-                            <input type="checkbox" name="hpw_ads_enabled" value="1" <?php checked( '1', get_option( 'holyprofweb_ads_enabled', '1' ) ); ?> />
+                            <input type="checkbox" name="hpw_ads_enabled" value="1" <?php checked( '1', holyprofweb_get_saved_ad_setting( 'holyprofweb_ads_enabled', '1' ) ); ?> />
                             <span><?php esc_html_e( 'Enable ads sitewide', 'holyprofweb' ); ?></span>
                         </label>
                         <p class="description"><?php esc_html_e( 'Turn this off to hide all ads without removing saved ad code.', 'holyprofweb' ); ?></p>
@@ -892,6 +892,50 @@ function holyprofweb_get_ad_code( $slot ) {
     return (string) get_option( 'holyprofweb_ad_' . sanitize_key( $slot ), '' );
 }
 
+function holyprofweb_get_ad_setting_backup_option_name( $key ) {
+    return 'holyprofweb_ad_setting_backup_' . sanitize_key( $key );
+}
+
+function holyprofweb_store_ad_setting( $key, $value ) {
+    $key   = sanitize_key( $key );
+    $value = (string) $value;
+
+    update_option( $key, $value, false );
+
+    $backup_payload = base64_encode( $value );
+    if ( function_exists( 'holyprofweb_encrypt_private_value' ) ) {
+        $backup_payload = holyprofweb_encrypt_private_value( $backup_payload );
+    }
+    update_option( holyprofweb_get_ad_setting_backup_option_name( $key ), $backup_payload, false );
+
+    return $value;
+}
+
+function holyprofweb_get_saved_ad_setting( $key, $default = '' ) {
+    $key   = sanitize_key( $key );
+    $value = get_option( $key, null );
+
+    if ( null !== $value ) {
+        return (string) $value;
+    }
+
+    $backup = (string) get_option( holyprofweb_get_ad_setting_backup_option_name( $key ), '' );
+    if ( '' === trim( $backup ) ) {
+        return (string) $default;
+    }
+
+    $payload = function_exists( 'holyprofweb_decrypt_private_value' ) ? holyprofweb_decrypt_private_value( $backup ) : $backup;
+    $value   = base64_decode( (string) $payload, true );
+    if ( false === $value ) {
+        $value = (string) $payload;
+    }
+
+    $value = (string) $value;
+    update_option( $key, $value, false );
+
+    return '' !== $value ? $value : (string) $default;
+}
+
 function holyprofweb_get_ad_backup_option_name( $slot ) {
     return 'holyprofweb_ad_format_backup_' . sanitize_key( $slot );
 }
@@ -948,7 +992,7 @@ function holyprofweb_get_ad_unit_code( $unit ) {
         return '';
     }
 
-    if ( '1' !== (string) get_option( 'holyprofweb_ads_enabled', '1' ) ) {
+    if ( '1' !== holyprofweb_get_saved_ad_setting( 'holyprofweb_ads_enabled', '1' ) ) {
         return '';
     }
 
