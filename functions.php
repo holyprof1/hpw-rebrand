@@ -568,6 +568,20 @@ function holyprofweb_reviews_comment_defaults( $defaults ) {
 }
 add_filter( 'comment_form_defaults', 'holyprofweb_reviews_comment_defaults' );
 
+function holyprofweb_remove_comment_url_field( $fields ) {
+    unset( $fields['url'] );
+    return $fields;
+}
+add_filter( 'comment_form_default_fields', 'holyprofweb_remove_comment_url_field' );
+
+function holyprofweb_render_comment_form_guard() {
+    if ( function_exists( 'holyprofweb_render_public_form_guard' ) ) {
+        holyprofweb_render_public_form_guard( 'comment' );
+    }
+}
+add_action( 'comment_form_after_fields', 'holyprofweb_render_comment_form_guard' );
+add_action( 'comment_form_logged_in_after', 'holyprofweb_render_comment_form_guard' );
+
 
 // =========================================
 // ADS SYSTEM — ADMIN SETTINGS PAGE
@@ -590,6 +604,30 @@ function holyprofweb_ads_admin_page() {
     }
 
     $saved = false;
+    $get_posted_ad_code = function( $option_suffix, $field ) {
+        $option_name   = 'holyprofweb_ad_format_' . $option_suffix;
+        $existing_code = (string) get_option( $option_name, '' );
+        $clear_field   = $field . '_clear';
+        $b64_field     = $field . '_b64';
+
+        if ( ! empty( $_POST[ $clear_field ] ) ) {
+            return '';
+        }
+
+        if ( ! empty( $_POST[ $b64_field ] ) ) {
+            // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+            $decoded = base64_decode( wp_unslash( $_POST[ $b64_field ] ), true );
+            return false === $decoded ? $existing_code : $decoded;
+        }
+
+        if ( array_key_exists( $field, $_POST ) ) {
+            // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+            return (string) wp_unslash( $_POST[ $field ] );
+        }
+
+        // Keep the stored code if the payload is missing so toggles/WAF issues do not wipe ads.
+        return $existing_code;
+    };
 
     if (
         isset( $_POST['holyprofweb_ads_nonce'] ) &&
@@ -610,16 +648,8 @@ function holyprofweb_ads_admin_page() {
         );
         foreach ( $ad_units as $option_suffix => $field ) {
             update_option( 'holyprofweb_ad_enabled_' . $option_suffix, empty( $_POST[ $field . '_enabled' ] ) ? '0' : '1' );
-
-            $b64_field = $field . '_b64';
-            if ( ! empty( $_POST[ $b64_field ] ) ) {
-                // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
-                $code = base64_decode( wp_unslash( $_POST[ $b64_field ] ) );
-            } else {
-                // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
-                $code = isset( $_POST[ $field ] ) ? wp_unslash( $_POST[ $field ] ) : '';
-            }
-            update_option( 'holyprofweb_ad_format_' . $option_suffix, function_exists( 'holyprofweb_sanitize_ad_code' ) ? holyprofweb_sanitize_ad_code( $code ) : $code );
+            $code = $get_posted_ad_code( $option_suffix, $field );
+            holyprofweb_store_ad_unit_code( $option_suffix, $code );
         }
 
         // Density per format group.
@@ -636,7 +666,7 @@ function holyprofweb_ads_admin_page() {
 
     // Helper: decode stored code for textarea display.
     $get_code = function( $key ) {
-        return (string) get_option( 'holyprofweb_ad_format_' . $key, '' );
+        return holyprofweb_get_saved_ad_unit_code( $key );
     };
     $is_unit_enabled = function( $key ) {
         return '0' !== (string) get_option( 'holyprofweb_ad_enabled_' . $key, '1' );
@@ -761,6 +791,10 @@ function holyprofweb_ads_admin_page() {
                             <input type="checkbox" name="<?php echo esc_attr( $field . '_enabled' ); ?>" value="1" <?php checked( true, $is_unit_enabled( $code_key ) ); ?> />
                             <span><?php esc_html_e( 'Enable this ad unit', 'holyprofweb' ); ?></span>
                         </label>
+                        <label class="hpw-ad-switch" style="font-weight:500;">
+                            <input type="checkbox" name="<?php echo esc_attr( $field . '_clear' ); ?>" value="1" />
+                            <span><?php esc_html_e( 'Clear saved code on next save', 'holyprofweb' ); ?></span>
+                        </label>
                         <textarea name="<?php echo esc_attr( $field ); ?>" rows="8"
                                   class="large-text code hpw-ad-code"
                                   placeholder="Paste Adsterra script code here…"><?php echo esc_textarea( $val ); ?></textarea>
@@ -858,6 +892,56 @@ function holyprofweb_get_ad_code( $slot ) {
     return (string) get_option( 'holyprofweb_ad_' . sanitize_key( $slot ), '' );
 }
 
+function holyprofweb_get_ad_backup_option_name( $slot ) {
+    return 'holyprofweb_ad_format_backup_' . sanitize_key( $slot );
+}
+
+function holyprofweb_store_ad_unit_code( $slot, $code ) {
+    $slot = sanitize_key( $slot );
+    $code = function_exists( 'holyprofweb_sanitize_ad_code' ) ? holyprofweb_sanitize_ad_code( $code ) : (string) $code;
+
+    update_option( 'holyprofweb_ad_format_' . $slot, $code, false );
+
+    $backup_payload = base64_encode( $code );
+    if ( function_exists( 'holyprofweb_encrypt_private_value' ) ) {
+        $backup_payload = holyprofweb_encrypt_private_value( $backup_payload );
+    }
+    update_option( holyprofweb_get_ad_backup_option_name( $slot ), $backup_payload, false );
+
+    return $code;
+}
+
+function holyprofweb_restore_ad_unit_code_from_backup( $slot ) {
+    $slot   = sanitize_key( $slot );
+    $backup = (string) get_option( holyprofweb_get_ad_backup_option_name( $slot ), '' );
+    if ( '' === trim( $backup ) ) {
+        return '';
+    }
+
+    $payload = function_exists( 'holyprofweb_decrypt_private_value' ) ? holyprofweb_decrypt_private_value( $backup ) : $backup;
+    $code    = base64_decode( (string) $payload, true );
+    if ( false === $code ) {
+        $code = (string) $payload;
+    }
+
+    $code = function_exists( 'holyprofweb_sanitize_ad_code' ) ? holyprofweb_sanitize_ad_code( $code ) : (string) $code;
+    if ( '' !== trim( $code ) ) {
+        update_option( 'holyprofweb_ad_format_' . $slot, $code, false );
+    }
+
+    return $code;
+}
+
+function holyprofweb_get_saved_ad_unit_code( $slot ) {
+    $slot = sanitize_key( $slot );
+    $code = (string) get_option( 'holyprofweb_ad_format_' . $slot, '' );
+    if ( '' !== trim( $code ) ) {
+        return $code;
+    }
+
+    return holyprofweb_restore_ad_unit_code_from_backup( $slot );
+}
+
 function holyprofweb_get_ad_unit_code( $unit ) {
     $unit = sanitize_key( $unit );
     if ( '' === $unit ) {
@@ -872,7 +956,7 @@ function holyprofweb_get_ad_unit_code( $unit ) {
         return '';
     }
 
-    $code = (string) get_option( 'holyprofweb_ad_format_' . $unit, '' );
+    $code = holyprofweb_get_saved_ad_unit_code( $unit );
     if ( trim( $code ) ) {
         return $code;
     }
@@ -885,7 +969,7 @@ function holyprofweb_get_ad_unit_code( $unit ) {
     );
 
     if ( isset( $legacy_map[ $unit ] ) ) {
-        return (string) get_option( 'holyprofweb_ad_format_' . $legacy_map[ $unit ], '' );
+        return holyprofweb_get_saved_ad_unit_code( $legacy_map[ $unit ] );
     }
 
     return '';
@@ -5133,7 +5217,7 @@ function holyprofweb_submit_review_ajax() {
     $salary_range    = isset( $_POST['salary_range'] ) ? sanitize_text_field( wp_unslash( $_POST['salary_range'] ) ) : '';
     $interview_stage = isset( $_POST['interview_stage'] ) ? sanitize_text_field( wp_unslash( $_POST['interview_stage'] ) ) : '';
     $experience_issue = isset( $_POST['experience_issue'] ) ? sanitize_key( wp_unslash( $_POST['experience_issue'] ) ) : '';
-    $content  = holyprofweb_strip_public_urls( $content );
+    $content  = holyprofweb_sanitize_public_comment_content( $content );
     $is_company_post = holyprofweb_post_in_category_tree( $post_id, 'companies' );
 
     if ( ! $post_id || ! get_post( $post_id ) ) {
@@ -5339,26 +5423,175 @@ add_action( 'wp_ajax_nopriv_holyprofweb_submit_salary', 'holyprofweb_submit_sala
 function holyprofweb_strip_public_urls( $content ) {
     $content = preg_replace( '#https?://[^\s<]+#iu', '', (string) $content );
     $content = preg_replace( '#www\.[^\s<]+#iu', '', (string) $content );
+    $content = preg_replace( '#\b(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,}(?:/[^\s<]*)?#iu', '', (string) $content );
     $content = preg_replace( '/\s{2,}/', ' ', (string) $content );
     return trim( (string) $content );
 }
 
+function holyprofweb_public_text_has_link_markers( $content ) {
+    return (bool) preg_match( '#https?://|www\.|href\s*=|<[^>]+>|\b(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,}(?:/[^\s<]*)?#iu', (string) $content );
+}
+
+function holyprofweb_sanitize_public_comment_content( $content ) {
+    $content = wp_kses( (string) $content, array() );
+    $content = holyprofweb_strip_public_urls( $content );
+    $content = sanitize_textarea_field( $content );
+    return trim( (string) $content );
+}
+
+function holyprofweb_sanitize_public_comment_author( $author ) {
+    $author = wp_strip_all_tags( (string) $author );
+    $author = html_entity_decode( $author, ENT_QUOTES, get_bloginfo( 'charset' ) ? get_bloginfo( 'charset' ) : 'UTF-8' );
+    $author = holyprofweb_strip_public_urls( $author );
+    $author = sanitize_text_field( $author );
+    $author = preg_replace( '/\s{2,}/u', ' ', (string) $author );
+    return trim( (string) $author );
+}
+
+function holyprofweb_public_comment_author_is_valid( $author ) {
+    $author = trim( (string) $author );
+    if ( '' === $author || holyprofweb_public_text_has_link_markers( $author ) ) {
+        return false;
+    }
+
+    if ( function_exists( 'mb_strlen' ) ) {
+        if ( mb_strlen( $author ) < 2 ) {
+            return false;
+        }
+    } elseif ( strlen( $author ) < 2 ) {
+        return false;
+    }
+
+    return (bool) preg_match( '/[\p{L}\p{N}]/u', $author );
+}
+
+function holyprofweb_public_comment_content_is_publishable( $content ) {
+    $content = trim( (string) $content );
+    if ( '' === $content || holyprofweb_public_text_has_link_markers( $content ) ) {
+        return false;
+    }
+
+    if ( ! preg_match( '/[\p{L}]/u', $content ) ) {
+        return false;
+    }
+
+    $plain       = preg_replace( '/\s+/u', ' ', $content );
+    $words       = preg_split( '/\s+/u', trim( (string) $plain ), -1, PREG_SPLIT_NO_EMPTY );
+    $word_count  = is_array( $words ) ? count( $words ) : 0;
+    $char_count  = function_exists( 'mb_strlen' ) ? mb_strlen( $plain ) : strlen( $plain );
+    $digit_count = preg_match_all( '/\d/u', $plain );
+
+    if ( $word_count < 8 || $char_count < 48 ) {
+        return false;
+    }
+
+    if ( is_int( $digit_count ) && $digit_count > max( 12, (int) floor( $char_count / 3 ) ) ) {
+        return false;
+    }
+
+    return true;
+}
+
+function holyprofweb_public_comment_quality_gate( $commentdata ) {
+    $author  = isset( $commentdata['comment_author'] ) ? (string) $commentdata['comment_author'] : '';
+    $content = isset( $commentdata['comment_content'] ) ? (string) $commentdata['comment_content'] : '';
+
+    return holyprofweb_public_comment_author_is_valid( $author ) && holyprofweb_public_comment_content_is_publishable( $content );
+}
+
+function holyprofweb_guard_public_comment_submission( $commentdata ) {
+    if ( current_user_can( 'manage_options' ) || ! empty( $commentdata['comment_type'] ) ) {
+        return $commentdata;
+    }
+
+    if ( function_exists( 'holyprofweb_validate_public_form_guard' ) ) {
+        $guard = holyprofweb_validate_public_form_guard( 'comment' );
+        if ( is_wp_error( $guard ) ) {
+            wp_die( esc_html( $guard->get_error_message() ), esc_html__( 'Comment blocked', 'holyprofweb' ), array( 'response' => 403 ) );
+        }
+    }
+
+    if ( function_exists( 'holyprofweb_enforce_rate_limit' ) ) {
+        $limited = holyprofweb_enforce_rate_limit( 'submit_comment', 4, HOUR_IN_SECONDS, __( 'Too many comment attempts. Please try again later.', 'holyprofweb' ) );
+        if ( is_wp_error( $limited ) ) {
+            wp_die( esc_html( $limited->get_error_message() ), esc_html__( 'Comment blocked', 'holyprofweb' ), array( 'response' => 429 ) );
+        }
+    }
+
+    return $commentdata;
+}
+add_filter( 'preprocess_comment', 'holyprofweb_guard_public_comment_submission', 5 );
+
 function holyprofweb_lock_comment_links( $commentdata ) {
+    $GLOBALS['holyprofweb_comment_had_link_markers'] = false;
+
     if ( current_user_can( 'manage_options' ) ) {
         return $commentdata;
     }
 
+    if ( isset( $commentdata['comment_author'] ) ) {
+        $original_author              = (string) $commentdata['comment_author'];
+        $commentdata['comment_author'] = holyprofweb_sanitize_public_comment_author( $original_author );
+
+        if ( $original_author !== $commentdata['comment_author'] || holyprofweb_public_text_has_link_markers( $original_author ) ) {
+            $GLOBALS['holyprofweb_comment_had_link_markers'] = true;
+        }
+    }
+
     if ( isset( $commentdata['comment_content'] ) ) {
-        $commentdata['comment_content'] = holyprofweb_strip_public_urls( $commentdata['comment_content'] );
+        $original_content               = (string) $commentdata['comment_content'];
+        $commentdata['comment_content'] = holyprofweb_sanitize_public_comment_content( $original_content );
+
+        if ( $original_content !== $commentdata['comment_content'] || holyprofweb_public_text_has_link_markers( $original_content ) ) {
+            $GLOBALS['holyprofweb_comment_had_link_markers'] = true;
+        }
     }
 
     if ( isset( $commentdata['comment_author_url'] ) ) {
+        if ( '' !== trim( (string) $commentdata['comment_author_url'] ) ) {
+            $GLOBALS['holyprofweb_comment_had_link_markers'] = true;
+        }
         $commentdata['comment_author_url'] = '';
     }
 
     return $commentdata;
 }
 add_filter( 'preprocess_comment', 'holyprofweb_lock_comment_links' );
+
+function holyprofweb_mark_empty_or_link_only_comments_as_spam( $approved, $commentdata ) {
+    if ( current_user_can( 'manage_options' ) || ! empty( $commentdata['user_ID'] ) || ! empty( $commentdata['comment_type'] ) ) {
+        return $approved;
+    }
+
+    $content = isset( $commentdata['comment_content'] ) ? trim( (string) $commentdata['comment_content'] ) : '';
+    if ( '' === $content || ! holyprofweb_public_comment_author_is_valid( $commentdata['comment_author'] ?? '' ) ) {
+        return 'spam';
+    }
+
+    if ( ! empty( $GLOBALS['holyprofweb_comment_had_link_markers'] ) && ! holyprofweb_public_comment_quality_gate( $commentdata ) ) {
+        return 'spam';
+    }
+
+    return $approved;
+}
+add_filter( 'pre_comment_approved', 'holyprofweb_mark_empty_or_link_only_comments_as_spam', 30, 2 );
+
+function holyprofweb_auto_publish_salvaged_public_comments( $approved, $commentdata ) {
+    if ( current_user_can( 'manage_options' ) || ! empty( $commentdata['user_ID'] ) || ! empty( $commentdata['comment_type'] ) ) {
+        return $approved;
+    }
+
+    if ( 'spam' === $approved ) {
+        return $approved;
+    }
+
+    if ( ! empty( $GLOBALS['holyprofweb_comment_had_link_markers'] ) && holyprofweb_public_comment_quality_gate( $commentdata ) ) {
+        return 1;
+    }
+
+    return $approved;
+}
+add_filter( 'pre_comment_approved', 'holyprofweb_auto_publish_salvaged_public_comments', 35, 2 );
 
 /**
  * Render star display HTML (non-interactive).
