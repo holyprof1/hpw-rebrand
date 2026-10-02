@@ -45,3 +45,10 @@ add_filter( 'wp_sitemaps_posts_query_args', function ( $args, $post_type ) {
     }
     return $args;
 }, 20, 2 );
+
+// The legacy "page shell" preloader (an inline script plus an overlay printed on every page) is removed.
+add_action( 'init', function () {
+    remove_action( 'wp_head', 'holyprofweb_render_page_shell_loader_script', 1 );
+    remove_action( 'wp_body_open', 'holyprofweb_render_page_shell_loader', 5 );
+    remove_filter( 'body_class', 'holyprofweb_page_shell_body_class' );
+}, 0 );
