@@ -1,9 +1,9 @@
 {
   "section": "apps-websites",
   "schema": "BlogPosting with about: Organization",
-  "title": "Thinking Machines Lab: The $12 Billion Seed Round, the Tinker Product and the Valuation Talks",
-  "seo_title": "Thinking Machines Lab Explained: Funding, Tinker and Valuation",
-  "meta": "Thinking Machines Lab is Mira Murati's AI company. Its $2 billion seed round, first product Tinker and the 2026 valuation talks, explained from the reporting.",
+  "title": "What Is Thinking Machines Lab? Mira Murati's AI Company, Tinker and Funding",
+  "seo_title": "What Is Thinking Machines Lab? Tinker, Funding, Valuation",
+  "meta": "What is Thinking Machines Lab? Mira Murati's AI company, its $2 billion seed round, its first product Tinker and the reported 2026 valuation talks.",
   "dek": "Thinking Machines Lab is the AI company co-founded by former OpenAI CTO Mira Murati. This covers its $2 billion seed round, its first product Tinker and the on-off valuation talks.",
   "intent": "Informational and news: what is Thinking Machines Lab, what has it released, what is its valuation.",
   "topic": "Thinking Machines Lab",
@@ -13,10 +13,7 @@
     "How much funding has it raised?",
     "Why did the $50B round reportedly not close?"
   ],
-  "links": [
-    "/mira-murati-profile/",
-    "/ramp-corporate-card-explained/"
-  ],
+  "links": [],
   "image": "Branded editorial graphic.",
   "shots": "Company site and the Tinker product page, if they load cleanly.",
   "needs": "Check the latest round (reported Sept 2026 talks of US$1B at US$40B led by Accel) before publishing; mark anything unconfirmed as reported.",
@@ -39,5 +36,22 @@
       "https://en.wikipedia.org/wiki/Thinking_Machines_Lab"
     ]
   ],
-  "slug": "thinking-machines-lab-explained"
+  "slug": "what-is-thinking-machines-lab",
+  "old_slug": "thinking-machines-lab-explained",
+  "post_id": 62613,
+  "facts": {
+    "type": "company",
+    "name": "Thinking Machines Lab",
+    "operator": "Thinking Machines Lab",
+    "launched": "",
+    "availability": "Developer product (Tinker)",
+    "pricing": "",
+    "url": "https://thinkingmachines.ai/",
+    "limits": "Valuation talks are reported, not confirmed rounds"
+  },
+  "publish_at": "2026-10-10 09:00:00",
+  "related": [
+    "https://holyprofweb.com/what-is-ramp/",
+    "https://holyprofweb.com/what-is-corgi-insurance/"
+  ]
 }

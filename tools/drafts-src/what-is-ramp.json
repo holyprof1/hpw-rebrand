@@ -1,9 +1,9 @@
 {
   "section": "apps-websites",
   "schema": "BlogPosting with about: Organization",
-  "title": "Ramp: How a Corporate Card Company Reached a $44 Billion Valuation",
-  "seo_title": "Ramp Explained: Corporate Cards, Spend Software and the $44B Round",
-  "meta": "Ramp sells corporate cards and spend-management software. Who founded it, how it makes money, and what its June 2026 funding round at a $44 billion valuation means.",
+  "title": "What Is Ramp? Corporate Cards, How It Makes Money and the $44 Billion Valuation",
+  "seo_title": "What Is Ramp? How It Works and Why It Is Worth $44 Billion",
+  "meta": "What is Ramp? A corporate card and spend software company founded in 2019. How it makes money and what its June 2026 round at a $44 billion valuation means.",
   "dek": "Ramp sells corporate cards and finance software to businesses. This covers who founded it, how it makes money and what the June 2026 funding round reported.",
   "intent": "Informational and news: what is Ramp, how does it make money, why is it worth $44B.",
   "topic": "Ramp (corporate card and spend management)",
@@ -14,10 +14,7 @@
     "What is Ramp AI spend management?",
     "How is Ramp different from a bank card?"
   ],
-  "links": [
-    "/chime-explained/",
-    "/paystack-explained/"
-  ],
+  "links": [],
   "image": "Branded editorial graphic: Ramp, Apps & Websites. Optional: official product screenshot from ramp.com if clean.",
   "shots": "Ramp product page (dashboard preview), pricing page.",
   "needs": "Check current customer and volume figures on Ramp's own site; confirm round details in the company announcement.",
@@ -40,5 +37,22 @@
       "https://finovate.com/ramp-raises-750-million-at-a-44-billion-valuation/"
     ]
   ],
-  "slug": "ramp-corporate-card-explained"
+  "slug": "what-is-ramp",
+  "old_slug": "ramp-corporate-card-explained",
+  "post_id": 62611,
+  "facts": {
+    "type": "company",
+    "name": "Ramp",
+    "operator": "Ramp",
+    "launched": "Founded March 2019",
+    "availability": "United States businesses",
+    "pricing": "Cards free; paid software tiers (see ramp.com)",
+    "url": "https://ramp.com/",
+    "limits": "Revenue and customer figures are press and analyst estimates"
+  },
+  "publish_at": "2026-10-07 09:00:00",
+  "related": [
+    "https://holyprofweb.com/chime-explained/",
+    "https://holyprofweb.com/paystack-explained/"
+  ]
 }

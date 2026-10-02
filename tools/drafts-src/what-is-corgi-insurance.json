@@ -1,9 +1,9 @@
 {
   "section": "apps-websites",
   "schema": "BlogPosting with about: Organization",
-  "title": "Corgi: The AI-Native Insurer for Startups That Doubled Its Valuation in Weeks",
-  "seo_title": "Corgi Explained: Startup Insurance, Funding and Valuation",
-  "meta": "Corgi is an AI-native insurance platform for startups that raised a $160M Series B and then a $106M B1 in 2026. What it sells, who founded it and the valuations.",
+  "title": "What Is Corgi Insurance? Startup Cover, Funding and Valuation",
+  "seo_title": "What Is Corgi Insurance? Cover, Funding and Valuation",
+  "meta": "What is Corgi insurance? An AI-native insurer for startups that raised a $160M Series B and a $106M B1 in 2026. What it sells and how the valuations line up.",
   "dek": "Corgi is an AI-native insurance platform for startups founded by Emily Yuan and Nico Laqua. This covers what it sells, how it raised money in 2026 and how the valuations line up.",
   "intent": "Informational and news: what is Corgi insurance, who runs it, how much is it worth.",
   "topic": "Corgi (startup insurance platform)",
@@ -13,10 +13,7 @@
     "How much has Corgi raised?",
     "Why do two valuations appear in the news?"
   ],
-  "links": [
-    "/ramp-corporate-card-explained/",
-    "/insurify-explained/"
-  ],
+  "links": [],
   "image": "Branded editorial graphic: Corgi, Apps & Websites.",
   "shots": "corgi.insure home page if clean.",
   "needs": "Confirm which valuation applies to which round (reports differ: US$1.3B at Series B, US$2.6B at B1).",
@@ -39,5 +36,22 @@
       "https://mlq.ai/news/corgi-raises-106m-series-b1-at-26b-valuation-doubling-worth-in-three-weeks/"
     ]
   ],
-  "slug": "corgi-startup-insurance-explained"
+  "slug": "what-is-corgi-insurance",
+  "old_slug": "corgi-startup-insurance-explained",
+  "post_id": 62606,
+  "facts": {
+    "type": "company",
+    "name": "Corgi",
+    "operator": "Corgi",
+    "launched": "Emerged from stealth January 2026",
+    "availability": "United States startups",
+    "pricing": "Quote-based",
+    "url": "https://www.corgi.insure/",
+    "limits": "Valuations are press-reported"
+  },
+  "publish_at": "2026-10-09 09:00:00",
+  "related": [
+    "https://holyprofweb.com/what-is-ramp/",
+    "https://holyprofweb.com/insurify-explained/"
+  ]
 }

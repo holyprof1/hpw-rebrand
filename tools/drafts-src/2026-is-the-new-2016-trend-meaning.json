@@ -1,9 +1,9 @@
 {
   "section": "internet-trends",
   "schema": "BlogPosting (Article); no entity schema",
-  "title": "'2026 Is the New 2016': Where the Nostalgia Trend Came From and What It Says",
-  "seo_title": "'2026 Is the New 2016' Trend: Origin and Why It Spread",
-  "meta": "The '2026 is the new 2016' trend began on New Year's Eve 2025 and spread across TikTok and Instagram. Where it started, who joined and why people want 2016 back.",
+  "title": "What Is the '2026 Is the New 2016' Trend? Origin and Meaning",
+  "seo_title": "'2026 Is the New 2016' Trend: Meaning and Origin",
+  "meta": "What is the '2026 is the new 2016' trend? It began on New Year's Eve 2025 and spread across TikTok and Instagram. Where it started and why it took off.",
   "dek": "The '2026 is the new 2016' trend began on New Year's Eve 2025 and spread across TikTok and Instagram. This covers where it started and why it took off.",
   "intent": "Trend explainer: what is the 2016 trend, where did it start, why is it popular.",
   "topic": "The 2016 nostalgia trend",
@@ -36,5 +36,19 @@
       "https://www.yahoo.com/entertainment/celebrity/articles/2026-2016-viral-nostalgia-trend-150026334.html"
     ]
   ],
-  "slug": "2026-is-the-new-2016-trend-explained"
+  "slug": "2026-is-the-new-2016-trend-meaning",
+  "old_slug": "2026-is-the-new-2016-trend-explained",
+  "post_id": 62604,
+  "facts": {
+    "type": "trend",
+    "name": "2026 is the new 2016",
+    "operator": "",
+    "launched": "Began 31 December 2025",
+    "availability": "TikTok and Instagram",
+    "pricing": "",
+    "url": "",
+    "limits": "Counts and dates are from press coverage"
+  },
+  "publish_at": "2026-10-11 09:00:00",
+  "related": []
 }

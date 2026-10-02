@@ -1,9 +1,9 @@
 {
   "section": "products-tech",
   "schema": "BlogPosting with about: Product",
-  "title": "iPhone 18 Pro and 18 Pro Max: Price, A20 Pro Chip, Camera and What Changed",
-  "seo_title": "iPhone 18 Pro and Pro Max: Price, Specs and What Is New",
-  "meta": "Apple announced the iPhone 18 Pro at $1,199 and the Pro Max at $1,299 on 9 September 2026. The A20 Pro chip, variable aperture camera, battery and ship date.",
+  "title": "iPhone 18 Pro and Pro Max Price, Release Date and Specs",
+  "seo_title": "iPhone 18 Pro Price, Release Date and Specs",
+  "meta": "Apple announced the iPhone 18 Pro at $1,199 and the 18 Pro Max at $1,299 on 9 September 2026. Price, release date, A20 Pro chip, camera and battery.",
   "dek": "Apple announced the iPhone 18 Pro at US$1,199 and the 18 Pro Max at US$1,299 on 9 September 2026. Here are the chip, camera, battery and shipping details.",
   "intent": "Product launch: price, specs, release date, what is different from the iPhone 17 Pro.",
   "topic": "iPhone 18 Pro and iPhone 18 Pro Max",
@@ -14,10 +14,7 @@
     "Is the battery better?",
     "What is the iPhone Duo?"
   ],
-  "links": [
-    "/galaxy-s26-fe-price-specs/",
-    "/fairphone-6-repairable-phone-explained/"
-  ],
+  "links": [],
   "image": "Official Apple press images only if licensed; otherwise branded graphic.",
   "shots": "Apple newsroom comparison table (check terms before use).",
   "needs": "Verify every spec on Apple's own press release; do not repeat rumours. Add storage tiers and country pricing from apple.com.",
@@ -40,5 +37,19 @@
       "https://www.macobserver.com/tips/round-ups/iphone-18-pro-official-price-release-date-specs-new-features/"
     ]
   ],
-  "slug": "iphone-18-pro-price-chip-camera"
+  "slug": "iphone-18-pro-price-release-date-specs",
+  "old_slug": "iphone-18-pro-price-chip-camera",
+  "post_id": 62609,
+  "facts": {
+    "type": "product",
+    "name": "iPhone 18 Pro and iPhone 18 Pro Max",
+    "operator": "Apple",
+    "launched": "Announced 9 September 2026; shipping from 18 September",
+    "availability": "US launch pricing; check Apple's local store",
+    "pricing": "US$1,199 (18 Pro) and US$1,299 (18 Pro Max)",
+    "url": "https://www.apple.com/iphone/",
+    "limits": "Based on press coverage of Apple's announcement; verify on apple.com"
+  },
+  "publish_at": "2026-10-04 09:00:00",
+  "related": []
 }

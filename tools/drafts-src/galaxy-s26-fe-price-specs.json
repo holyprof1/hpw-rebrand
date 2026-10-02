@@ -1,8 +1,8 @@
 {
   "section": "products-tech",
   "schema": "BlogPosting with about: Product",
-  "title": "Samsung Galaxy S26 FE: Price, Exynos 2500, Battery and Where It Fits",
-  "seo_title": "Galaxy S26 FE: Price, Specs and Release Date",
+  "title": "Samsung Galaxy S26 FE Price, Specs and Release Date",
+  "seo_title": "Galaxy S26 FE Price, Specs and Release Date",
   "meta": "The Galaxy S26 FE starts at $699.99 in the US with an Exynos 2500, a 6.7-inch display and a 4,900 mAh battery. Specs, release date and who it suits.",
   "dek": "The Galaxy S26 FE starts at US$699.99 with an Exynos 2500 chip, a 6.7-inch display and a 4,900 mAh battery. This covers specs, availability and where it sits in the range.",
   "intent": "Product launch: price, specs and release date of the Galaxy S26 FE.",
@@ -13,10 +13,7 @@
     "What chip does it use?",
     "How is it different from the S26?"
   ],
-  "links": [
-    "/iphone-18-pro-price-chip-camera/",
-    "/fairphone-6-repairable-phone-explained/"
-  ],
+  "links": [],
   "image": "Samsung press images only if licensed; otherwise branded graphic.",
   "shots": "Samsung US product page.",
   "needs": "Confirm chip by region (Exynos or Snapdragon), storage tiers and carrier terms on Samsung's page; resolve 256 GB vs 512 GB listings.",
@@ -39,5 +36,21 @@
       "https://sundayguardianlive.com/tech-news/smartphones-launching-in-september-2026-iphone-18-pro-apple-iphone-ultra-samsung-galaxy-s26-fe-poco-f9-xiaomi-18-pro-vivo-x500-more-274255/"
     ]
   ],
-  "slug": "galaxy-s26-fe-price-specs"
+  "slug": "galaxy-s26-fe-price-specs",
+  "old_slug": "galaxy-s26-fe-price-specs",
+  "post_id": 62608,
+  "facts": {
+    "type": "product",
+    "name": "Samsung Galaxy S26 FE",
+    "operator": "Samsung",
+    "launched": "On sale from 3 September 2026 (US carriers); 4 September nationwide",
+    "availability": "United States and other markets",
+    "pricing": "From US$699.99; 256 GB at US$799.99",
+    "url": "https://www.samsung.com/us/smartphones/galaxy-s26-fe/",
+    "limits": "Chip and storage options vary by region"
+  },
+  "publish_at": "2026-10-05 09:00:00",
+  "related": [
+    "https://holyprofweb.com/iphone-18-pro-price-release-date-specs/"
+  ]
 }
