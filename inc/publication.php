@@ -112,7 +112,7 @@ function holyprofweb_pub_card( $post_id, array $o = array() ) {
         <?php endif; ?>
         <div class="pub-card__body">
             <?php if ( $kicker['label'] ) : ?>
-            <a class="pub-kicker" href="<?php echo esc_url( $kicker['url'] ); ?>"><?php echo esc_html( $kicker['label'] ); ?></a>
+            <?php if ( $kicker['url'] ) : ?><a class="pub-kicker" href="<?php echo esc_url( $kicker['url'] ); ?>"><?php echo esc_html( $kicker['label'] ); ?></a><?php else : ?><span class="pub-kicker"><?php echo esc_html( $kicker['label'] ); ?></span><?php endif; ?>
             <?php endif; ?>
             <<?php echo $tag; ?> class="pub-card__title"><a href="<?php echo esc_url( get_permalink( $post_id ) ); ?>"><?php echo esc_html( $title ); ?></a></<?php echo $tag; ?>>
             <?php if ( $o['excerpt'] ) : ?>

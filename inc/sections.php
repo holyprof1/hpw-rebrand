@@ -118,7 +118,8 @@ function holyprofweb_post_kicker( $post_id ) {
     }
     $cats = get_the_category( $post_id );
     if ( $cats ) {
-        return array( 'label' => $cats[0]->name, 'url' => get_category_link( $cats[0] ) );
+        // Legacy categories are retired archives: show the label as text, never as a link.
+        return array( 'label' => $cats[0]->name, 'url' => '' );
     }
     return array( 'label' => '', 'url' => '' );
 }

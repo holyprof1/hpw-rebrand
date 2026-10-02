@@ -331,6 +331,9 @@ function holyprofweb_seo_head() {
         $raw_desc = $post->post_excerpt
             ? wp_strip_all_tags( $post->post_excerpt )
             : wp_trim_words( wp_strip_all_tags( preg_replace( '#</(p|h[1-6]|li|div|blockquote)>|<br\s*/?>#i', ' ', strip_shortcodes( $post->post_content ) ) ), 30, '…' );
+        if ( '' === trim( $raw_desc ) && is_page( 'contact' ) ) {
+            $raw_desc = __( 'Send Holyprofweb a tip, a correction or a question. For a factual error, include the article link and a source.', 'holyprofweb' );
+        }
         $og_title = get_the_title( $post );
         $og_url   = get_permalink( $post );
         $og_img   = holyprofweb_get_post_image_url( $post->ID, 'full' );
@@ -351,6 +354,9 @@ function holyprofweb_seo_head() {
         $og_img   = holyprofweb_placeholder_url(); $rating = 0; $r_count = 0;
     } else {
         $raw_desc = is_front_page() ? __( 'New apps, websites, products, people and internet trends explained clearly.', 'holyprofweb' ) : get_bloginfo( 'description' );
+        if ( is_page( 'contact' ) ) {
+            $raw_desc = __( 'Send Holyprofweb a tip, a correction or a question. For a factual error, include the article link and a source.', 'holyprofweb' );
+        }
         $og_title = $site_name;
         $og_url   = $site_url;
         $og_img   = holyprofweb_placeholder_url(); $rating = 0; $r_count = 0;
@@ -590,7 +596,7 @@ function holyprofweb_seo_head() {
             '@type'           => 'BreadcrumbList',
             'itemListElement' => array(
                 array( '@type' => 'ListItem', 'position' => 1, 'name' => 'Home', 'item' => $site_url ),
-                array( '@type' => 'ListItem', 'position' => 2, 'name' => ( $kick['label'] ?: 'Articles' ), 'item' => ( $kick['url'] ?: $site_url ) ),
+                array( '@type' => 'ListItem', 'position' => 2, 'name' => ( $kick['label'] ?: 'Articles' ), 'item' => ( $kick['url'] ?: holyprofweb_get_blog_url() ) ),
                 array( '@type' => 'ListItem', 'position' => 3, 'name' => get_the_title( $post ), 'item' => get_permalink( $post ) ),
             ),
         );

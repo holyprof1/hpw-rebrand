@@ -25,7 +25,7 @@ while ( have_posts() ) :
             <nav class="pub-crumbs" aria-label="<?php esc_attr_e( 'Breadcrumb', 'holyprofweb' ); ?>">
                 <a href="<?php echo esc_url( home_url( '/' ) ); ?>"><?php esc_html_e( 'Home', 'holyprofweb' ); ?></a>
                 <?php if ( $kicker['label'] ) : ?>
-                <span aria-hidden="true">/</span> <a href="<?php echo esc_url( $kicker['url'] ); ?>"><?php echo esc_html( $kicker['label'] ); ?></a>
+                <span aria-hidden="true">/</span> <?php if ( $kicker['url'] ) : ?><a href="<?php echo esc_url( $kicker['url'] ); ?>"><?php echo esc_html( $kicker['label'] ); ?></a><?php else : ?><span><?php echo esc_html( $kicker['label'] ); ?></span><?php endif; ?>
                 <?php endif; ?>
             </nav>
             <h1 class="pub-article__title"><?php holyprofweb_the_decoded_title(); ?></h1>

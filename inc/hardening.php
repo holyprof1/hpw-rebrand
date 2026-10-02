@@ -52,3 +52,40 @@ add_action( 'init', function () {
     remove_action( 'wp_body_open', 'holyprofweb_render_page_shell_loader', 5 );
     remove_filter( 'body_class', 'holyprofweb_page_shell_body_class' );
 }, 0 );
+
+// ---- Content hygiene: no links to removed pages, one H1 per page ------------------------------------------------
+
+add_filter( 'the_content', function ( $content ) {
+    if ( ! is_singular() || '' === $content ) {
+        return $content;
+    }
+    // Headings in body content start at H2; the page title is the only H1.
+    $content = preg_replace( '#<h1(\s[^>]*)?>#i', '<h2$1>', $content );
+    $content = preg_replace( '#</h1>#i', '</h2>', $content );
+
+    if ( false === stripos( $content, '<a ' ) ) {
+        return $content;
+    }
+    $home_hosts = array( wp_parse_url( home_url(), PHP_URL_HOST ), 'holyprofweb.com', 'www.holyprofweb.com' );
+    return preg_replace_callback( "#<a\s[^>]*href=[\"']([^\"']+)[\"'][^>]*>(.*?)</a>#is", function ( $m ) use ( $home_hosts ) {
+        $host = wp_parse_url( $m[1], PHP_URL_HOST );
+        if ( $host && ! in_array( $host, $home_hosts, true ) ) {
+            return $m[0];
+        }
+        $path = wp_parse_url( $m[1], PHP_URL_PATH );
+        if ( $path && ( 0 === strpos( $path, '/category/' ) || ( function_exists( 'holyprofweb_is_gone_path' ) && holyprofweb_is_gone_path( $path ) ) ) ) { // legacy category archives are retired too
+            return $m[2]; // keep the words, drop the dead link
+        }
+        return $m[0];
+    }, $content );
+}, 25 );
+
+// "All stories" is a date-ordered duplicate of the hubs: followed but not indexed.
+add_filter( 'wp_robots', function ( $robots ) {
+    if ( get_query_var( 'hpw_blog_archive' ) ) {
+        unset( $robots['max-image-preview'] );
+        $robots['noindex'] = true;
+        $robots['follow']  = true;
+    }
+    return $robots;
+}, 33 );
