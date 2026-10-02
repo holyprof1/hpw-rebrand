@@ -11461,4 +11461,5 @@ require_once get_template_directory() . '/inc/country-personalization.php';
 require_once get_template_directory() . '/seo-append.php';
 require_once get_template_directory() . '/inc/sections.php';
 require_once get_template_directory() . '/inc/crawl-seo.php';
+require_once get_template_directory() . '/inc/publication.php';
 require_once get_template_directory() . '/inc/seo-rankmath-compat.php';

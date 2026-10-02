@@ -40,14 +40,13 @@
 
             <nav id="site-navigation" class="primary-navigation" role="navigation"
                  aria-label="<?php esc_attr_e( 'Primary Navigation', 'holyprofweb' ); ?>">
-                <?php
-                wp_nav_menu( array(
-                    'theme_location' => 'primary',
-                    'menu_id'        => 'primary-menu',
-                    'container'      => false,
-                    'fallback_cb'    => 'holyprofweb_fallback_menu',
-                ) );
-                ?>
+                <ul id="primary-menu" class="menu">
+                    <li class="menu-item"><a href="<?php echo esc_url( home_url( '/' ) ); ?>"<?php echo is_front_page() ? ' aria-current="page"' : ''; ?>><?php esc_html_e( 'Home', 'holyprofweb' ); ?></a></li>
+                    <?php foreach ( holyprofweb_sections() as $sec_slug => $sec ) : ?>
+                    <li class="menu-item"><a href="<?php echo esc_url( holyprofweb_section_url( $sec_slug ) ); ?>"<?php echo ( is_category( $sec_slug ) || ( is_singular( 'post' ) && holyprofweb_post_section( get_queried_object_id() ) === $sec_slug ) ) ? ' aria-current="page"' : ''; ?>><?php echo esc_html( $sec['label'] ); ?></a></li>
+                    <?php endforeach; ?>
+                    <li class="menu-item menu-item--about"><a href="<?php echo esc_url( home_url( '/about/' ) ); ?>"><?php esc_html_e( 'About', 'holyprofweb' ); ?></a></li>
+                </ul>
             </nav>
 
             <div class="header-actions">
@@ -107,10 +106,6 @@
                     <span><?php esc_html_e( 'Search', 'holyprofweb' ); ?></span>
                 </button>
 
-                <a href="<?php echo esc_url( home_url( '/submit/' ) ); ?>" class="header-cta">
-                    <?php esc_html_e( 'Review Now', 'holyprofweb' ); ?>
-                </a>
-
                 <button class="menu-toggle" id="menu-toggle"
                         aria-controls="site-navigation"
                         aria-expanded="false"
@@ -139,7 +134,7 @@
                     <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
                 </svg>
                 <input type="search" id="live-search-input" class="live-search-input"
-                       placeholder="<?php esc_attr_e( 'Search reviews, companies, salaries...', 'holyprofweb' ); ?>"
+                       placeholder="<?php esc_attr_e( 'Search apps, websites, products, people…', 'holyprofweb' ); ?>"
                        autocomplete="off" aria-autocomplete="list"
                        aria-controls="live-search-results"
                        spellcheck="false" />
@@ -158,19 +153,14 @@
                  aria-label="<?php esc_attr_e( 'Search suggestions', 'holyprofweb' ); ?>"></div>
 
             <div class="live-search-default" id="live-search-default">
-                <p class="live-search-label live-search-label--cats"><?php esc_html_e( 'Browse categories', 'holyprofweb' ); ?></p>
+                <p class="live-search-label live-search-label--cats"><?php esc_html_e( 'Browse sections', 'holyprofweb' ); ?></p>
                 <div class="live-search-cats">
                     <?php
-                    $cats = holyprofweb_get_visible_categories( array(
-                        'parent' => 0,
-                        'number' => 6,
-                    ) );
-                    if ( ! is_wp_error( $cats ) ) :
-                        foreach ( $cats as $cat ) :
+                    foreach ( holyprofweb_sections() as $sec_slug => $sec ) :
                     ?>
-                    <a href="<?php echo esc_url( get_category_link( $cat->term_id ) ); ?>"
-                       class="live-search-cat-chip"><?php echo esc_html( $cat->name ); ?></a>
-                    <?php endforeach; endif; ?>
+                    <a href="<?php echo esc_url( holyprofweb_section_url( $sec_slug ) ); ?>"
+                       class="live-search-cat-chip"><?php echo esc_html( $sec['label'] ); ?></a>
+                    <?php endforeach; ?>
                 </div>
 
                 <div class="live-search-recent-wrap" id="live-search-recent-wrap" hidden>

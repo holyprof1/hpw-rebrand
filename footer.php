@@ -32,75 +32,69 @@
                     <?php endif; ?>
                 </a>
                 <p class="footer-tagline">
-                    <?php esc_html_e( 'Global web intelligence platform for reviews, companies, salaries and user insights.', 'holyprofweb' ); ?>
+                    <?php esc_html_e( 'Discover what’s new online. New apps, websites, products, people and internet trends explained clearly.', 'holyprofweb' ); ?>
                 </p>
-                <p class="footer-trust-copy">
-                    <?php esc_html_e( 'HolyprofWeb helps readers research websites, apps, products, and online opportunities before they trust.', 'holyprofweb' ); ?>
+                <?php
+                $socials = array_filter( array(
+                    'X'         => get_option( 'hpw_social_x', '' ),
+                    'Facebook'  => get_option( 'hpw_social_facebook', '' ),
+                    'Instagram' => get_option( 'hpw_social_instagram', '' ),
+                    'YouTube'   => get_option( 'hpw_social_youtube', '' ),
+                    'TikTok'    => get_option( 'hpw_social_tiktok', '' ),
+                ) );
+                if ( $socials ) : ?>
+                <p class="footer-social">
+                    <?php foreach ( $socials as $label => $url ) : ?>
+                    <a href="<?php echo esc_url( $url ); ?>" rel="me noopener" target="_blank"><?php echo esc_html( $label ); ?></a>
+                    <?php endforeach; ?>
                 </p>
+                <?php endif; ?>
             </div>
 
-            <!-- Column 2: Platform -->
-            <nav class="footer-col footer-col--nav" aria-label="<?php esc_attr_e( 'Platform links', 'holyprofweb' ); ?>">
-                <h3 class="footer-col-title"><?php esc_html_e( 'Platform', 'holyprofweb' ); ?></h3>
+            <nav class="footer-col footer-col--nav" aria-label="<?php esc_attr_e( 'Sections', 'holyprofweb' ); ?>">
+                <h3 class="footer-col-title"><?php esc_html_e( 'Sections', 'holyprofweb' ); ?></h3>
+                <ul>
+                    <?php foreach ( holyprofweb_sections() as $sec_slug => $sec ) : ?>
+                    <li><a href="<?php echo esc_url( holyprofweb_section_url( $sec_slug ) ); ?>"><?php echo esc_html( $sec['label'] ); ?></a></li>
+                    <?php endforeach; ?>
+                </ul>
+            </nav>
+
+            <nav class="footer-col footer-col--nav" aria-label="<?php esc_attr_e( 'About', 'holyprofweb' ); ?>">
+                <h3 class="footer-col-title"><?php esc_html_e( 'Holyprofweb', 'holyprofweb' ); ?></h3>
                 <ul>
                     <?php
-                    $platform_links = array(
-                        'Reviews'   => '/category/reviews/',
-                        'Companies' => '/category/companies/',
-                        'Salaries'  => '/category/salaries/',
-                        'Biography' => '/category/biography/',
-                        'Blog'      => holyprofweb_get_blog_url(),
-                        'Reports'   => holyprofweb_get_reports_url(),
+                    $trust_links = array(
+                        'about'                      => 'About Holyprofweb',
+                        'editorial-policy'           => 'Editorial Policy',
+                        'corrections-updates-policy' => 'Corrections Policy',
+                        'authors'                    => 'Authors',
+                        'contact'                    => 'Contact',
                     );
-                    foreach ( $platform_links as $label => $path ) :
+                    foreach ( $trust_links as $slug => $label ) :
+                        if ( ! get_page_by_path( $slug ) ) { continue; }
                     ?>
-                    <li>
-                        <a href="<?php echo esc_url( 0 === strpos( $path, 'http' ) ? $path : home_url( $path ) ); ?>">
-                            <?php echo esc_html( $label ); ?>
-                        </a>
-                    </li>
+                    <li><a href="<?php echo esc_url( home_url( '/' . $slug . '/' ) ); ?>"><?php echo esc_html( $label ); ?></a></li>
                     <?php endforeach; ?>
                 </ul>
             </nav>
 
-            <!-- Column 3: Resources -->
-            <nav class="footer-col footer-col--nav" aria-label="<?php esc_attr_e( 'Resource links', 'holyprofweb' ); ?>">
-                <h3 class="footer-col-title"><?php esc_html_e( 'Resources', 'holyprofweb' ); ?></h3>
-                <ul>
-                    <?php
-                    $resource_links = function_exists( 'holyprofweb_get_footer_resource_links' )
-                        ? holyprofweb_get_footer_resource_links()
-                        : array();
-                    foreach ( $resource_links as $label => $path ) :
-                    ?>
-                    <li>
-                        <a href="<?php echo esc_url( home_url( $path ) ); ?>">
-                            <?php echo esc_html( $label ); ?>
-                        </a>
-                    </li>
-                    <?php endforeach; ?>
-                </ul>
-            </nav>
-
-            <!-- Column 4: Legal -->
-            <nav class="footer-col footer-col--nav" aria-label="<?php esc_attr_e( 'Legal links', 'holyprofweb' ); ?>">
+            <nav class="footer-col footer-col--nav" aria-label="<?php esc_attr_e( 'Legal', 'holyprofweb' ); ?>">
                 <h3 class="footer-col-title"><?php esc_html_e( 'Legal', 'holyprofweb' ); ?></h3>
                 <ul>
                     <?php
                     $legal_links = array(
-                        'Work With Us' => array( 'href' => '/work-with-us/', 'external' => false ),
-                        'Advertise'    => array( 'href' => '/advertise/', 'external' => false ),
-                        'Privacy' => array( 'href' => '/privacy-policy/', 'external' => false ),
+                        'privacy-policy' => 'Privacy',
+                        'terms'          => 'Terms',
+                        'disclaimer'     => 'Disclaimer',
+                        'advertise'      => 'Advertise',
                     );
-                    foreach ( $legal_links as $label => $link ) :
-                        $href = $link['external'] ? esc_url( $link['href'] ) : esc_url( home_url( $link['href'] ) );
+                    foreach ( $legal_links as $slug => $label ) :
+                        if ( ! get_page_by_path( $slug ) ) { continue; }
                     ?>
-                    <li>
-                        <a href="<?php echo $href; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- already escaped above ?>">
-                            <?php echo esc_html( $label ); ?>
-                        </a>
-                    </li>
+                    <li><a href="<?php echo esc_url( home_url( '/' . $slug . '/' ) ); ?>"><?php echo esc_html( $label ); ?></a></li>
                     <?php endforeach; ?>
+                    <li><a href="<?php echo esc_url( home_url( '/sitemap-index.xml' ) ); ?>"><?php esc_html_e( 'Sitemap', 'holyprofweb' ); ?></a></li>
                 </ul>
             </nav>
 
