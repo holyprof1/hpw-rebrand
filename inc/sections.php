@@ -18,7 +18,8 @@ function holyprofweb_sections() {
             'label'  => 'Apps & Websites',
             'title'  => 'New Apps & Websites',
             'intro'  => 'New apps, websites, AI tools and online services: what they are, who made them, what they cost and where they work.',
-            'legacy' => array( 'apps', 'app', 'websites', 'website-reviews', 'crypto', 'loan-apps', 'earning-platforms', 'fintech', 'tech', 'startups', 'online-business', 'web-development-seo', 'game' ),
+            // Left out on purpose: web-development-seo and online-business (service/marketing posts), loan-apps (old review farm).
+            'legacy' => array( 'apps', 'app', 'websites', 'website-reviews', 'crypto', 'earning-platforms', 'fintech', 'tech', 'startups', 'game' ),
         ),
         'products-tech' => array(
             'label'  => 'Products & Tech',

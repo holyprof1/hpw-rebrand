@@ -9,42 +9,47 @@ $sections = holyprofweb_sections();
 $used     = array();
 $no_ph    = holyprofweb_real_posts_meta_query();
 
-// The newest story across the four sections leads; each section also feeds its own block below.
-$lead_candidates = array();
+// The lead is the newest non-farm story that has a real image; else the newest non-farm story.
+$lead_pool = array();
 foreach ( array_keys( $sections ) as $slug ) {
-    $q = new WP_Query( holyprofweb_section_query_args( $slug, array( 'posts_per_page' => 8, 'fields' => 'ids', 'no_found_rows' => true ) ) );
+    $q = new WP_Query( holyprofweb_section_query_args( $slug, array( 'posts_per_page' => 30, 'fields' => 'ids', 'no_found_rows' => true ) ) );
     foreach ( $q->posts as $cand ) {
-        $lead_candidates[ $cand ] = get_post_time( 'U', true, $cand ) + ( holyprofweb_pub_has_real_image( $cand ) ? 100 * YEAR_IN_SECONDS : 0 );
+        if ( ! holyprofweb_pub_is_farm_title( $cand, true ) ) {
+            $lead_pool[ $cand ] = get_post_time( 'U', true, $cand ) + ( holyprofweb_pub_has_real_image( $cand ) ? 100 * YEAR_IN_SECONDS : 0 );
+        }
     }
 }
-arsort( $lead_candidates );
-$lead_id = $lead_candidates ? (int) array_key_first( $lead_candidates ) : 0;
+arsort( $lead_pool );
+$lead_id = $lead_pool ? (int) array_key_first( $lead_pool ) : 0;
 if ( $lead_id ) {
     $used[] = $lead_id;
 }
 
-// Trending and the section blocks come from the four sections only, so old review-farm
-// categories (scam checks, betting, salaries, reports) do not lead the page just because they are recent.
 $section_term_ids = array();
 foreach ( array_keys( $sections ) as $slug ) {
     $section_term_ids = array_merge( $section_term_ids, holyprofweb_section_term_ids( $slug ) );
 }
-$trending_ids = ( new WP_Query( array(
-    'post_type' => 'post', 'post_status' => 'publish', 'posts_per_page' => 6, 'post__not_in' => $used,
-    'ignore_sticky_posts' => true, 'fields' => 'ids', 'no_found_rows' => true, 'meta_query' => $no_ph,
-    'category__in' => $section_term_ids ? $section_term_ids : array( 0 ),
-) ) )->posts;
-$used = array_merge( $used, $trending_ids );
+$trending_ids = array();
+foreach ( array_keys( $sections ) as $slug ) {
+    $trending_ids = array_merge( $trending_ids, holyprofweb_pub_pick( $slug, 3, $used, true ) );
+}
+usort( $trending_ids, function ( $a, $b ) { return get_post_time( 'U', true, $b ) <=> get_post_time( 'U', true, $a ); } );
+$trending_ids = array_slice( $trending_ids, 0, 6 );
+$used = array_values( array_unique( array_merge( $used, $trending_ids ) ) );
 
-$apps_ids     = holyprofweb_pub_section_ids( 'apps-websites', 4, $used );
-$products_ids = holyprofweb_pub_section_ids( 'products-tech', 3, $used );
-$people_ids   = holyprofweb_pub_section_ids( 'people', 4, $used );
-$trends_ids   = holyprofweb_pub_section_ids( 'internet-trends', 3, $used );
 
-$latest_ids = ( new WP_Query( array(
-    'post_type' => 'post', 'post_status' => 'publish', 'posts_per_page' => 10, 'post__not_in' => $used,
-    'ignore_sticky_posts' => true, 'fields' => 'ids', 'no_found_rows' => true, 'meta_query' => $no_ph,
-) ) )->posts;
+$apps_ids     = holyprofweb_pub_pick( 'apps-websites', 4, $used, true );
+$products_ids = holyprofweb_pub_pick( 'products-tech', 3, $used, true );
+$people_ids   = holyprofweb_pub_pick( 'people', 4, $used );
+$trends_ids   = holyprofweb_pub_pick( 'internet-trends', 3, $used, true );
+
+// Latest: newest from the four sections (the full chronological archive stays at /blog/).
+$latest_ids = array();
+foreach ( array_keys( $sections ) as $slug ) {
+    $latest_ids = array_merge( $latest_ids, holyprofweb_pub_pick( $slug, 4, $used ) );
+}
+usort( $latest_ids, function ( $a, $b ) { return get_post_time( 'U', true, $b ) <=> get_post_time( 'U', true, $a ); } );
+$latest_ids = array_slice( $latest_ids, 0, 10 );
 
 /** Section heading with "See all" link. */
 $head = function ( $id, $title, $slug = '', $link_text = 'See all' ) {

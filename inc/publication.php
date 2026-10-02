@@ -37,9 +37,10 @@ function holyprofweb_pub_media( $post_id, $size = 'holyprofweb-card', $sizes = '
     if ( function_exists( 'holyprofweb_post_has_trusted_featured_image' ) && holyprofweb_post_has_trusted_featured_image( $post_id ) ) {
         return wp_get_attachment_image( get_post_thumbnail_id( $post_id ), $size, false, $attrs );
     }
-    $url = holyprofweb_get_post_card_image_url( $post_id );
-    // The legacy auto-generated title cards (data: URIs) are not editorial images; show the neutral placeholder instead.
-    if ( ! $url || 0 === strpos( $url, 'data:' ) ) {
+    // Only editorial images: an attached real featured image (above) or an explicitly set external image.
+    // Legacy auto-generated cards and scraped site logos are not shown; the placeholder is used instead.
+    $url = trim( (string) get_post_meta( $post_id, 'external_image', true ) );
+    if ( ! $url || 0 !== strpos( $url, 'https://' ) ) {
         return '';
     }
     $dim = holyprofweb_get_image_size_dimensions( 'holyprofweb-card' );
@@ -54,7 +55,10 @@ function holyprofweb_pub_media( $post_id, $size = 'holyprofweb-card', $sizes = '
 
 /** True when a post has a real (non-generated) featured image. */
 function holyprofweb_pub_has_real_image( $post_id ) {
-    return function_exists( 'holyprofweb_post_has_trusted_featured_image' ) && holyprofweb_post_has_trusted_featured_image( $post_id );
+    if ( function_exists( 'holyprofweb_post_has_trusted_featured_image' ) && holyprofweb_post_has_trusted_featured_image( $post_id ) ) {
+        return true;
+    }
+    return 0 === strpos( trim( (string) get_post_meta( $post_id, 'external_image', true ) ), 'https://' );
 }
 
 /** "Updated" shows only when a meaningful edit was recorded (see inc/dates.php) and it is more than a day after publishing. */
@@ -85,13 +89,11 @@ function holyprofweb_pub_card( $post_id, array $o = array() ) {
     $sizes   = $lead ? '(max-width: 900px) 100vw, 1200px' : '(max-width: 600px) 100vw, 380px';
     $img     = holyprofweb_pub_media( $post_id, $size, $sizes, $o['eager'] );
     $title   = holyprofweb_get_decoded_post_title( $post_id );
-    $classes = 'pub-card' . ( $o['variant'] ? ' pub-card--' . $o['variant'] : '' );
+    $classes = 'pub-card' . ( $o['variant'] ? ' pub-card--' . $o['variant'] : '' ) . ( $img ? '' : ' pub-card--noimg' );
     ?>
     <article class="<?php echo esc_attr( $classes ); ?>">
-        <?php if ( 'compact' !== $o['variant'] && $o['thumb'] ) : ?>
-        <a class="pub-card__media<?php echo $img ? '' : ' pub-card__media--empty'; ?>" href="<?php echo esc_url( get_permalink( $post_id ) ); ?>" tabindex="-1" aria-hidden="true">
-            <?php echo $img ? $img : '<span class="pub-card__mark">' . esc_html( $kicker['label'] ? $kicker['label'] : get_bloginfo( 'name' ) ) . '</span>'; // phpcs:ignore WordPress.Security.EscapeOutput ?>
-        </a>
+        <?php if ( $img && 'compact' !== $o['variant'] && $o['thumb'] ) : ?>
+        <a class="pub-card__media" href="<?php echo esc_url( get_permalink( $post_id ) ); ?>" tabindex="-1" aria-hidden="true"><?php echo $img; // phpcs:ignore WordPress.Security.EscapeOutput ?></a>
         <?php endif; ?>
         <div class="pub-card__body">
             <?php if ( $kicker['label'] ) : ?>
@@ -105,6 +107,51 @@ function holyprofweb_pub_card( $post_id, array $o = array() ) {
         </div>
     </article>
     <?php
+}
+
+/**
+ * Homepage-only quality gate. Old review-farm and biography-farm titles stay on the site and in their
+ * hubs, but do not lead the front page. Pure title heuristics; no post is modified.
+ */
+function holyprofweb_pub_is_farm_title( $post_id, $strict = false ) {
+    $t = wp_strip_all_tags( html_entity_decode( get_the_title( $post_id ), ENT_QUOTES, 'UTF-8' ) );
+    if ( preg_match( '/\b(legit|scam)\b|complaints|side effects|honest overview|net worth|\bwife\b|scandal|before and after|\bage,|biography:/i', $t ) ) {
+        return true;
+    }
+    // The excerpt gives away the template used by the old scam-check posts.
+    $x = wp_strip_all_tags( get_the_excerpt( $post_id ) );
+    if ( preg_match( '/legit or a scam|trust signals|honest verdict|red flags|net worth/i', $x ) ) {
+        return true;
+    }
+    // Strict mode (used for the lead story) also skips plain "... Review" titles.
+    return $strict && (bool) preg_match( '/\breviews?\b/i', $t );
+}
+
+/**
+ * Pick up to $n IDs from a section pool for the homepage: newest first, farm titles skipped,
+ * posts with a real image preferred when $prefer_images is true. Records picks in $used.
+ */
+function holyprofweb_pub_pick( $slug, $n, array &$used, $prefer_images = false ) {
+    $q = new WP_Query( holyprofweb_section_query_args( $slug, array(
+        'posts_per_page' => 80,
+        'post__not_in'   => $used,
+        'fields'         => 'ids',
+        'no_found_rows'  => true,
+    ) ) );
+    $good = array();
+    foreach ( $q->posts as $id ) {
+        if ( ! holyprofweb_pub_is_farm_title( $id ) ) {
+            $good[] = $id;
+        }
+    }
+    if ( $prefer_images ) {
+        usort( $good, function ( $a, $b ) {
+            return (int) holyprofweb_pub_has_real_image( $b ) <=> (int) holyprofweb_pub_has_real_image( $a );
+        } );
+    }
+    $picked = array_slice( $good, 0, $n );
+    $used   = array_merge( $used, $picked );
+    return $picked;
 }
 
 /** Up to $n recent post IDs for a section, skipping ids already used on the page. */

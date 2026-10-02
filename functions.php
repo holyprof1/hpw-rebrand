@@ -11471,4 +11471,5 @@ require_once get_template_directory() . '/inc/authors.php';
 require_once get_template_directory() . '/inc/trust.php';
 require_once get_template_directory() . '/inc/dates.php';
 require_once get_template_directory() . '/inc/editorial-safety.php';
+require_once get_template_directory() . '/inc/mail-guard.php';
 require_once get_template_directory() . '/inc/seo-rankmath-compat.php';
