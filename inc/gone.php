@@ -123,7 +123,7 @@ add_action( 'pre_get_posts', function ( $q ) {
     if ( is_admin() || ! $q->is_main_query() ) {
         return;
     }
-    if ( $q->get( 'hpw_blog_archive' ) || $q->is_home() ) {
+    if ( $q->get( 'hpw_blog_archive' ) || $q->is_home() || $q->is_search() ) {
         $q->set( 'meta_query', holyprofweb_real_posts_meta_query() );
     }
 } );

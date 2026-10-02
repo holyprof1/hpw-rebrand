@@ -80,7 +80,7 @@
             data.posts.forEach(function (post) {
                 html += '<li class="ls-item">' +
                     '<a href="' + escHTML(post.url) + '" class="ls-item-link">' +
-                    '<img src="' + escHTML(post.thumb_url) + '" alt="" class="ls-thumb" loading="lazy" />' +
+                    (post.thumb_url ? '<img src="' + escHTML(post.thumb_url) + '" alt="" class="ls-thumb" loading="lazy" />' : '') +
                     '<span class="ls-item-body">' +
                     (post.category_name ? '<span class="ls-item-cat">' + escHTML(post.category_name) + '</span>' : '') +
                     '<span class="ls-item-title">' + escHTML(post.title) + '</span>' +

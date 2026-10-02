@@ -39,20 +39,22 @@ function holyprofweb_trust_copy( $key ) {
                     ),
                 ),
                 array(
-                    'h' => 'Tested, researched, or unverified',
+                    'h' => 'How we label what we know',
                     'p' => array(
-                        'We separate three kinds of statements and label them.',
+                        'Every claim in an article is one of five things, and we say which.',
                     ),
                     'ul' => array(
                         '<strong>Tested by us:</strong> we used the product or service ourselves and say what we did. We only call something hands-on when it was.',
-                        '<strong>Researched:</strong> drawn from primary sources (the company, official documentation, filings, the person) and credible secondary sources, which we name.',
+                        '<strong>Researched:</strong> drawn from primary sources (the company, official documentation, filings, the person) and named secondary sources.',
+                        '<strong>Official statements:</strong> what a company, regulator or institution says. We attribute it to them and link it. It is their claim, not our finding.',
+                        '<strong>User reports:</strong> what people say they experienced. We describe them as reports, not as facts, and we do not repeat anonymous accusations about named people or companies.',
                         '<strong>Unverified:</strong> claims we could not confirm. We say so, using wording such as “We could not independently verify this.”',
                     ),
                 ),
                 array(
                     'h' => 'Older articles',
                     'p' => array(
-                        'Holyprofweb has changed direction. Many older articles on this site were published before these standards and are being reviewed. Some will be updated, merged or removed, so treat their dates and claims with care until they carry a recent update.',
+                        'Holyprofweb has changed direction. In October 2026 we removed most of the older articles, which did not meet these standards, and told search engines they are gone. A small number of older pages are kept out of search results until they can be rewritten with sources. A story shows an “Updated” date only when someone has made a meaningful change to it.',
                     ),
                 ),
                 array(
@@ -79,6 +81,10 @@ function holyprofweb_trust_copy( $key ) {
                         'Sources are named in the article, with links where possible. Dates are real: the published date never changes and the updated date changes only when we add or correct information.',
                         'Facts we cannot verify are labelled as unverified. For people we do not publish age, wealth, family, education or income unless it is confirmed by a reliable source.',
                     ),
+                ),
+                array(
+                    'h' => 'Claims about named people and companies',
+                    'p' => array( 'We do not call a named person or company a scam, fraud or liar unless there is documented evidence we can link, such as a court record, regulator notice or official statement. Otherwise we describe what is reported, say who reported it, and say what we could not verify.' ),
                 ),
                 array(
                     'h' => 'Hands-on testing',

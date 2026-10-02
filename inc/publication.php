@@ -7,15 +7,7 @@ if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 
-add_action( 'wp_enqueue_scripts', function () {
-    $file = get_template_directory() . '/assets/css/publication.css';
-    wp_enqueue_style(
-        'holyprofweb-publication',
-        get_template_directory_uri() . '/assets/css/publication.css',
-        array(),
-        file_exists( $file ) ? (string) filemtime( $file ) : null
-    );
-}, 30 );
+// Styles live in assets/css/site.css (enqueued from functions.php).
 
 /**
  * <img> markup for a post, or '' when it has no usable image (callers render a typographic

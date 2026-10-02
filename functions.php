@@ -50,68 +50,23 @@ add_action( 'after_setup_theme', 'holyprofweb_setup' );
 // =========================================
 
 function holyprofweb_enqueue_assets() {
-    $style_path       = get_stylesheet_directory() . '/style.css';
-    $main_script_path = get_template_directory() . '/assets/js/main.js';
-    $search_script_path = get_template_directory() . '/assets/js/live-search.js';
-    $style_version    = file_exists( $style_path ) ? (string) filemtime( $style_path ) : wp_get_theme()->get( 'Version' );
-    $main_version     = file_exists( $main_script_path ) ? (string) filemtime( $main_script_path ) : wp_get_theme()->get( 'Version' );
-    $search_version   = file_exists( $search_script_path ) ? (string) filemtime( $search_script_path ) : wp_get_theme()->get( 'Version' );
+    $dir = get_template_directory();
+    $uri = get_template_directory_uri();
+    $ver = function ( $rel ) use ( $dir ) {
+        $f = $dir . $rel;
+        return file_exists( $f ) ? (string) filemtime( $f ) : null;
+    };
 
-    wp_enqueue_style(
-        'holyprofweb-fonts',
-        'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap',
-        array(),
-        null
-    );
-    add_action( 'wp_head', function() {
-        echo '<link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>' . "\n";
-        echo '<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>' . "\n";
-    }, 1 );
-
-    wp_enqueue_style(
-        'holyprofweb-style',
-        get_stylesheet_uri(),
-        array( 'holyprofweb-fonts' ),
-        $style_version
-    );
-
-    wp_enqueue_script(
-        'holyprofweb-main',
-        get_template_directory_uri() . '/assets/js/main.js',
-        array(),
-        $main_version,
-        true
-    );
-
-    wp_enqueue_script(
-        'holyprofweb-live-search',
-        get_template_directory_uri() . '/assets/js/live-search.js',
-        array(),
-        $search_version,
-        true
-    );
-
+    // One stylesheet, self-hosted font (no third-party requests), two small scripts.
+    wp_enqueue_style( 'holyprofweb-site', $uri . '/assets/css/site.css', array(), $ver( '/assets/css/site.css' ) );
+    wp_enqueue_script( 'holyprofweb-site', $uri . '/assets/js/site.js', array(), $ver( '/assets/js/site.js' ), true );
+    wp_enqueue_script( 'holyprofweb-live-search', $uri . '/assets/js/live-search.js', array(), $ver( '/assets/js/live-search.js' ), true );
     wp_localize_script(
         'holyprofweb-live-search',
         'holyprofwebSearch',
         array(
-            'ajaxurl'        => admin_url( 'admin-ajax.php' ),
-            'nonce'          => wp_create_nonce( 'holyprofweb_live_search' ),
-            'reaction_nonce' => wp_create_nonce( 'holyprofweb_reaction' ),
-        )
-    );
-
-    // Also expose config to main.js via holyprofwebSearch (same global)
-    wp_localize_script(
-        'holyprofweb-main',
-        'holyprofwebSearch',
-        array(
-            'ajaxurl'        => admin_url( 'admin-ajax.php' ),
-            'nonce'          => wp_create_nonce( 'holyprofweb_live_search' ),
-            'reaction_nonce' => wp_create_nonce( 'holyprofweb_reaction' ),
-            'review_nonce'   => wp_create_nonce( 'holyprofweb_submit_review' ),
-            'salary_nonce'   => wp_create_nonce( 'holyprofweb_submit_salary' ),
-            'copy_protection_enabled' => (bool) get_option( 'hpw_enable_copy_protection', 1 ),
+            'ajaxurl' => admin_url( 'admin-ajax.php' ),
+            'nonce'   => wp_create_nonce( 'holyprofweb_live_search' ),
         )
     );
 
@@ -119,6 +74,11 @@ function holyprofweb_enqueue_assets() {
         wp_enqueue_script( 'comment-reply' );
     }
 }
+// Preload the one font file so text renders in the final typeface without a layout jump.
+add_action( 'wp_head', function () {
+    echo '<link rel="preload" href="' . esc_url( get_template_directory_uri() . '/assets/fonts/inter-latin-var.woff2' ) . '" as="font" type="font/woff2" crossorigin>' . "
+";
+}, 1 );
 add_action( 'wp_enqueue_scripts', 'holyprofweb_enqueue_assets' );
 
 function holyprofweb_get_language_catalog() {
@@ -4143,6 +4103,7 @@ function holyprofweb_live_search_ajax() {
         's'              => $term,
         'post_status'    => 'publish',
         'no_found_rows'  => true,
+        'meta_query'     => holyprofweb_real_posts_meta_query(),
     ) );
 
     $posts = array();
@@ -4151,15 +4112,12 @@ function holyprofweb_live_search_ajax() {
             $post_query->the_post();
             $post_id = get_the_ID();
 
-            // Category name
-            $cats      = get_the_category( $post_id );
-            $cat_name  = ! empty( $cats ) ? $cats[0]->name : '';
+            // Section / category name
+            $kick      = holyprofweb_post_kicker( $post_id );
+            $cat_name  = $kick['label'];
 
-            // Thumbnail URL
-            $thumb_url = get_the_post_thumbnail_url( $post_id, 'holyprofweb-thumb' );
-            if ( ! $thumb_url ) {
-                $thumb_url = holyprofweb_placeholder_url();
-            }
+            // Thumbnail only when it is a real editorial image
+            $thumb_url = holyprofweb_pub_has_real_image( $post_id ) ? (string) get_the_post_thumbnail_url( $post_id, 'holyprofweb-thumb' ) : '';
 
             // Excerpt — 80 chars
             $raw_excerpt = get_the_excerpt();
@@ -4179,23 +4137,11 @@ function holyprofweb_live_search_ajax() {
         wp_reset_postdata();
     }
 
-    // Query categories
-    $cat_terms = get_terms( array(
-        'taxonomy'   => 'category',
-        'search'     => $term,
-        'number'     => 4,
-        'hide_empty' => true,
-        'exclude'    => holyprofweb_get_category_exclusions(),
-    ) );
-
+    // The four sections whose name matches the query
     $categories = array();
-    if ( ! is_wp_error( $cat_terms ) && ! empty( $cat_terms ) ) {
-        foreach ( $cat_terms as $cat ) {
-            $categories[] = array(
-                'name'  => $cat->name,
-                'url'   => get_category_link( $cat->term_id ),
-                'count' => (int) $cat->count,
-            );
+    foreach ( holyprofweb_sections() as $sec_slug => $sec ) {
+        if ( false !== stripos( $sec['label'], $term ) ) {
+            $categories[] = array( 'name' => $sec['label'], 'url' => holyprofweb_section_url( $sec_slug ), 'count' => holyprofweb_section_post_count( $sec_slug ) );
         }
     }
 
@@ -10739,4 +10685,6 @@ require_once get_template_directory() . '/inc/editorial-safety.php';
 require_once get_template_directory() . '/inc/mail-guard.php';
 require_once get_template_directory() . '/inc/gone.php';
 require_once get_template_directory() . '/inc/comments-guard.php';
+require_once get_template_directory() . '/inc/editorial.php';
+require_once get_template_directory() . '/inc/hardening.php';
 require_once get_template_directory() . '/inc/seo-rankmath-compat.php';

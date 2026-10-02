@@ -205,7 +205,6 @@ if ( isset( $_POST['hpw_contact_nonce'] ) ) {
                 <ul>
                     <li><a href="<?php echo esc_url( home_url( '/corrections-updates-policy/' ) ); ?>"><?php esc_html_e( 'How we handle corrections', 'holyprofweb' ); ?></a></li>
                     <li><a href="<?php echo esc_url( home_url( '/editorial-policy/' ) ); ?>"><?php esc_html_e( 'Editorial policy', 'holyprofweb' ); ?></a></li>
-                    <li><a href="<?php echo esc_url( home_url( '/advertise/' ) ); ?>"><?php esc_html_e( 'Advertising', 'holyprofweb' ); ?></a></li>
                 </ul>
             </aside>
         </div>

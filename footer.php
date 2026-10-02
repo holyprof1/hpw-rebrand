@@ -1,34 +1,13 @@
     </div><!-- #page -->
 
-
     <footer id="colophon" class="site-footer" role="contentinfo">
-        <div class="footer-grid container">
-
-            <!-- Column 1: Brand -->
+        <div class="footer-grid pub-wrap">
             <div class="footer-col footer-col--brand">
-                <a href="<?php echo esc_url( home_url( '/' ) ); ?>" class="footer-logo" aria-label="<?php bloginfo( 'name' ); ?>">
-                    <?php
-                    $logo_png = get_template_directory() . '/assets/images/logo.png';
-                    $logo_svg = get_template_directory() . '/assets/images/logo.svg';
-
-                    if ( file_exists( $logo_png ) ) :
-                    ?>
-                        <picture>
-                            <source srcset="<?php echo esc_url( get_template_directory_uri() . '/assets/images/logo-360.webp' ); ?>" type="image/webp" />
-                            <img src="<?php echo esc_url( get_template_directory_uri() . '/assets/images/logo-360.png' ); ?>"
-                                 alt="<?php bloginfo( 'name' ); ?>" width="90" height="60" loading="lazy" decoding="async" />
-                        </picture>
-                    <?php elseif ( file_exists( $logo_svg ) ) : ?>
-                        <img src="<?php echo esc_url( get_template_directory_uri() . '/assets/images/logo.svg' ); ?>"
-                             alt="<?php bloginfo( 'name' ); ?>"
-                             width="140" height="32" loading="lazy" />
-                    <?php else : ?>
-                        <span class="footer-logo-text"><?php bloginfo( 'name' ); ?></span>
-                    <?php endif; ?>
+                <a href="<?php echo esc_url( home_url( '/' ) ); ?>" class="brand brand--footer" aria-label="<?php echo esc_attr( get_bloginfo( 'name' ) ); ?>">
+                    <svg class="brand__mark" width="26" height="26" viewBox="0 0 64 64" aria-hidden="true" focusable="false"><path d="M32 4 10 12v16c0 14 10 24 22 32 12-8 22-18 22-32V12L32 4Z" fill="currentColor"/><path d="m20 32 8 8 16-18" fill="none" stroke="#F0A500" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    <span class="brand__text">Holyprof<span>web</span></span>
                 </a>
-                <p class="footer-tagline">
-                    <?php esc_html_e( 'Discover what’s new online. New apps, websites, products, people and internet trends explained clearly.', 'holyprofweb' ); ?>
-                </p>
+                <p class="footer-tagline"><?php esc_html_e( 'Discover what’s new online. New apps, websites, products, people and internet trends, researched and explained clearly.', 'holyprofweb' ); ?></p>
                 <?php
                 $socials = array_filter( array(
                     'X'         => get_option( 'hpw_social_x', '' ),
@@ -46,27 +25,21 @@
                 <?php endif; ?>
             </div>
 
-            <nav class="footer-col footer-col--nav" aria-label="<?php esc_attr_e( 'Sections', 'holyprofweb' ); ?>">
+            <nav class="footer-col" aria-label="<?php esc_attr_e( 'Sections', 'holyprofweb' ); ?>">
                 <h3 class="footer-col-title"><?php esc_html_e( 'Sections', 'holyprofweb' ); ?></h3>
                 <ul>
                     <?php foreach ( holyprofweb_sections() as $sec_slug => $sec ) : ?>
                     <li><a href="<?php echo esc_url( holyprofweb_section_url( $sec_slug ) ); ?>"><?php echo esc_html( $sec['label'] ); ?></a></li>
                     <?php endforeach; ?>
+                    <li><a href="<?php echo esc_url( holyprofweb_get_blog_url() ); ?>"><?php esc_html_e( 'All stories', 'holyprofweb' ); ?></a></li>
                 </ul>
             </nav>
 
-            <nav class="footer-col footer-col--nav" aria-label="<?php esc_attr_e( 'About', 'holyprofweb' ); ?>">
+            <nav class="footer-col" aria-label="<?php esc_attr_e( 'About', 'holyprofweb' ); ?>">
                 <h3 class="footer-col-title"><?php esc_html_e( 'Holyprofweb', 'holyprofweb' ); ?></h3>
                 <ul>
                     <?php
-                    $trust_links = array(
-                        'about'                      => 'About Holyprofweb',
-                        'editorial-policy'           => 'Editorial Policy',
-                        'corrections-updates-policy' => 'Corrections Policy',
-                        'authors'                    => 'Authors',
-                        'contact'                    => 'Contact',
-                    );
-                    foreach ( $trust_links as $slug => $label ) :
+                    foreach ( array( 'about' => 'About Holyprofweb', 'editorial-policy' => 'Editorial Policy', 'corrections-updates-policy' => 'Corrections Policy', 'contact' => 'Contact' ) as $slug => $label ) :
                         if ( ! get_page_by_path( $slug ) ) { continue; }
                     ?>
                     <li><a href="<?php echo esc_url( home_url( '/' . $slug . '/' ) ); ?>"><?php echo esc_html( $label ); ?></a></li>
@@ -74,40 +47,26 @@
                 </ul>
             </nav>
 
-            <nav class="footer-col footer-col--nav" aria-label="<?php esc_attr_e( 'Legal', 'holyprofweb' ); ?>">
+            <nav class="footer-col" aria-label="<?php esc_attr_e( 'Legal', 'holyprofweb' ); ?>">
                 <h3 class="footer-col-title"><?php esc_html_e( 'Legal', 'holyprofweb' ); ?></h3>
                 <ul>
                     <?php
-                    $legal_links = array(
-                        'privacy-policy' => 'Privacy',
-                        'terms'          => 'Terms',
-                        'disclaimer'     => 'Disclaimer',
-                        'advertise'      => 'Advertise',
-                    );
-                    foreach ( $legal_links as $slug => $label ) :
+                    foreach ( array( 'privacy-policy' => 'Privacy', 'terms' => 'Terms', 'disclaimer' => 'Disclaimer' ) as $slug => $label ) :
                         if ( ! get_page_by_path( $slug ) ) { continue; }
                     ?>
                     <li><a href="<?php echo esc_url( home_url( '/' . $slug . '/' ) ); ?>"><?php echo esc_html( $label ); ?></a></li>
                     <?php endforeach; ?>
-                    <li><a href="<?php echo esc_url( holyprofweb_get_blog_url() ); ?>"><?php esc_html_e( 'All stories', 'holyprofweb' ); ?></a></li>
                     <li><a href="<?php echo esc_url( home_url( '/sitemap-index.xml' ) ); ?>"><?php esc_html_e( 'Sitemap', 'holyprofweb' ); ?></a></li>
                 </ul>
             </nav>
+        </div>
 
-        </div><!-- .footer-grid -->
-
-        <!-- Footer bottom bar -->
         <div class="footer-bottom">
-            <div class="container">
-                <p class="footer-copy">
-                    &copy; <?php echo esc_html( gmdate( 'Y' ) ); ?>
-                    <a href="<?php echo esc_url( home_url( '/' ) ); ?>"><?php bloginfo( 'name' ); ?></a>.
-                    <?php esc_html_e( 'All rights reserved.', 'holyprofweb' ); ?>
-                </p>
+            <div class="pub-wrap">
+                <p class="footer-copy">&copy; <?php echo esc_html( gmdate( 'Y' ) ); ?> <a href="<?php echo esc_url( home_url( '/' ) ); ?>"><?php bloginfo( 'name' ); ?></a>. <?php esc_html_e( 'All rights reserved.', 'holyprofweb' ); ?></p>
             </div>
-        </div><!-- .footer-bottom -->
-
-    </footer><!-- #colophon -->
+        </div>
+    </footer>
 
 <?php wp_footer(); ?>
 </body>

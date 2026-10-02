@@ -32,6 +32,13 @@ while ( have_posts() ) :
             <?php if ( $summary ) : ?>
             <p class="pub-article__summary"><?php echo esc_html( $summary ); ?></p>
             <?php endif; ?>
+            <?php $facts = holyprofweb_get_entity_facts( $post_id ); if ( $facts ) : ?>
+            <dl class="pub-facts-dl">
+                <?php foreach ( $facts as $f_label => $f_val ) : ?>
+                <div><dt><?php echo esc_html( $f_label ); ?></dt><dd><?php echo ( 'Official site' === $f_label ) ? '<a href="' . esc_url( $f_val ) . '" rel="noopener nofollow">' . esc_html( preg_replace( '#^https?://(www\.)?#', '', untrailingslashit( $f_val ) ) ) . '</a>' : esc_html( $f_val ); // phpcs:ignore WordPress.Security.EscapeOutput ?></dd></div>
+                <?php endforeach; ?>
+            </dl>
+            <?php endif; ?>
             <p class="pub-byline">
                 <?php esc_html_e( 'By', 'holyprofweb' ); ?>
                 <a href="<?php echo esc_url( get_author_posts_url( $author ) ); ?>" rel="author"><?php the_author(); ?></a>
@@ -72,7 +79,7 @@ while ( have_posts() ) :
     </article>
 
     <?php
-    $related_ids = holyprofweb_pub_related( $post_id, 3 );
+    $related_ids = array_slice( array_values( array_unique( array_merge( holyprofweb_get_related_picks( $post_id ), holyprofweb_pub_related( $post_id, 3 ) ) ) ), 0, 3 );
     if ( $related_ids ) :
         ?>
         <section class="pub-section" aria-labelledby="related-h">

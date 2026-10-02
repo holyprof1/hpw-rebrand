@@ -571,6 +571,14 @@ function holyprofweb_seo_head() {
                 'url'   => $publisher_logo,
             );
         }
+        // Entity described by the article, only from facts an editor entered (never inferred).
+        $facts_meta = (array) get_post_meta( $post->ID, '_hpw_facts', true );
+        if ( ! empty( $facts_meta['type'] ) && ! empty( $facts_meta['name'] ) ) {
+            $type_map = array( 'app' => 'SoftwareApplication', 'website' => 'WebSite', 'product' => 'Product', 'person' => 'Person', 'company' => 'Organization', 'trend' => 'Thing' );
+            $about    = array( '@type' => $type_map[ $facts_meta['type'] ] ?? 'Thing', 'name' => $facts_meta['name'] );
+            if ( ! empty( $facts_meta['url'] ) ) { $about['url'] = $facts_meta['url']; }
+            $schema['about'] = $about;
+        }
         if ( $og_img && holyprofweb_pub_has_real_image( $post->ID ) ) $schema['image'] = array( $og_img ); // generated title cards are not editorial images
         if ( $reading_time > 0 ) $schema['timeRequired'] = 'PT' . $reading_time . 'M';
         if ( $cat_name ) {

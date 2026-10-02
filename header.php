@@ -11,38 +11,17 @@
 <?php wp_body_open(); ?>
 
 <div id="page" class="site">
+    <a class="skip-link" href="#primary"><?php esc_html_e( 'Skip to content', 'holyprofweb' ); ?></a>
 
     <header id="masthead" class="site-header" role="banner">
         <div class="header-inner">
-            <div class="site-logo">
-                <?php if ( has_custom_logo() ) : ?>
-                    <?php the_custom_logo(); ?>
-                <?php else : ?>
-                    <a href="<?php echo esc_url( home_url( '/' ) ); ?>" rel="home" class="site-logo-link">
-                        <?php
-                        $logo_png = get_template_directory() . '/assets/images/logo.png';
-                        $logo_svg = get_template_directory() . '/assets/images/logo.svg';
-                        if ( file_exists( $logo_png ) ) :
-                        ?>
-                        <picture>
-                            <source srcset="<?php echo esc_url( get_template_directory_uri() . '/assets/images/logo-360.webp' ); ?>" type="image/webp" />
-                            <img src="<?php echo esc_url( get_template_directory_uri() . '/assets/images/logo-360.png' ); ?>"
-                                 alt="<?php bloginfo( 'name' ); ?>" width="90" height="60" loading="eager" decoding="async" />
-                        </picture>
-                        <?php elseif ( file_exists( $logo_svg ) ) : ?>
-                        <img src="<?php echo esc_url( get_template_directory_uri() . '/assets/images/logo.svg' ); ?>"
-                             alt="<?php bloginfo( 'name' ); ?>" width="360" height="96" loading="eager" />
-                        <?php else : ?>
-                        <span class="site-logo-text"><?php bloginfo( 'name' ); ?></span>
-                        <?php endif; ?>
-                    </a>
-                <?php endif; ?>
-            </div>
+            <a href="<?php echo esc_url( home_url( '/' ) ); ?>" rel="home" class="brand" aria-label="<?php echo esc_attr( get_bloginfo( 'name' ) ); ?>">
+                <svg class="brand__mark" width="26" height="26" viewBox="0 0 64 64" aria-hidden="true" focusable="false"><path d="M32 4 10 12v16c0 14 10 24 22 32 12-8 22-18 22-32V12L32 4Z" fill="currentColor"/><path d="m20 32 8 8 16-18" fill="none" stroke="#F0A500" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                <span class="brand__text">Holyprof<span>web</span></span>
+            </a>
 
-            <nav id="site-navigation" class="primary-navigation" role="navigation"
-                 aria-label="<?php esc_attr_e( 'Primary Navigation', 'holyprofweb' ); ?>">
+            <nav id="site-navigation" class="primary-navigation" role="navigation" aria-label="<?php esc_attr_e( 'Primary Navigation', 'holyprofweb' ); ?>">
                 <ul id="primary-menu" class="menu">
-                    <li class="menu-item"><a href="<?php echo esc_url( home_url( '/' ) ); ?>"<?php echo is_front_page() ? ' aria-current="page"' : ''; ?>><?php esc_html_e( 'Home', 'holyprofweb' ); ?></a></li>
                     <?php foreach ( holyprofweb_sections() as $sec_slug => $sec ) : ?>
                     <li class="menu-item"><a href="<?php echo esc_url( holyprofweb_section_url( $sec_slug ) ); ?>"<?php echo ( is_category( $sec_slug ) || ( is_singular( 'post' ) && holyprofweb_post_section( get_queried_object_id() ) === $sec_slug ) ) ? ' aria-current="page"' : ''; ?>><?php echo esc_html( $sec['label'] ); ?></a></li>
                     <?php endforeach; ?>
@@ -51,73 +30,17 @@
             </nav>
 
             <div class="header-actions">
-                <?php $language_items = holyprofweb_get_language_switcher_items(); ?>
-                <?php if ( count( $language_items ) > 1 ) : ?>
-                <details class="language-switcher">
-                    <summary class="language-switcher-summary" aria-label="<?php esc_attr_e( 'Language menu', 'holyprofweb' ); ?>">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                            <circle cx="12" cy="12" r="9"></circle>
-                            <path d="M3 12h18M12 3a15 15 0 0 1 0 18M12 3a15 15 0 0 0 0 18"></path>
-                        </svg>
-                    </summary>
-                    <div class="language-switcher-menu">
-                        <?php foreach ( $language_items as $language_item ) : ?>
-                            <?php if ( ! empty( $language_item['url'] ) ) : ?>
-                            <a href="<?php echo esc_url( $language_item['url'] ); ?>" class="language-switcher-item<?php echo ! empty( $language_item['current'] ) ? ' is-current' : ''; ?>"><?php echo esc_html( $language_item['label'] ); ?></a>
-                            <?php else : ?>
-                            <span class="language-switcher-item language-switcher-item--static<?php echo ! empty( $language_item['current'] ) ? ' is-current' : ''; ?>"><?php echo esc_html( $language_item['label'] ); ?></span>
-                            <?php endif; ?>
-                        <?php endforeach; ?>
-                    </div>
-                </details>
-                <?php endif; ?>
-
-                <button class="theme-toggle" id="theme-toggle"
-                        type="button"
-                        aria-label="<?php esc_attr_e( 'Toggle theme', 'holyprofweb' ); ?>"
-                        aria-pressed="false">
-                    <span class="theme-toggle-icon theme-toggle-icon--default" aria-hidden="true">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
-                            <circle cx="12" cy="12" r="8.5"></circle>
-                            <path d="M12 3.5v17"></path>
-                        </svg>
-                    </span>
-                    <span class="theme-toggle-icon theme-toggle-icon--sun" aria-hidden="true">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
-                            <circle cx="12" cy="12" r="4.2"></circle>
-                            <path d="M12 2.5v2.2M12 19.3v2.2M4.9 4.9l1.6 1.6M17.5 17.5l1.6 1.6M2.5 12h2.2M19.3 12h2.2M4.9 19.1l1.6-1.6M17.5 6.5l1.6-1.6"></path>
-                        </svg>
-                    </span>
-                    <span class="theme-toggle-icon theme-toggle-icon--moon" aria-hidden="true">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M20.3 14.8A8.5 8.5 0 0 1 9.2 3.7a8.5 8.5 0 1 0 11.1 11.1Z"></path>
-                        </svg>
-                    </span>
-                </button>
-
-                <button class="header-search-trigger" id="header-search-trigger"
+                <button class="icon-btn header-search-trigger" id="header-search-trigger" type="button"
                         aria-label="<?php esc_attr_e( 'Open search', 'holyprofweb' ); ?>"
                         aria-expanded="false" aria-controls="live-search-overlay">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
-                         stroke="currentColor" stroke-width="2.25"
-                         stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                        <circle cx="11" cy="11" r="8"></circle>
-                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                    </svg>
-                    <span><?php esc_html_e( 'Search', 'holyprofweb' ); ?></span>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
                 </button>
-
-                <button class="menu-toggle" id="menu-toggle"
-                        aria-controls="site-navigation"
-                        aria-expanded="false"
-                        aria-label="<?php esc_attr_e( 'Toggle menu', 'holyprofweb' ); ?>">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
-                         stroke="currentColor" stroke-width="2.25"
-                         stroke-linecap="round" aria-hidden="true">
-                        <line x1="3" y1="6" x2="21" y2="6"></line>
-                        <line x1="3" y1="12" x2="21" y2="12"></line>
-                        <line x1="3" y1="18" x2="21" y2="18"></line>
-                    </svg>
+                <button class="icon-btn theme-toggle" id="theme-toggle" type="button" aria-label="<?php esc_attr_e( 'Toggle dark mode', 'holyprofweb' ); ?>" aria-pressed="false">
+                    <svg class="theme-toggle__sun" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"></path></svg>
+                    <svg class="theme-toggle__moon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.3 14.8A8.5 8.5 0 0 1 9.2 3.7a8.5 8.5 0 1 0 11.1 11.1Z"></path></svg>
+                </button>
+                <button class="icon-btn menu-toggle" id="menu-toggle" type="button" aria-controls="site-navigation" aria-expanded="false" aria-label="<?php esc_attr_e( 'Toggle menu', 'holyprofweb' ); ?>">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><line x1="3" y1="7" x2="21" y2="7"></line><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="17" x2="21" y2="17"></line></svg>
                 </button>
             </div>
         </div>
@@ -128,42 +51,22 @@
          aria-hidden="true" inert>
         <div class="live-search-inner">
             <div class="live-search-bar">
-                <svg class="live-search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none"
-                     stroke="currentColor" stroke-width="2.25" stroke-linecap="round"
-                     stroke-linejoin="round" aria-hidden="true">
-                    <circle cx="11" cy="11" r="8"></circle>
-                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                </svg>
+                <svg class="live-search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
                 <input type="search" id="live-search-input" class="live-search-input"
                        placeholder="<?php esc_attr_e( 'Search apps, websites, products, people…', 'holyprofweb' ); ?>"
-                       autocomplete="off" aria-autocomplete="list"
-                       aria-controls="live-search-results"
-                       spellcheck="false" />
-                <button class="live-search-close" id="live-search-close"
-                        aria-label="<?php esc_attr_e( 'Close search', 'holyprofweb' ); ?>">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
-                         stroke="currentColor" stroke-width="2.25" stroke-linecap="round"
-                         aria-hidden="true">
-                        <line x1="18" y1="6" x2="6" y2="18"></line>
-                        <line x1="6" y1="6" x2="18" y2="18"></line>
-                    </svg>
+                       autocomplete="off" aria-controls="live-search-results" spellcheck="false" />
+                <button class="live-search-close" id="live-search-close" type="button" aria-label="<?php esc_attr_e( 'Close search', 'holyprofweb' ); ?>">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
                 </button>
             </div>
-
-            <div id="live-search-results" class="live-search-results" role="listbox"
-                 aria-label="<?php esc_attr_e( 'Search suggestions', 'holyprofweb' ); ?>"></div>
-
+            <div id="live-search-results" class="live-search-results" aria-label="<?php esc_attr_e( 'Search suggestions', 'holyprofweb' ); ?>"></div>
             <div class="live-search-default" id="live-search-default">
-                <p class="live-search-label live-search-label--cats"><?php esc_html_e( 'Browse sections', 'holyprofweb' ); ?></p>
+                <p class="live-search-label"><?php esc_html_e( 'Browse sections', 'holyprofweb' ); ?></p>
                 <div class="live-search-cats">
-                    <?php
-                    foreach ( holyprofweb_sections() as $sec_slug => $sec ) :
-                    ?>
-                    <a href="<?php echo esc_url( holyprofweb_section_url( $sec_slug ) ); ?>"
-                       class="live-search-cat-chip"><?php echo esc_html( $sec['label'] ); ?></a>
+                    <?php foreach ( holyprofweb_sections() as $sec_slug => $sec ) : ?>
+                    <a href="<?php echo esc_url( holyprofweb_section_url( $sec_slug ) ); ?>" class="live-search-cat-chip"><?php echo esc_html( $sec['label'] ); ?></a>
                     <?php endforeach; ?>
                 </div>
-
                 <div class="live-search-recent-wrap" id="live-search-recent-wrap" hidden>
                     <p class="live-search-label"><?php esc_html_e( 'Recent searches', 'holyprofweb' ); ?></p>
                     <div class="live-search-trending" id="live-search-recent"></div>
