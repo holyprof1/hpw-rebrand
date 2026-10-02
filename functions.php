@@ -552,16 +552,16 @@ remove_action( 'wp_head', 'wp_shortlink_wp_head' );
 
 
 // =========================================
-// COMMENT FORM — RELABEL AS USER REVIEWS
+// COMMENT FORM — PLAIN COMMENTS (no review language)
 // =========================================
 
 function holyprofweb_reviews_comment_defaults( $defaults ) {
     if ( ! is_singular( 'post' ) ) return $defaults;
 
-    $defaults['title_reply']        = __( 'User Reviews', 'holyprofweb' );
+    $defaults['title_reply']        = __( 'Leave a comment', 'holyprofweb' );
     $defaults['title_reply_to']     = __( 'Reply to %s', 'holyprofweb' );
-    $defaults['label_submit']       = __( 'Post Review', 'holyprofweb' );
-    $defaults['title_reply_before'] = '<h2 id="reply-title" class="reviews-section-title">';
+    $defaults['label_submit']       = __( 'Post comment', 'holyprofweb' );
+    $defaults['title_reply_before'] = '<h2 id="reply-title" class="comments-title">';
     $defaults['title_reply_after']  = '</h2>';
 
     return $defaults;
@@ -583,742 +583,7 @@ add_action( 'comment_form_after_fields', 'holyprofweb_render_comment_form_guard'
 add_action( 'comment_form_logged_in_after', 'holyprofweb_render_comment_form_guard' );
 
 
-// =========================================
-// ADS SYSTEM — ADMIN SETTINGS PAGE
-// =========================================
-
-/**
- * Register Appearance → Holyprof Ads menu item.
- */
-function holyprofweb_ads_admin_menu() {
-    return;
-}
-add_action( 'admin_menu', 'holyprofweb_ads_admin_menu' );
-
-/**
- * Render the Ads settings page — Adsterra units only.
- */
-function holyprofweb_ads_admin_page() {
-    if ( ! current_user_can( 'manage_options' ) ) {
-        return;
-    }
-
-    $saved = false;
-    $get_posted_ad_code = function( $option_suffix, $field ) {
-        $option_name   = 'holyprofweb_ad_format_' . $option_suffix;
-        $existing_code = (string) get_option( $option_name, '' );
-        $clear_field   = $field . '_clear';
-        $b64_field     = $field . '_b64';
-
-        if ( ! empty( $_POST[ $clear_field ] ) ) {
-            return '';
-        }
-
-        if ( ! empty( $_POST[ $b64_field ] ) ) {
-            // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
-            $decoded = base64_decode( wp_unslash( $_POST[ $b64_field ] ), true );
-            return false === $decoded ? $existing_code : $decoded;
-        }
-
-        if ( array_key_exists( $field, $_POST ) ) {
-            // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
-            return (string) wp_unslash( $_POST[ $field ] );
-        }
-
-        // Keep the stored code if the payload is missing so toggles/WAF issues do not wipe ads.
-        return $existing_code;
-    };
-
-    if (
-        isset( $_POST['holyprofweb_ads_nonce'] ) &&
-        wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['holyprofweb_ads_nonce'] ) ), 'holyprofweb_save_ads' )
-    ) {
-        holyprofweb_store_ad_setting( 'holyprofweb_ads_enabled', empty( $_POST['hpw_ads_enabled'] ) ? '0' : '1' );
-
-        // Ad unit codes — base64-encoded by JS to bypass server WAF.
-        $ad_units = array(
-            'social'         => 'hpw_ad_social',
-            'native'         => 'hpw_ad_native',
-            'banner_728x90'  => 'hpw_ad_728x90',
-            'banner_468x60'  => 'hpw_ad_468x60',
-            'banner_320x50'  => 'hpw_ad_320x50',
-            'banner_160x300' => 'hpw_ad_160x300',
-            'banner_160x600' => 'hpw_ad_160x600',
-            'banner_300x250' => 'hpw_ad_300x250',
-        );
-        foreach ( $ad_units as $option_suffix => $field ) {
-            holyprofweb_store_ad_setting( 'holyprofweb_ad_enabled_' . $option_suffix, empty( $_POST[ $field . '_enabled' ] ) ? '0' : '1' );
-            $code = $get_posted_ad_code( $option_suffix, $field );
-            holyprofweb_store_ad_unit_code( $option_suffix, $code );
-        }
-
-        // Density per format group.
-        foreach ( array( 'social', 'native', 'leaderboard', 'rectangle', 'mobile' ) as $group ) {
-            $val = isset( $_POST[ 'hpw_density_' . $group ] ) ? sanitize_key( wp_unslash( $_POST[ 'hpw_density_' . $group ] ) ) : 'basic';
-            if ( 'rigid' === $val ) {
-                $val = 'advanced';
-            }
-            holyprofweb_store_ad_setting( 'holyprofweb_ad_density_' . $group, in_array( $val, array( 'basic', 'normal', 'advanced' ), true ) ? $val : 'basic' );
-        }
-
-        $saved = true;
-    }
-
-    // Helper: decode stored code for textarea display.
-    $get_code = function( $key ) {
-        return holyprofweb_get_saved_ad_unit_code( $key );
-    };
-    $is_unit_enabled = function( $key ) {
-        return '0' !== holyprofweb_get_saved_ad_setting( 'holyprofweb_ad_enabled_' . $key, '1' );
-    };
-    $density_label = function( $group ) {
-        $d = holyprofweb_get_ad_density( $group );
-        if ( 'rigid' === $d ) {
-            $d = 'advanced';
-        }
-        return in_array( $d, array( 'basic', 'normal', 'advanced' ), true ) ? $d : 'basic';
-    };
-    ?>
-    <div class="wrap">
-        <h1>&#128250; <?php esc_html_e( 'HPW Settings — Ads', 'holyprofweb' ); ?></h1>
-        <?php holyprofweb_settings_nav( 'ads' ); ?>
-
-        <?php if ( $saved ) : ?>
-        <div class="notice notice-success is-dismissible">
-            <p><?php esc_html_e( 'Ad codes saved.', 'holyprofweb' ); ?></p>
-        </div>
-        <?php endif; ?>
-
-        <p style="color:#666;margin-bottom:24px;">
-            <?php esc_html_e( 'Manage the 8 ad units here. Choose Basic, Normal, or Advanced placement per ad group, and switch any unit off without deleting its code. HPW now keeps a backup copy of each ad setting in WordPress options so blank save payloads can self-heal.', 'holyprofweb' ); ?>
-        </p>
-
-        <form method="post" id="hpw-ads-form">
-            <?php wp_nonce_field( 'holyprofweb_save_ads', 'holyprofweb_ads_nonce' ); ?>
-            <style>
-                #hpw-ads-form .form-table {
-                    width: 100%;
-                    max-width: none;
-                }
-                #hpw-ads-form .form-table th {
-                    width: 180px;
-                    padding-left: 0;
-                }
-                #hpw-ads-form .form-table td {
-                    padding-right: 0;
-                }
-                #hpw-ads-form .hpw-ad-code {
-                    min-height: 180px;
-                    width: 100%;
-                    font-size: 12px;
-                    line-height: 1.5;
-                }
-                #hpw-ads-form .hpw-ad-switch {
-                    display: inline-flex;
-                    align-items: center;
-                    gap: 8px;
-                    margin-bottom: 10px;
-                    font-weight: 600;
-                }
-                #hpw-ads-form .hpw-placement-table {
-                    width: 100%;
-                    border-collapse: collapse;
-                    margin: 0 0 24px;
-                    background: #fff;
-                }
-                #hpw-ads-form .hpw-placement-table th,
-                #hpw-ads-form .hpw-placement-table td {
-                    border: 1px solid #dcdcde;
-                    padding: 10px 12px;
-                    vertical-align: top;
-                }
-                #hpw-ads-form .hpw-placement-table th {
-                    background: #f6f7f7;
-                    text-align: left;
-                }
-            </style>
-
-            <table class="form-table" role="presentation" style="max-width:680px;margin-bottom:20px;">
-                <tr>
-                    <th scope="row"><?php esc_html_e( 'Global Ads Switch', 'holyprofweb' ); ?></th>
-                    <td>
-                        <label class="hpw-ad-switch">
-                            <input type="checkbox" name="hpw_ads_enabled" value="1" <?php checked( '1', holyprofweb_get_saved_ad_setting( 'holyprofweb_ads_enabled', '1' ) ); ?> />
-                            <span><?php esc_html_e( 'Enable ads sitewide', 'holyprofweb' ); ?></span>
-                        </label>
-                        <p class="description"><?php esc_html_e( 'Turn this off to hide all ads without removing saved ad code.', 'holyprofweb' ); ?></p>
-                    </td>
-                </tr>
-            </table>
-
-            <table class="hpw-placement-table" role="presentation">
-                <thead>
-                    <tr>
-                        <th><?php esc_html_e( 'Ad Unit', 'holyprofweb' ); ?></th>
-                        <th><?php esc_html_e( 'Basic', 'holyprofweb' ); ?></th>
-                        <th><?php esc_html_e( 'Normal', 'holyprofweb' ); ?></th>
-                        <th><?php esc_html_e( 'Advanced', 'holyprofweb' ); ?></th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr><td><?php esc_html_e( 'Social Bar', 'holyprofweb' ); ?></td><td><?php esc_html_e( 'Floating social bar sitewide.', 'holyprofweb' ); ?></td><td><?php esc_html_e( 'Floating social bar sitewide.', 'holyprofweb' ); ?></td><td><?php esc_html_e( 'Floating social bar sitewide.', 'holyprofweb' ); ?></td></tr>
-                    <tr><td><?php esc_html_e( 'Native Banner', 'holyprofweb' ); ?></td><td><?php esc_html_e( 'After 2nd paragraph in posts.', 'holyprofweb' ); ?></td><td><?php esc_html_e( 'Posts plus archive inline blocks.', 'holyprofweb' ); ?></td><td><?php esc_html_e( 'Posts, archives, and homepage inline blocks.', 'holyprofweb' ); ?></td></tr>
-                    <tr><td><?php esc_html_e( 'Banner 728×90', 'holyprofweb' ); ?></td><td><?php esc_html_e( 'Header leaderboard.', 'holyprofweb' ); ?></td><td><?php esc_html_e( 'Header and footer leaderboard.', 'holyprofweb' ); ?></td><td><?php esc_html_e( 'Header, footer, and inline feed/archive support.', 'holyprofweb' ); ?></td></tr>
-                    <tr><td><?php esc_html_e( 'Banner 468×60', 'holyprofweb' ); ?></td><td><?php esc_html_e( 'Desktop leaderboard fallback.', 'holyprofweb' ); ?></td><td><?php esc_html_e( 'Desktop leaderboard fallback.', 'holyprofweb' ); ?></td><td><?php esc_html_e( 'Desktop leaderboard fallback.', 'holyprofweb' ); ?></td></tr>
-                    <tr><td><?php esc_html_e( 'Banner 320×50', 'holyprofweb' ); ?></td><td><?php esc_html_e( 'Mobile sticky footer.', 'holyprofweb' ); ?></td><td><?php esc_html_e( 'Sticky footer plus homepage mobile slot.', 'holyprofweb' ); ?></td><td><?php esc_html_e( 'Sticky footer plus homepage and archive mobile slots.', 'holyprofweb' ); ?></td></tr>
-                    <tr><td><?php esc_html_e( 'Banner 160×300', 'holyprofweb' ); ?></td><td><?php esc_html_e( 'Sidebar rectangle fallback.', 'holyprofweb' ); ?></td><td><?php esc_html_e( 'Sidebar and inline fallback.', 'holyprofweb' ); ?></td><td><?php esc_html_e( 'Sidebar, inline, and extra dense fallback.', 'holyprofweb' ); ?></td></tr>
-                    <tr><td><?php esc_html_e( 'Banner 160×600', 'holyprofweb' ); ?></td><td><?php esc_html_e( 'Sidebar skyscraper fallback.', 'holyprofweb' ); ?></td><td><?php esc_html_e( 'Sidebar skyscraper fallback.', 'holyprofweb' ); ?></td><td><?php esc_html_e( 'Sidebar skyscraper fallback.', 'holyprofweb' ); ?></td></tr>
-                    <tr><td><?php esc_html_e( 'Banner 300×250', 'holyprofweb' ); ?></td><td><?php esc_html_e( 'Sidebar plus first in-content slot.', 'holyprofweb' ); ?></td><td><?php esc_html_e( 'Sidebar, second sidebar, first in-content, archive/home inline.', 'holyprofweb' ); ?></td><td><?php esc_html_e( 'All normal placements plus second in-content slot.', 'holyprofweb' ); ?></td></tr>
-                </tbody>
-            </table>
-
-            <?php
-            // ── Section helper ────────────────────────────────────────────
-            $section = function( $title, $desc ) {
-                echo '<h2 style="margin-top:32px;border-bottom:1px solid #ddd;padding-bottom:6px;">' . esc_html( $title ) . '</h2>';
-                if ( $desc ) echo '<p style="color:#666;margin-bottom:12px;">' . esc_html( $desc ) . '</p>';
-            };
-            $unit_row = function( $label, $adsterra_id, $field, $code_key ) use ( $get_code, $is_unit_enabled ) {
-                $val = $get_code( $code_key );
-                ?>
-                <tr>
-                    <th scope="row">
-                        <strong><?php echo esc_html( $label ); ?></strong><br>
-                        <span style="font-size:11px;color:#888;font-weight:normal;">ID: <?php echo esc_html( $adsterra_id ); ?></span>
-                    </th>
-                    <td>
-                        <label class="hpw-ad-switch">
-                            <input type="checkbox" name="<?php echo esc_attr( $field . '_enabled' ); ?>" value="1" <?php checked( true, $is_unit_enabled( $code_key ) ); ?> />
-                            <span><?php esc_html_e( 'Enable this ad unit', 'holyprofweb' ); ?></span>
-                        </label>
-                        <label class="hpw-ad-switch" style="font-weight:500;">
-                            <input type="checkbox" name="<?php echo esc_attr( $field . '_clear' ); ?>" value="1" />
-                            <span><?php esc_html_e( 'Clear saved code on next save', 'holyprofweb' ); ?></span>
-                        </label>
-                        <textarea name="<?php echo esc_attr( $field ); ?>" rows="8"
-                                  class="large-text code hpw-ad-code"
-                                  placeholder="Paste Adsterra script code here…"><?php echo esc_textarea( $val ); ?></textarea>
-                        <p class="description"><?php esc_html_e( 'Turning this ad off keeps the saved code in the database. Use "Clear saved code on next save" only when you really want to remove it.', 'holyprofweb' ); ?></p>
-                    </td>
-                </tr>
-                <?php
-            };
-            $density_row = function( $group, $basic_desc, $normal_desc, $rigid_desc ) use ( $density_label ) {
-                $cur = $density_label( $group );
-                ?>
-                <tr>
-                    <th scope="row" style="padding-top:4px;">Placement</th>
-                    <td>
-                        <select name="hpw_density_<?php echo esc_attr( $group ); ?>" style="min-width:220px;">
-                            <option value="basic" <?php selected( $cur, 'basic' ); ?>><?php echo esc_html( 'Basic — ' . $basic_desc ); ?></option>
-                            <option value="normal" <?php selected( $cur, 'normal' ); ?>><?php echo esc_html( 'Normal — ' . $normal_desc ); ?></option>
-                            <option value="advanced" <?php selected( $cur, 'advanced' ); ?>><?php echo esc_html( 'Advanced — ' . $rigid_desc ); ?></option>
-                        </select>
-                    </td>
-                </tr>
-                <tr><td colspan="2" style="padding-top:0;"><hr style="margin:4px 0 16px;"></td></tr>
-                <?php
-            };
-            ?>
-
-            <?php $section( 'Social Bar', 'Sitewide floating bar — always shown when active.' ); ?>
-            <table class="form-table" role="presentation">
-                <?php $unit_row( 'Social Bar', '28927838', 'hpw_ad_social', 'social' ); ?>
-                <?php $density_row( 'social', 'Floating social bar sitewide.', 'Floating social bar sitewide.', 'Floating social bar sitewide.' ); ?>
-            </table>
-
-            <?php $section( 'Native Banner', 'Blends with content — good for feeds and article bodies.' ); ?>
-            <table class="form-table" role="presentation">
-                <?php $unit_row( 'Native Banner', '28927839', 'hpw_ad_native', 'native' ); ?>
-                <?php $density_row( 'native', 'Inside posts only (after 2nd paragraph).', 'Posts plus one archive/feed insertion.', 'Posts, feed/archive listings, and homepage inline.' ); ?>
-            </table>
-
-            <?php $section( 'Leaderboard — Desktop Wide', 'Banner 728×90 is primary; 468×60 is the fallback if 728 is empty.' ); ?>
-            <table class="form-table" role="presentation">
-                <?php $unit_row( 'Banner 728×90', '28927843', 'hpw_ad_728x90', 'banner_728x90' ); ?>
-                <?php $unit_row( 'Banner 468×60', '28927841', 'hpw_ad_468x60', 'banner_468x60' ); ?>
-                <?php $density_row( 'leaderboard', 'Header only.', 'Header plus footer.', 'Header, footer, and feed/archive inline.' ); ?>
-            </table>
-
-            <?php $section( 'Rectangle / Sidebar', '300×250 is primary; 160×300 and 160×600 are fallbacks.' ); ?>
-            <table class="form-table" role="presentation">
-                <?php $unit_row( 'Banner 300×250', '28927844', 'hpw_ad_300x250', 'banner_300x250' ); ?>
-                <?php $unit_row( 'Banner 160×300', '28927840', 'hpw_ad_160x300', 'banner_160x300' ); ?>
-                <?php $unit_row( 'Banner 160×600', '28927844', 'hpw_ad_160x600', 'banner_160x600' ); ?>
-                <?php $density_row( 'rectangle', 'Sidebar plus 1 in-content slot.', 'Sidebar, sidebar-2, first in-content, and archive/home inline.', 'All normal placements plus second in-content slot.' ); ?>
-            </table>
-
-            <?php $section( 'Mobile Banner', 'Compact banner shown only on mobile devices.' ); ?>
-            <table class="form-table" role="presentation">
-                <?php $unit_row( 'Banner 320×50', '28927842', 'hpw_ad_320x50', 'banner_320x50' ); ?>
-                <?php $density_row( 'mobile', 'Mobile sticky footer.', 'Mobile sticky plus homepage mobile inline.', 'Mobile sticky plus homepage and archive mobile inline.' ); ?>
-            </table>
-
-            <?php submit_button( __( 'Save Ad Codes', 'holyprofweb' ) ); ?>
-        </form>
-    </div>
-
-    <script>
-    (function(){
-        var form = document.getElementById('hpw-ads-form');
-        if ( ! form ) return;
-        form.addEventListener('submit', function(){
-            var areas = form.querySelectorAll('.hpw-ad-code');
-            areas.forEach(function(ta){
-                var orig = ta.name;
-                if ( ! orig ) return;
-                var val  = ta.value;
-                if ( val.trim() === '' ) return;
-                try {
-                    var encoded = btoa(unescape(encodeURIComponent(val)));
-                    var hidden  = document.createElement('input');
-                    hidden.type  = 'hidden';
-                    hidden.name  = orig + '_b64';
-                    hidden.value = encoded;
-                    form.appendChild(hidden);
-                    ta.name = ''; // stop raw POST of this field
-                } catch(e) {}
-            });
-        });
-    })();
-    </script>
-    <?php
-}
-
-/**
- * Retrieve ad code for a slot.
- * Returns empty string if not set.
- */
-function holyprofweb_get_ad_code( $slot ) {
-    return (string) get_option( 'holyprofweb_ad_' . sanitize_key( $slot ), '' );
-}
-
-function holyprofweb_get_ad_setting_backup_option_name( $key ) {
-    return 'holyprofweb_ad_setting_backup_' . sanitize_key( $key );
-}
-
-function holyprofweb_store_ad_setting( $key, $value ) {
-    $key   = sanitize_key( $key );
-    $value = (string) $value;
-
-    update_option( $key, $value, false );
-
-    $backup_payload = base64_encode( $value );
-    if ( function_exists( 'holyprofweb_encrypt_private_value' ) ) {
-        $backup_payload = holyprofweb_encrypt_private_value( $backup_payload );
-    }
-    update_option( holyprofweb_get_ad_setting_backup_option_name( $key ), $backup_payload, false );
-
-    return $value;
-}
-
-function holyprofweb_get_saved_ad_setting( $key, $default = '' ) {
-    $key   = sanitize_key( $key );
-    $value = get_option( $key, null );
-
-    if ( null !== $value ) {
-        return (string) $value;
-    }
-
-    $backup = (string) get_option( holyprofweb_get_ad_setting_backup_option_name( $key ), '' );
-    if ( '' === trim( $backup ) ) {
-        return (string) $default;
-    }
-
-    $payload = function_exists( 'holyprofweb_decrypt_private_value' ) ? holyprofweb_decrypt_private_value( $backup ) : $backup;
-    $value   = base64_decode( (string) $payload, true );
-    if ( false === $value ) {
-        $value = (string) $payload;
-    }
-
-    $value = (string) $value;
-    update_option( $key, $value, false );
-
-    return '' !== $value ? $value : (string) $default;
-}
-
-function holyprofweb_get_ad_backup_option_name( $slot ) {
-    return 'holyprofweb_ad_format_backup_' . sanitize_key( $slot );
-}
-
-function holyprofweb_store_ad_unit_code( $slot, $code ) {
-    $slot = sanitize_key( $slot );
-    $code = function_exists( 'holyprofweb_sanitize_ad_code' ) ? holyprofweb_sanitize_ad_code( $code ) : (string) $code;
-
-    update_option( 'holyprofweb_ad_format_' . $slot, $code, false );
-
-    $backup_payload = base64_encode( $code );
-    if ( function_exists( 'holyprofweb_encrypt_private_value' ) ) {
-        $backup_payload = holyprofweb_encrypt_private_value( $backup_payload );
-    }
-    update_option( holyprofweb_get_ad_backup_option_name( $slot ), $backup_payload, false );
-
-    return $code;
-}
-
-function holyprofweb_restore_ad_unit_code_from_backup( $slot ) {
-    $slot   = sanitize_key( $slot );
-    $backup = (string) get_option( holyprofweb_get_ad_backup_option_name( $slot ), '' );
-    if ( '' === trim( $backup ) ) {
-        return '';
-    }
-
-    $payload = function_exists( 'holyprofweb_decrypt_private_value' ) ? holyprofweb_decrypt_private_value( $backup ) : $backup;
-    $code    = base64_decode( (string) $payload, true );
-    if ( false === $code ) {
-        $code = (string) $payload;
-    }
-
-    $code = function_exists( 'holyprofweb_sanitize_ad_code' ) ? holyprofweb_sanitize_ad_code( $code ) : (string) $code;
-    if ( '' !== trim( $code ) ) {
-        update_option( 'holyprofweb_ad_format_' . $slot, $code, false );
-    }
-
-    return $code;
-}
-
-function holyprofweb_get_saved_ad_unit_code( $slot ) {
-    $slot = sanitize_key( $slot );
-    $code = (string) get_option( 'holyprofweb_ad_format_' . $slot, '' );
-    if ( '' !== trim( $code ) ) {
-        return $code;
-    }
-
-    return holyprofweb_restore_ad_unit_code_from_backup( $slot );
-}
-
-function holyprofweb_get_ad_unit_code( $unit ) {
-    $unit = sanitize_key( $unit );
-    if ( '' === $unit ) {
-        return '';
-    }
-
-    if ( '1' !== holyprofweb_get_saved_ad_setting( 'holyprofweb_ads_enabled', '1' ) ) {
-        return '';
-    }
-
-    if ( '0' === holyprofweb_get_saved_ad_setting( 'holyprofweb_ad_enabled_' . $unit, '1' ) ) {
-        return '';
-    }
-
-    $code = holyprofweb_get_saved_ad_unit_code( $unit );
-    if ( trim( $code ) ) {
-        return $code;
-    }
-
-    $legacy_map = array(
-        'leaderboard' => 'leaderboard',
-        'rectangle'   => 'rectangle',
-        'mobile'      => 'mobile',
-        'social'      => 'social',
-    );
-
-    if ( isset( $legacy_map[ $unit ] ) ) {
-        return holyprofweb_get_saved_ad_unit_code( $legacy_map[ $unit ] );
-    }
-
-    return '';
-}
-
-function holyprofweb_get_first_available_ad_code( $units ) {
-    foreach ( (array) $units as $unit ) {
-        $code = holyprofweb_get_ad_unit_code( $unit );
-        if ( trim( $code ) ) {
-            return $code;
-        }
-    }
-
-    return '';
-}
-
-function holyprofweb_get_ad_format_code( $format ) {
-    $format = sanitize_key( $format );
-    $lookup = array(
-        'leaderboard' => array( 'banner_728x90', 'banner_468x60', 'leaderboard' ),
-        'rectangle'   => array( 'banner_300x250', 'banner_160x300', 'banner_160x600', 'rectangle' ),
-        'mobile'      => array( 'banner_320x50', 'mobile' ),
-        'social'      => array( 'social' ),
-        'native'      => array( 'native' ),
-    );
-    $code   = holyprofweb_get_first_available_ad_code( $lookup[ $format ] ?? array( $format ) );
-
-    if ( trim( $code ) ) {
-        return $code;
-    }
-
-    $fallbacks = array(
-        'leaderboard' => 'header',
-        'rectangle'   => 'sidebar',
-        'incontent'   => 'incontent',
-        'footer'      => 'footer',
-        'mobile'      => '',
-        'social'      => '',
-    );
-
-    $fallback_slot = isset( $fallbacks[ $format ] ) ? $fallbacks[ $format ] : '';
-    return $fallback_slot ? holyprofweb_get_ad_code( $fallback_slot ) : '';
-}
-
-function holyprofweb_get_ad_density( $format ) {
-    $density = sanitize_key( holyprofweb_get_saved_ad_setting( 'holyprofweb_ad_density_' . sanitize_key( $format ), 'basic' ) );
-    return 'rigid' === $density ? 'advanced' : $density;
-}
-
-function holyprofweb_ad_density_allows( $format, $placement ) {
-    $density = holyprofweb_get_ad_density( $format );
-    $map = array(
-        'leaderboard' => array(
-            'basic'  => array( 'header' ),
-            'normal' => array( 'header', 'footer', 'archive_inline' ),
-            'advanced' => array( 'header', 'front_inline', 'archive_inline', 'footer' ),
-        ),
-        'rectangle' => array(
-            'basic'  => array( 'sidebar', 'incontent_1' ),
-            'normal' => array( 'sidebar', 'sidebar_2', 'incontent_1', 'front_inline', 'archive_inline' ),
-            'advanced' => array( 'sidebar', 'sidebar_2', 'incontent_1', 'incontent_2', 'front_inline', 'archive_inline' ),
-        ),
-        'mobile' => array(
-            'basic'  => array( 'mobile_sticky' ),
-            'normal' => array( 'mobile_sticky', 'front_mobile' ),
-            'advanced' => array( 'mobile_sticky', 'front_mobile', 'archive_mobile' ),
-        ),
-        'social' => array(
-            'basic'  => array( 'social_bar' ),
-            'normal' => array( 'social_bar' ),
-            'advanced' => array( 'social_bar' ),
-        ),
-        'native' => array(
-            'basic'  => array( 'incontent_1' ),
-            'normal' => array( 'incontent_1', 'incontent_2', 'archive_inline' ),
-            'advanced' => array( 'incontent_1', 'incontent_2', 'archive_inline', 'front_inline' ),
-        ),
-        'footer' => array(
-            'basic'  => array( 'footer' ),
-            'normal' => array( 'footer' ),
-            'advanced' => array( 'footer' ),
-        ),
-    );
-
-    $allowed = $map[ $format ][ $density ] ?? array();
-    return in_array( $placement, $allowed, true );
-}
-
-function holyprofweb_render_ad_format( $format, $placement, $extra_class = '' ) {
-    if ( ! holyprofweb_ad_density_allows( $format, $placement ) ) {
-        return;
-    }
-
-    $inline_like   = in_array( $placement, array( 'front_inline', 'archive_inline', 'incontent_1', 'incontent_2' ), true );
-    $desktop_units = array();
-    $mobile_units  = array();
-
-    if ( 'leaderboard' === $format ) {
-        $desktop_units = array( 'banner_728x90', 'banner_468x60', 'leaderboard' );
-        $mobile_units  = array( 'banner_320x50', 'mobile' );
-        if ( $inline_like ) {
-            $desktop_units[] = 'native';
-            $mobile_units[]  = 'native';
-        }
-    } elseif ( 'rectangle' === $format ) {
-        $desktop_units = array( 'banner_300x250', 'banner_160x300', 'banner_160x600', 'rectangle' );
-        $mobile_units  = array( 'banner_320x50', 'mobile' );
-        if ( $inline_like ) {
-            array_unshift( $desktop_units, 'native' );
-            array_unshift( $mobile_units, 'native' );
-        }
-    } elseif ( 'mobile' === $format ) {
-        $mobile_units = array( 'banner_320x50', 'mobile', 'native' );
-    } elseif ( 'social' === $format ) {
-        $desktop_units = array( 'social' );
-        $mobile_units  = array( 'social' );
-    } else {
-        $desktop_units = array( $format );
-    }
-
-    $desktop_code = holyprofweb_get_first_available_ad_code( $desktop_units );
-    $mobile_code  = holyprofweb_get_first_available_ad_code( $mobile_units );
-
-    if ( ! trim( $desktop_code ) && trim( $mobile_code ) && ! in_array( $placement, array( 'mobile_sticky', 'front_mobile', 'archive_mobile' ), true ) ) {
-        $desktop_code = $mobile_code;
-    }
-
-    if ( ! trim( $desktop_code ) && ! trim( $mobile_code ) ) {
-        return;
-    }
-
-    $class = 'ad-container ad-format-' . esc_attr( $format ) . ' ad-placement-' . esc_attr( $placement );
-    if ( $extra_class ) {
-        $class .= ' ' . esc_attr( $extra_class );
-    }
-
-    echo '<div class="' . $class . '">';
-    if ( trim( $desktop_code ) ) {
-        echo '<div class="ad-variant ad-variant--desktop">';
-        echo $desktop_code; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-        echo '</div>';
-    }
-    if ( trim( $mobile_code ) ) {
-        echo '<div class="ad-variant ad-variant--mobile">';
-        echo $mobile_code; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-        echo '</div>';
-    }
-    echo '</div>';
-}
-
-/**
- * Render ad block with wrapper.
- * Code is admin-controlled and intentionally unescaped.
- */
-function holyprofweb_render_ad( $slot, $extra_class = '' ) {
-    $slot_map = array(
-        'header'     => array( 'format' => 'leaderboard', 'placement' => 'header' ),
-        'sidebar'    => array( 'format' => 'rectangle',   'placement' => 'sidebar' ),
-        'sidebar_2'  => array( 'format' => 'rectangle',   'placement' => 'sidebar_2' ),
-        'incontent'  => array( 'format' => 'rectangle',   'placement' => 'incontent_1' ),
-        'incontent_2'=> array( 'format' => 'rectangle',   'placement' => 'incontent_2' ),
-        'footer'     => array( 'format' => 'leaderboard', 'placement' => 'footer' ),
-    );
-    if ( isset( $slot_map[ $slot ] ) ) {
-        holyprofweb_render_ad_format( $slot_map[ $slot ]['format'], $slot_map[ $slot ]['placement'], $extra_class );
-        return;
-    }
-
-    $code = holyprofweb_get_ad_code( $slot );
-    if ( empty( trim( $code ) ) ) {
-        return;
-    }
-
-    $class = 'ad-container ad-' . esc_attr( $slot );
-    if ( $extra_class ) {
-        $class .= ' ' . esc_attr( $extra_class );
-    }
-
-    echo '<div class="' . $class . '">';
-    echo $code; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped — admin-managed ad code
-    echo '</div>';
-}
-
-/**
- * Inject in-content ads after the 2nd and 4th paragraphs.
- */
-function holyprofweb_inject_incontent_ad( $content ) {
-    if ( ! is_single() || is_admin() ) {
-        return $content;
-    }
-
-    ob_start();
-    holyprofweb_render_ad_format( 'rectangle', 'incontent_1', 'ad-incontent-slot' );
-    $code_1 = trim( (string) ob_get_clean() );
-    ob_start();
-    holyprofweb_render_ad_format( 'rectangle', 'incontent_2', 'ad-incontent-slot' );
-    $code_2 = trim( (string) ob_get_clean() );
-    $code_3 = '';
-    if ( holyprofweb_ad_density_allows( 'rectangle', 'incontent_2' ) && 'advanced' === holyprofweb_get_ad_density( 'rectangle' ) ) {
-        ob_start();
-        holyprofweb_render_ad_format( 'rectangle', 'incontent_2', 'ad-incontent-slot ad-incontent-slot--extra' );
-        $code_3 = trim( (string) ob_get_clean() );
-    }
-
-    $has_ad1 = '' !== $code_1;
-    $has_ad2 = '' !== $code_2;
-    $has_ad3 = '' !== $code_3;
-
-    if ( ! $has_ad1 && ! $has_ad2 && ! $has_ad3 ) {
-        return $content;
-    }
-
-    $parts = explode( '</p>', $content );
-    $total = count( $parts );
-
-    // Inject ad 1 after the 2nd paragraph (index 1, since 0-based)
-    if ( $has_ad1 && $total > 2 ) {
-        $ad_block_1 = '<div class="ad-container ad-incontent">' . $code_1 . '</div>';
-        // Rebuild with ad1 inserted after part index 1
-        $new_parts = array();
-        foreach ( $parts as $i => $part ) {
-            $new_parts[] = $part;
-            if ( $i === 1 ) {
-                $new_parts[] = $ad_block_1 . '<!-- ad1-injected -->';
-            }
-        }
-        $parts = $new_parts;
-    }
-
-    // Inject ad 2 after the 4th paragraph (index 3 in original, but we need to
-    // account for the injected ad block shifting indices)
-    if ( $has_ad2 ) {
-        // Rebuild parts from scratch on the current $parts array
-        // Find the 4th </p> by counting only the original paragraph closes
-        $rebuilt  = implode( '</p>', $parts );
-        $segments = explode( '</p>', $rebuilt );
-        $seg_total = count( $segments );
-
-        if ( $seg_total > 4 ) {
-            $ad_block_2 = '<div class="ad-container ad-incontent-2">' . $code_2 . '</div>';
-            $new_segs   = array();
-            $para_count = 0;
-            foreach ( $segments as $j => $seg ) {
-                $new_segs[] = $seg;
-                // Only count segments that look like paragraph closings (non-empty content)
-                if ( trim( $seg ) !== '' && strpos( $seg, '<!-- ad1-injected -->' ) === false ) {
-                    $para_count++;
-                }
-                if ( $para_count === 4 && $j < $seg_total - 1 ) {
-                    $new_segs[] = $ad_block_2 . '<!-- ad2-injected -->';
-                    $para_count = PHP_INT_MAX; // prevent re-injection
-                }
-            }
-            $parts = $new_segs;
-        } else {
-            $parts = $segments;
-        }
-    }
-
-    if ( $has_ad3 ) {
-        $rebuilt_3  = implode( '</p>', $parts );
-        $segments_3 = explode( '</p>', $rebuilt_3 );
-        $seg_total_3 = count( $segments_3 );
-
-        if ( $seg_total_3 > 7 ) {
-            $ad_block_3 = '<div class="ad-container ad-incontent-3">' . $code_3 . '</div>';
-            $new_segs_3 = array();
-            $para_count_3 = 0;
-            foreach ( $segments_3 as $k => $seg_3 ) {
-                $new_segs_3[] = $seg_3;
-                if ( trim( $seg_3 ) !== '' && strpos( $seg_3, '<!-- ad1-injected -->' ) === false && strpos( $seg_3, '<!-- ad2-injected -->' ) === false ) {
-                    $para_count_3++;
-                }
-                if ( $para_count_3 === 7 && $k < $seg_total_3 - 1 ) {
-                    $new_segs_3[] = $ad_block_3 . '<!-- ad3-injected -->';
-                    $para_count_3 = PHP_INT_MAX;
-                }
-            }
-            $parts = $new_segs_3;
-        }
-    }
-
-    $content = implode( '</p>', $parts );
-
-    // Clean up internal markers
-    $content = str_replace( '<!-- ad1-injected -->', '', $content );
-    $content = str_replace( '<!-- ad2-injected -->', '', $content );
-    $content = str_replace( '<!-- ad3-injected -->', '', $content );
-
-    return $content;
-}
-add_filter( 'the_content', 'holyprofweb_inject_incontent_ad' );
-
-/**
- * Output footer banner when the before_footer action fires.
- */
-function holyprofweb_output_footer_banner() {
-    holyprofweb_render_ad( 'footer', 'ad-footer-banner' );
-    holyprofweb_render_ad_format( 'social', 'social_bar', 'ad-social-bar' );
-    if ( wp_is_mobile() ) {
-        holyprofweb_render_ad_format( 'mobile', 'mobile_sticky', 'ad-mobile-sticky' );
-    }
-}
-add_action( 'holyprofweb_before_footer', 'holyprofweb_output_footer_banner' );
+// Ads: the ad subsystem (admin page, units, injection, footer banner) was removed in Phase 2.
 
 
 // =========================================
@@ -2178,16 +1443,10 @@ function holyprofweb_on_activate() {
     holyprofweb_enforce_permalink_structure();
     holyprofweb_create_categories();
     holyprofweb_cleanup_uncategorized_category();
-    holyprofweb_ensure_placeholder_posts();
     holyprofweb_create_menus();
     holyprofweb_cleanup_defaults();
     holyprofweb_create_submit_page();
     holyprofweb_create_static_pages();
-
-    if ( ! get_option( 'holyprofweb_posts_created' ) ) {
-        holyprofweb_create_sample_posts();
-        update_option( 'holyprofweb_posts_created', true );
-    }
 
     holyprofweb_schedule_content_audit();
     flush_rewrite_rules();
@@ -3138,6 +2397,8 @@ function holyprofweb_get_required_placeholder_categories() {
 }
 
 function holyprofweb_ensure_placeholder_posts() {
+    // Disabled permanently (Phase 2): the theme never creates demo, sample or placeholder posts.
+    return;
     if ( ! holyprofweb_is_local_environment() ) {
         return;
     }
@@ -3287,6 +2548,8 @@ function holyprofweb_get_category_seed_posts() {
 }
 
 function holyprofweb_seed_category_posts() {
+    // Disabled permanently (Phase 2): the theme never creates demo, sample or placeholder posts.
+    return;
     foreach ( holyprofweb_get_category_seed_posts() as $slug => $seed ) {
         $term = get_term_by( 'slug', $slug, 'category' );
         if ( ! $term || is_wp_error( $term ) ) {
@@ -3825,6 +3088,8 @@ function holyprofweb_cleanup_defaults() {
 // =========================================
 
 function holyprofweb_create_submit_page() {
+    // Disabled (Phase 2): the old "Submit a Review" page no longer exists; /submit/ redirects to /contact/.
+    return;
     // Check if a page with slug 'submit' already exists
     $existing = get_page_by_path( 'submit', OBJECT, 'page' );
     if ( $existing ) return;
@@ -4663,6 +3928,8 @@ function holyprofweb_get_post_image_url( $post_id, $size = 'holyprofweb-card' ) 
 // =========================================
 
 function holyprofweb_create_sample_posts() {
+    // Disabled permanently (Phase 2): the theme never creates demo, sample or placeholder posts.
+    return;
 
     holyprofweb_create_categories();
     $placeholder_id = holyprofweb_get_placeholder_id();
@@ -7537,7 +6804,6 @@ function holyprofweb_register_settings_menu() {
     add_submenu_page( 'hpw-settings', __( 'Search & Audience','holyprofweb' ), __( 'Search & Audience','holyprofweb' ), 'manage_options', 'hpw-settings-search',      'holyprofweb_settings_search_page' );
     add_submenu_page( 'hpw-settings', __( 'Content & Reviews','holyprofweb' ), __( 'Content & Reviews','holyprofweb' ), 'manage_options', 'hpw-settings-reviews',     'holyprofweb_settings_reviews_page' );
     add_submenu_page( 'hpw-settings', __( 'Redirects',       'holyprofweb' ), __( 'Redirects',       'holyprofweb' ), 'manage_options', 'hpw-settings-redirects',   'holyprofweb_settings_redirects_page' );
-    add_submenu_page( 'hpw-settings', __( 'Ads',             'holyprofweb' ), __( 'Ads',             'holyprofweb' ), 'manage_options', 'hpw-settings-ads',         'holyprofweb_ads_admin_page' );
     add_submenu_page( 'hpw-settings', __( 'Emails',          'holyprofweb' ), __( 'Emails',          'holyprofweb' ), 'manage_options', 'hpw-settings-emails',      'holyprofweb_settings_emails_page' );
     add_submenu_page( 'hpw-settings', __( 'Languages & Geo', 'holyprofweb' ), __( 'Languages & Geo', 'holyprofweb' ), 'manage_options', 'hpw-settings-languages',   'holyprofweb_settings_languages_page' );
     add_submenu_page( 'hpw-settings', __( 'Automation',      'holyprofweb' ), __( 'Automation',      'holyprofweb' ), 'manage_options', 'hpw-settings-automation',  'holyprofweb_settings_automation_page' );
@@ -8965,7 +8231,6 @@ function holyprofweb_settings_nav( $active = 'general' ) {
         'search'     => array( 'label' => 'Search & Audience',  'slug' => 'hpw-settings-search',     'icon' => '&#128269;' ),
         'reviews'    => array( 'label' => 'Content & Reviews',  'slug' => 'hpw-settings-reviews',    'icon' => '&#9733;' ),
         'redirects'  => array( 'label' => 'Redirects',          'slug' => 'hpw-settings-redirects',  'icon' => '&#10145;' ),
-        'ads'        => array( 'label' => 'Ads',                'slug' => 'hpw-settings-ads',        'icon' => '&#128250;' ),
         'languages'  => array( 'label' => 'Languages & Geo',    'slug' => 'hpw-settings-languages',  'icon' => '&#127758;' ),
         'emails'     => array( 'label' => 'Emails',             'slug' => 'hpw-settings-emails',     'icon' => '&#128231;' ),
         'automation' => array( 'label' => 'Automation',         'slug' => 'hpw-settings-automation', 'icon' => '&#9889;' ),
@@ -11472,4 +10737,6 @@ require_once get_template_directory() . '/inc/trust.php';
 require_once get_template_directory() . '/inc/dates.php';
 require_once get_template_directory() . '/inc/editorial-safety.php';
 require_once get_template_directory() . '/inc/mail-guard.php';
+require_once get_template_directory() . '/inc/gone.php';
+require_once get_template_directory() . '/inc/comments-guard.php';
 require_once get_template_directory() . '/inc/seo-rankmath-compat.php';

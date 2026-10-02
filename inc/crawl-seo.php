@@ -74,7 +74,7 @@ add_filter( 'wp_sitemaps_taxonomies_query_args', function ( $args, $taxonomy ) {
         $ids = array();
         foreach ( array_keys( holyprofweb_sections() ) as $slug ) {
             $t = get_term_by( 'slug', $slug, 'category' );
-            if ( $t ) {
+            if ( $t && holyprofweb_section_post_count( $slug ) >= 3 ) {
                 $ids[] = (int) $t->term_id;
             }
         }

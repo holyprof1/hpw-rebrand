@@ -515,16 +515,6 @@ function holyprofweb_get_subscriber_email( $entry ) {
     return '';
 }
 
-function holyprofweb_sanitize_ad_code( $code ) {
-    $code = (string) $code;
-    if ( '' === $code ) {
-        return '';
-    }
-
-    $code = str_replace( "\0", '', $code );
-    $code = preg_replace( '/<\?(?:php|=)?/i', '', $code );
-    return trim( $code );
-}
 
 function holyprofweb_ad_slot_registry() {
     return array(

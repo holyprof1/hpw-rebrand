@@ -72,6 +72,7 @@ function holyprofweb_real_posts_meta_query() {
         'relation' => 'AND',
         array( 'key' => '_hpw_placeholder_post', 'compare' => 'NOT EXISTS' ),
         array( 'key' => '_hpw_seed_post', 'compare' => 'NOT EXISTS' ),
+        array( 'key' => '_hpw_noindex', 'compare' => 'NOT EXISTS' ),
     );
 }
 

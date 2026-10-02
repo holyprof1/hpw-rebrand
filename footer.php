@@ -1,12 +1,5 @@
     </div><!-- #page -->
 
-    <?php
-    /**
-     * Footer banner ad — fires before the <footer> element.
-     * Hooked via holyprofweb_output_footer_banner() in functions.php.
-     */
-    do_action( 'holyprofweb_before_footer' );
-    ?>
 
     <footer id="colophon" class="site-footer" role="contentinfo">
         <div class="footer-grid container">

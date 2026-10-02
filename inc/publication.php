@@ -194,3 +194,40 @@ function holyprofweb_pub_section_ids( $slug, $n, array &$used ) {
 // produced irrelevant links. Related links are editorial (hand-written) or in the related block.
 remove_filter( 'the_content', 'holyprofweb_inject_inline_also_read', 19 );
 remove_filter( 'the_content', 'holyprofweb_auto_interlink', 15 );
+
+/**
+ * Generic archive page (all stories, tags, dates, legacy categories) in the publication layout.
+ * No ratings, scores or review language: titles, kicker, date.
+ */
+function holyprofweb_render_archive_page( $title, $intro = '' ) {
+    get_header();
+    $ids = array();
+    while ( have_posts() ) {
+        the_post();
+        $ids[] = get_the_ID();
+    }
+    ?>
+    <main id="primary" class="site-main pub-hub">
+        <header class="pub-hub__head">
+            <div class="pub-wrap">
+                <nav class="pub-crumbs" aria-label="<?php esc_attr_e( 'Breadcrumb', 'holyprofweb' ); ?>">
+                    <a href="<?php echo esc_url( home_url( '/' ) ); ?>"><?php esc_html_e( 'Home', 'holyprofweb' ); ?></a>
+                </nav>
+                <h1 class="pub-hub__title"><?php echo esc_html( $title ); ?></h1>
+                <?php if ( $intro ) : ?><p class="pub-hub__intro"><?php echo esc_html( $intro ); ?></p><?php endif; ?>
+            </div>
+        </header>
+        <div class="pub-wrap pub-wrap--narrow">
+            <?php if ( $ids ) : ?>
+            <div class="pub-list">
+                <?php foreach ( $ids as $id ) { holyprofweb_pub_card( $id, array( 'variant' => 'row', 'excerpt' => true, 'thumb' => false ) ); } ?>
+            </div>
+            <?php the_posts_pagination( array( 'prev_text' => __( 'Newer', 'holyprofweb' ), 'next_text' => __( 'Older', 'holyprofweb' ) ) ); ?>
+            <?php else : ?>
+            <p><?php esc_html_e( 'Nothing published here yet.', 'holyprofweb' ); ?></p>
+            <?php endif; ?>
+        </div>
+    </main>
+    <?php
+    get_footer();
+}

@@ -12,8 +12,6 @@
 
 <div id="page" class="site">
 
-    <?php holyprofweb_render_ad( 'header', 'ad-header-banner' ); ?>
-
     <header id="masthead" class="site-header" role="banner">
         <div class="header-inner">
             <div class="site-logo">
@@ -174,24 +172,3 @@
         </div>
         <div class="live-search-backdrop" id="live-search-backdrop"></div>
     </div>
-
-<?php
-function holyprofweb_fallback_menu() {
-    $items = array(
-        'Home'      => home_url( '/' ),
-        'Reviews'   => home_url( '/category/reviews/' ),
-        'Companies' => home_url( '/category/companies/' ),
-        'Biography' => home_url( '/category/biography/' ),
-        'Blog'      => holyprofweb_get_blog_url(),
-        'Contact'   => home_url( '/contact/' ),
-    );
-    echo '<ul id="primary-menu">';
-    foreach ( $items as $label => $url ) {
-        printf(
-            '<li><a href="%s">%s</a></li>',
-            esc_url( $url ),
-            esc_html( $label )
-        );
-    }
-    echo '</ul>';
-}
