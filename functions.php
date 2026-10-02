@@ -10683,6 +10683,7 @@ require_once get_template_directory() . '/inc/trust.php';
 require_once get_template_directory() . '/inc/dates.php';
 require_once get_template_directory() . '/inc/editorial-safety.php';
 require_once get_template_directory() . '/inc/mail-guard.php';
+require_once get_template_directory() . '/inc/smtp.php';
 require_once get_template_directory() . '/inc/gone.php';
 require_once get_template_directory() . '/inc/comments-guard.php';
 require_once get_template_directory() . '/inc/editorial.php';
