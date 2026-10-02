@@ -16,7 +16,7 @@
 if ( 'cli' !== php_sapi_name() ) {
     exit( 'CLI only' );
 }
-$opts = getopt( '', array( 'apply', 'only::', 'dir::', 'prepend::' ) );
+$opts = getopt( '', array( 'apply', 'only::', 'dir::', 'prepend::', 'noimages' ) );
 if ( ! empty( $opts['prepend'] ) ) {
     require $opts['prepend'];
 }
@@ -44,7 +44,7 @@ $report     = array();
 $drop_meta = array( '_hpw_noindex', '_hpw_verdict_override', '_hpw_rating_override', '_cached_rating', '_hpw_content_expanded', '_hpw_view_stats',
     '_wp_trash_meta_status', '_wp_trash_meta_time', 'external_image', '_holyprofweb_remote_image_url', '_hpw_source_url', '_hpw_country_focus',
     '_yoast_wpseo_metadesc', '_yoast_wpseo_title', '_yoast_wpseo_focuskw', '_yoast_wpseo_opengraph-image', 'rank_math_title', 'rank_math_description',
-    'rank_math_focus_keyword', 'rank_math_og_thumbnail', 'rank_math_internal_links_processed', '_aioseop_title', '_aioseop_description', '_hpw_schema_type', '_hpw_reading_time' );
+    'rank_math_focus_keyword', 'rank_math_og_thumbnail', 'rank_math_internal_links_processed', '_aioseop_title', '_aioseop_description', '_hpw_schema_type', '_hpw_reading_time', '_hpw_seed_post', '_hpw_placeholder_post' );
 
 function hpw_rec_path( $slug ) {
     return '/' . trim( $slug, '/' ) . '/';
@@ -137,7 +137,7 @@ foreach ( glob( $dir . '/*.json' ) as $file ) {
     // Featured image.
     foreach ( array( 'feature' => true, 'inline' => false ) as $kind => $is_feature ) {
         $img = $dir . '/images/' . $id . ( 'inline' === $kind ? '-shot' : '' ) . '.webp';
-        if ( ! file_exists( $img ) ) {
+        if ( isset( $opts['noimages'] ) || ! file_exists( $img ) ) {
             continue;
         }
         $tmp   = wp_tempnam( basename( $img ) );

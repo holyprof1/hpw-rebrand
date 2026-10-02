@@ -100,7 +100,16 @@ def main():
             body = ''.join(parts)
         src_html = '<h2>Sources</h2>\n<ol>\n' + '\n'.join(
             '<li><a href="%s" rel="noopener nofollow">%s</a></li>' % (html.escape(u, quote=True), html.escape(l)) for l, u in d['sources']) + '\n</ol>'
-        peers = [pid for pid, (s2, cl, _) in ((v[2], v) for v in names.values()) if cl == d.get('cluster', '') and pid != i][:3]
+        # Rotate related picks through the cluster (then the section) so every article receives inbound links.
+        def ring(members):
+            members = sorted(members)
+            if i in members:
+                k = members.index(i)
+                return members[k + 1:] + members[:k]
+            return members
+        same_cluster = [pid for pid, cl in ((v[2], v[1]) for v in names.values()) if cl == d.get('cluster', '') and pid != i]
+        same_section = [pid for pid in items if pid != i and items[pid].get('section') == d['section'] and pid not in same_cluster and items[pid].get('slug')]
+        peers = (ring(same_cluster + [i])[:3] + ring(same_section + [i]))[:3]
         related = ['https://holyprofweb.com/%s/' % items[p]['slug'] for p in peers if items[p].get('slug')]
         out = dict(d)
         out['post_id'] = i
