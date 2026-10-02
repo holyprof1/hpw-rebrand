@@ -529,41 +529,34 @@ function holyprofweb_seo_head() {
         $cats     = get_the_category( $post->ID );
         $cat_name = ! empty( $cats ) ? $cats[0]->name : '';
 
-        // Detect schema type from cached meta or category slugs
-        $cached_type = get_post_meta( $post->ID, '_hpw_schema_type', true );
-        $cat_slugs   = wp_list_pluck( get_the_category( $post->ID ), 'slug' );
-
-        if ( $cached_type ) {
-            $schema_type = $cached_type;
-        } elseif ( array_intersect( array( 'biography', 'founders', 'influencers' ), $cat_slugs ) ) {
-            $schema_type = 'Person';
-        } elseif ( array_intersect( array( 'companies', 'fintech', 'banks', 'startups' ), $cat_slugs ) ) {
-            $schema_type = 'Organization';
-        } elseif ( array_intersect( array( 'reports', 'scam-reports', 'user-complaints' ), $cat_slugs ) ) {
+        // Every post is an Article. No Review/AggregateRating/Person-as-article markup:
+        // none of it reflects first-hand testing or visible ratings on the page.
+        $schema_type = 'BlogPosting';
+        if ( function_exists( 'holyprofweb_is_news_post' ) && holyprofweb_is_news_post( $post->ID ) ) {
             $schema_type = 'NewsArticle';
-        } elseif ( array_intersect( array( 'salaries', 'nigeria', 'remote', 'tech-roles' ), $cat_slugs ) ) {
-            $schema_type = 'Occupation';
-        } elseif ( array_intersect( array( 'reviews', 'loan-apps', 'crypto', 'betting', 'earning-platforms' ), $cat_slugs ) ) {
-            $schema_type = 'ItemPage';
-        } else {
-            $schema_type = 'Article';
         }
 
         $reading_time = (int) get_post_meta( $post->ID, '_hpw_reading_time', true );
-        $source_url   = function_exists( 'holyprofweb_get_post_source_url' ) ? holyprofweb_get_post_source_url( $post->ID, $post ) : '';
-        $verdict      = function_exists( 'holyprofweb_get_review_verdict' ) ? holyprofweb_get_review_verdict( $post->ID ) : array( 'label' => '' );
-        $is_review    = (bool) array_intersect( array( 'reviews', 'scam-legit', 'app-reviews', 'website-reviews', 'loan-finance', 'shopping', 'scholarship', 'tech', 'blog-opinion', 'loan-apps', 'crypto', 'betting', 'earning-platforms' ), $cat_slugs );
+        $author_id    = (int) $post->post_author;
+        $author_url   = function_exists( 'holyprofweb_author_url' ) ? holyprofweb_author_url( $author_id ) : get_author_posts_url( $author_id );
 
         $schema = array(
-            '@context'      => 'https://schema.org',
-            '@type'         => $schema_type,
-            'headline'      => get_the_title( $post ),
-            'description'   => mb_substr( wp_strip_all_tags( $raw_desc ), 0, 200 ),
-            'url'           => get_permalink( $post ),
-            'datePublished' => get_the_date( 'c', $post ),
-            'dateModified'  => get_the_modified_date( 'c', $post ),
-            'author'        => array( '@type' => 'Person', 'name' => get_the_author_meta( 'display_name', $post->post_author ) ),
-            'publisher'     => array( '@type' => 'Organization', 'name' => $site_name, 'url' => $site_url ),
+            '@context'         => 'https://schema.org',
+            '@type'            => $schema_type,
+            '@id'              => get_permalink( $post ) . '#article',
+            'mainEntityOfPage' => array( '@type' => 'WebPage', '@id' => get_permalink( $post ) ),
+            'headline'         => mb_substr( get_the_title( $post ), 0, 110 ),
+            'description'      => mb_substr( wp_strip_all_tags( $raw_desc ), 0, 200 ),
+            'url'              => get_permalink( $post ),
+            'datePublished'    => get_the_date( 'c', $post ),
+            'dateModified'     => get_the_modified_date( 'c', $post ),
+            'inLanguage'       => get_bloginfo( 'language' ),
+            'author'           => array(
+                '@type' => 'Person',
+                'name'  => get_the_author_meta( 'display_name', $author_id ),
+                'url'   => $author_url,
+            ),
+            'publisher'        => array( '@type' => 'Organization', 'name' => $site_name, 'url' => $site_url ),
         );
         if ( $publisher_logo ) {
             $schema['publisher']['logo'] = array(
@@ -571,58 +564,10 @@ function holyprofweb_seo_head() {
                 'url'   => $publisher_logo,
             );
         }
-        if ( $og_img ) $schema['image'] = $og_img;
+        if ( $og_img ) $schema['image'] = array( $og_img );
         if ( $reading_time > 0 ) $schema['timeRequired'] = 'PT' . $reading_time . 'M';
         if ( $cat_name ) {
             $schema['articleSection'] = $cat_name;
-            $schema['keywords'] = implode( ', ', wp_get_post_tags( $post->ID, array( 'fields' => 'names' ) ) );
-        }
-
-        if ( $is_review ) {
-            $schema['@type'] = 'Review';
-            $schema['name']  = get_the_title( $post );
-            $schema['reviewBody'] = mb_substr( wp_strip_all_tags( $raw_desc ), 0, 300 );
-            $schema['itemReviewed'] = array(
-                '@type' => 'Thing',
-                'name'  => get_the_title( $post ),
-            );
-            if ( $source_url ) {
-                if ( function_exists( 'holyprofweb_clean_public_url_submission' ) ) {
-                    $source_url = holyprofweb_clean_public_url_submission( $source_url );
-                } else {
-                    $source_url = esc_url_raw( $source_url );
-                }
-                if ( $source_url ) {
-                    $schema['itemReviewed']['sameAs'] = $source_url;
-                }
-            }
-            if ( ! empty( $verdict['label'] ) ) {
-                $schema['reviewAspect'] = $verdict['label'];
-            }
-        }
-
-        if ( $rating > 0 && $r_count > 0 ) {
-            $aggregate = array(
-                '@type'       => 'AggregateRating',
-                'ratingValue' => (string) $rating,
-                'reviewCount' => (string) $r_count,
-                'bestRating'  => '5',
-                'worstRating' => '1',
-            );
-            if ( 'Review' === $schema['@type'] ) {
-                $schema['itemReviewed']['aggregateRating'] = $aggregate;
-                $schema['reviewRating'] = array(
-                    '@type'       => 'Rating',
-                    'ratingValue' => (string) $rating,
-                    'bestRating'  => '5',
-                    'worstRating' => '1',
-                );
-            } else {
-                if ( in_array( $schema_type, array( 'ItemPage', 'Article', 'NewsArticle' ), true ) ) {
-                    $schema['@type'] = 'ItemPage';
-                }
-                $schema['aggregateRating'] = $aggregate;
-            }
         }
 
         $breadcrumb = array(
@@ -836,19 +781,3 @@ function holyprofweb_notify_submission( $post_id, $name, $site_url, $category, $
     );
     wp_mail( $to, $subject, implode( "\n", $lines ), array( 'From: ' . $from . ' <' . get_option( 'admin_email' ) . '>' ) );
 }
-
-
-// =========================================
-// DOCUMENT TITLE — APPEND RATING
-// =========================================
-
-add_filter( 'document_title_parts', function( $parts ) {
-    if ( is_singular() ) {
-        $rating  = holyprofweb_get_post_rating( get_queried_object_id() );
-        $r_count = holyprofweb_get_review_count( get_queried_object_id() );
-        if ( $rating > 0 ) {
-            $parts['title'] .= ' — Rated ' . number_format( $rating, 1 ) . '/5 (' . $r_count . ' reviews)';
-        }
-    }
-    return $parts;
-} );

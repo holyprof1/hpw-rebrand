@@ -10214,36 +10214,6 @@ function holyprofweb_force_trust_pages_indexable( $robots ) {
 }
 add_filter( 'wp_robots', 'holyprofweb_force_trust_pages_indexable', 20 );
 
-function holyprofweb_virtual_robots_txt( $output, $public ) {
-    $sitemap_url = home_url( '/wp-sitemap.xml' );
-    if ( function_exists( 'holyprofweb_is_rank_math_active' ) && holyprofweb_is_rank_math_active() ) {
-        $sitemap_url = home_url( '/sitemap_index.xml' );
-    }
-
-    $lines = array(
-        'User-agent: *',
-    );
-
-    if ( get_option( 'hpw_discourage_indexing', 0 ) || ! $public ) {
-        $lines[] = 'Disallow: /';
-    } else {
-        $lines[] = 'Allow: /';
-        $lines[] = '';
-        $lines[] = 'User-agent: GPTBot';
-        $lines[] = 'Allow: /';
-        $lines[] = '';
-        $lines[] = 'User-agent: OAI-SearchBot';
-        $lines[] = 'Allow: /';
-        $lines[] = '';
-        $lines[] = 'User-agent: CCBot';
-        $lines[] = 'Allow: /';
-        $lines[] = 'Sitemap: ' . esc_url_raw( $sitemap_url );
-    }
-
-    return implode( "\n", $lines ) . "\n";
-}
-add_filter( 'robots_txt', 'holyprofweb_virtual_robots_txt', 10, 2 );
-
 function holyprofweb_render_dynamic_brand_css() {
     $header_logo_height = max( 36, min( 180, (int) get_option( 'hpw_header_logo_height', 86 ) ) );
     $footer_logo_height = max( 28, min( 140, (int) get_option( 'hpw_footer_logo_height', 56 ) ) );
@@ -11489,4 +11459,6 @@ require_once get_template_directory() . '/inc/country-personalization.php';
 
 // Load SEO + submission helpers
 require_once get_template_directory() . '/seo-append.php';
+require_once get_template_directory() . '/inc/sections.php';
+require_once get_template_directory() . '/inc/crawl-seo.php';
 require_once get_template_directory() . '/inc/seo-rankmath-compat.php';
