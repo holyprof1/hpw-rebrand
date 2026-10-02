@@ -103,6 +103,7 @@ function holyprofweb_pub_card( $post_id, array $o = array() ) {
     $size    = $lead ? 'large' : 'holyprofweb-card';
     $sizes   = $lead ? '(max-width: 900px) 100vw, 1200px' : '(max-width: 600px) 100vw, 380px';
     $img     = holyprofweb_pub_media( $post_id, $size, $sizes, $o['eager'] );
+    if ( 'text' === $o['variant'] ) { $img = ''; }
     $title   = holyprofweb_get_decoded_post_title( $post_id );
     $classes = 'pub-card' . ( $o['variant'] ? ' pub-card--' . $o['variant'] : '' ) . ( $img ? '' : ' pub-card--noimg' );
     ?>

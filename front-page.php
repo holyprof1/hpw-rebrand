@@ -21,7 +21,9 @@ foreach ( $pool_q->posts as $pid ) {
     }
 }
 
-// Lead: the newest story that has a real image, else simply the newest.
+usort( $pool, function ( $x, $y ) { return holyprofweb_content_modified_ts( $y ) <=> holyprofweb_content_modified_ts( $x ); } );
+
+// Lead: the freshest story with a real image; the two supporting stories come from other sections.
 $lead_id = 0;
 foreach ( $pool as $pid ) {
     if ( holyprofweb_pub_has_real_image( $pid ) ) { $lead_id = $pid; break; }
@@ -30,19 +32,32 @@ if ( ! $lead_id && $pool ) {
     $lead_id = $pool[0];
 }
 if ( $lead_id ) { $used[] = $lead_id; }
+$lead_section = $lead_id ? holyprofweb_post_section( $lead_id ) : '';
 
 $side_ids = array();
+$seen_sec = array( $lead_section );
 foreach ( $pool as $pid ) {
-    if ( ! in_array( $pid, $used, true ) && count( $side_ids ) < 3 ) {
-        $side_ids[] = $pid;
-        $used[]     = $pid;
-    }
+    if ( count( $side_ids ) >= 2 || in_array( $pid, $used, true ) ) { continue; }
+    $sec = holyprofweb_post_section( $pid );
+    if ( in_array( $sec, $seen_sec, true ) ) { continue; }
+    $side_ids[] = $pid; $used[] = $pid; $seen_sec[] = $sec;
+}
+foreach ( $pool as $pid ) {
+    if ( count( $side_ids ) >= 2 ) { break; }
+    if ( ! in_array( $pid, $used, true ) ) { $side_ids[] = $pid; $used[] = $pid; }
+}
+
+// Latest discoveries: the next freshest stories, any section.
+$latest = array();
+foreach ( $pool as $pid ) {
+    if ( count( $latest ) >= 6 ) { break; }
+    if ( ! in_array( $pid, $used, true ) ) { $latest[] = $pid; $used[] = $pid; }
 }
 
 // One block per section, only when it has stories not already shown above.
 $blocks = array();
 foreach ( array_keys( $sections ) as $slug ) {
-    $ids = holyprofweb_pub_pick( $slug, 3, $used, true );
+    $ids = holyprofweb_pub_pick( $slug, 'apps-websites' === $slug ? 6 : 3, $used, true );
     if ( $ids ) { $blocks[ $slug ] = $ids; }
 }
 
@@ -54,7 +69,7 @@ foreach ( $pool as $pid ) {
     }
 }
 usort( $updated, function ( $a, $b ) { return holyprofweb_content_modified_ts( $b ) <=> holyprofweb_content_modified_ts( $a ); } );
-$updated = array_slice( $updated, 0, 5 );
+$updated = array_slice( $updated, 0, 6 );
 ?>
 <main id="primary" class="site-main pub-home">
 
@@ -83,6 +98,17 @@ $updated = array_slice( $updated, 0, 5 );
         </div>
     </section>
 
+    <?php if ( $latest ) : ?>
+    <section class="pub-section pub-section--tight" aria-labelledby="blk-latest">
+        <div class="pub-wrap">
+            <header class="pub-section__head"><h2 id="blk-latest"><?php esc_html_e( 'Latest discoveries', 'holyprofweb' ); ?></h2></header>
+            <div class="pub-grid pub-grid--3 pub-latest">
+                <?php foreach ( $latest as $id ) { holyprofweb_pub_card( $id, array( 'variant' => 'text' ) ); } ?>
+            </div>
+        </div>
+    </section>
+    <?php endif; ?>
+
     <?php foreach ( $blocks as $slug => $ids ) : ?>
     <section class="pub-section<?php echo 'people' === $slug ? ' pub-people' : ''; ?>" aria-labelledby="blk-<?php echo esc_attr( $slug ); ?>">
         <div class="pub-wrap">
@@ -90,20 +116,9 @@ $updated = array_slice( $updated, 0, 5 );
                 <h2 id="blk-<?php echo esc_attr( $slug ); ?>"><?php echo esc_html( $sections[ $slug ]['title'] ); ?></h2>
                 <a href="<?php echo esc_url( holyprofweb_section_url( $slug ) ); ?>"><?php esc_html_e( 'See all', 'holyprofweb' ); ?></a>
             </header>
-            <?php if ( 'people' === $slug ) : ?>
-            <div class="pub-people__row">
-                <?php foreach ( $ids as $id ) : $portrait = holyprofweb_pub_media( $id, 'holyprofweb-thumb', '168px' ); ?>
-                <a class="pub-person" href="<?php echo esc_url( get_permalink( $id ) ); ?>">
-                    <span class="pub-person__img<?php echo $portrait ? '' : ' pub-person__img--empty'; ?>"><?php echo $portrait ? $portrait : '<span>' . esc_html( mb_substr( wp_strip_all_tags( holyprofweb_get_decoded_post_title( $id ) ), 0, 1 ) ) . '</span>'; // phpcs:ignore WordPress.Security.EscapeOutput ?></span>
-                    <span class="pub-person__name"><?php echo esc_html( holyprofweb_get_decoded_post_title( $id ) ); ?></span>
-                </a>
-                <?php endforeach; ?>
-            </div>
-            <?php else : ?>
             <div class="pub-grid pub-grid--3">
                 <?php foreach ( $ids as $id ) { holyprofweb_pub_card( $id, array( 'excerpt' => true ) ); } ?>
             </div>
-            <?php endif; ?>
         </div>
     </section>
     <?php endforeach; ?>
@@ -111,7 +126,7 @@ $updated = array_slice( $updated, 0, 5 );
     <?php if ( $updated ) : ?>
     <section class="pub-section" aria-labelledby="blk-updated">
         <div class="pub-wrap pub-wrap--narrow">
-            <header class="pub-section__head"><h2 id="blk-updated"><?php esc_html_e( 'Recently updated', 'holyprofweb' ); ?></h2></header>
+            <header class="pub-section__head"><h2 id="blk-updated"><?php esc_html_e( 'Latest updates', 'holyprofweb' ); ?></h2></header>
             <div class="pub-list">
                 <?php foreach ( $updated as $id ) { holyprofweb_pub_card( $id, array( 'variant' => 'row', 'thumb' => false ) ); } ?>
             </div>
