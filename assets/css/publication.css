@@ -188,3 +188,6 @@ html[data-theme="dark"] .pub-article__body a, html[data-theme="dark"] .pub-conta
 .pub-card--row.pub-card--noimg, .pub-card--compact.pub-card--noimg { border-top: 0; padding-top: 16px; }
 .pub-card--noimg .pub-card__title { font-size: 1.2rem; }
 .pub-card--lead.pub-card--noimg .pub-card__title { font-size: clamp(1.6rem, 3.6vw, 2.5rem); }
+
+.site-footer .footer-bottom p, .site-footer .footer-copy { color: #b5b5b5; }
+.site-footer .footer-copy a { color: #e0e0e0; }

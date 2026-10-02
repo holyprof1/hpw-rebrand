@@ -87,6 +87,8 @@ add_filter( 'wp_sitemaps_taxonomies_query_args', function ( $args, $taxonomy ) {
 add_filter( 'wp_sitemaps_posts_query_args', function ( $args, $post_type ) {
     if ( 'post' === $post_type ) {
         $args['meta_query'] = holyprofweb_real_posts_meta_query();
+        // Posts that 301 elsewhere (Settings > redirect rules) must not be listed.
+        $args['post__not_in'] = array_merge( (array) ( $args['post__not_in'] ?? array() ), holyprofweb_redirected_post_ids() );
     }
     if ( 'page' === $post_type ) {
         $skip = get_posts( array(
@@ -154,6 +156,30 @@ add_action( 'parse_request', function ( $wp ) {
     $server->renderer->render_index( $server->index->get_sitemap_list() );
     exit;
 }, 0 );
+
+/** IDs of published posts whose URL is the source of a configured redirect rule. */
+function holyprofweb_redirected_post_ids() {
+    if ( ! function_exists( 'holyprofweb_parse_redirect_rules' ) ) {
+        return array();
+    }
+    $rules = holyprofweb_parse_redirect_rules();
+    if ( ! $rules ) {
+        return array();
+    }
+    $cache_key = 'hpw_redirected_ids_' . md5( wp_json_encode( array_keys( $rules ) ) );
+    $ids       = get_transient( $cache_key );
+    if ( false === $ids ) {
+        $ids = array();
+        foreach ( array_keys( $rules ) as $from ) {
+            $post = get_page_by_path( trim( (string) wp_parse_url( $from, PHP_URL_PATH ), '/' ), OBJECT, 'post' );
+            if ( $post ) {
+                $ids[] = (int) $post->ID;
+            }
+        }
+        set_transient( $cache_key, $ids, HOUR_IN_SECONDS );
+    }
+    return $ids;
+}
 
 // ---- llms.txt (a discovery aid only; crawling, sitemaps and markup remain the real signals) -----
 
