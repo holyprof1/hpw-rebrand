@@ -100,7 +100,7 @@ function holyprofweb_pub_card( $post_id, array $o = array() ) {
     $tag     = in_array( $o['tag'], array( 'h2', 'h3' ), true ) ? $o['tag'] : 'h3';
     $kicker  = holyprofweb_post_kicker( $post_id );
     $lead    = 'lead' === $o['variant'];
-    $size    = $lead ? 'large' : 'holyprofweb-card';
+    $size    = $lead ? 'large' : 'medium_large';
     $sizes   = $lead ? '(max-width: 900px) 100vw, 1200px' : '(max-width: 600px) 100vw, 380px';
     $img     = holyprofweb_pub_media( $post_id, $size, $sizes, $o['eager'] );
     if ( 'text' === $o['variant'] ) { $img = ''; }
