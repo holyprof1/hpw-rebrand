@@ -79,26 +79,37 @@ function holyprofweb_get_current_seo_url() {
         return get_permalink();
     }
 
+    if ( is_front_page() ) {
+        return home_url( '/' );
+    }
+
+    $url = '';
     if ( is_category() ) {
         $term = get_queried_object();
         if ( $term instanceof WP_Term ) {
-            return get_category_link( $term->term_id );
+            $url = get_category_link( $term->term_id );
         }
-    }
-
-    if ( is_search() ) {
+    } elseif ( is_author() ) {
+        $url = get_author_posts_url( (int) get_queried_object_id() );
+    } elseif ( is_search() ) {
         return get_search_link( get_search_query() );
+    } elseif ( get_query_var( 'hpw_blog_archive' ) ) {
+        $url = holyprofweb_get_blog_url();
+    } elseif ( get_query_var( 'hpw_reports_archive' ) ) {
+        $url = holyprofweb_get_reports_url();
     }
 
-    if ( get_query_var( 'hpw_blog_archive' ) ) {
-        return holyprofweb_get_blog_url();
+    if ( '' === $url ) {
+        $url = trailingslashit( home_url( add_query_arg( array(), $GLOBALS['wp']->request ?? '' ) ) );
     }
 
-    if ( get_query_var( 'hpw_reports_archive' ) ) {
-        return holyprofweb_get_reports_url();
+    // Paginated archives are self-canonical (page 2 is not a duplicate of page 1).
+    $paged = (int) get_query_var( 'paged' );
+    if ( $paged > 1 ) {
+        $url = trailingslashit( $url ) . 'page/' . $paged . '/';
     }
 
-    return home_url( add_query_arg( array(), $GLOBALS['wp']->request ?? '' ) );
+    return $url;
 }
 
 function holyprofweb_normalize_hreflang_code( $code ) {
@@ -673,7 +684,7 @@ function holyprofweb_seo_head() {
         echo '<script type="application/ld+json">' . wp_json_encode( $breadcrumb, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE ) . '</script>' . "\n";
     }
 
-    echo '<link rel="canonical" href="' . esc_url( holyprofweb_get_current_seo_url() ) . '" />' . "\n";
+    if ( ! is_404() ) { echo '<link rel="canonical" href="' . esc_url( holyprofweb_get_current_seo_url() ) . '" />' . "\n"; }
     foreach ( $hreflangs as $entry ) {
         echo '<link rel="alternate" hreflang="' . esc_attr( $entry['hreflang'] ) . '" href="' . esc_url( $entry['url'] ) . '" />' . "\n";
     }
