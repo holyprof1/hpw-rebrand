@@ -67,6 +67,10 @@ add_action( 'template_redirect', function () {
             $gone = empty( $left );
         }
     }
+    // Tag archives are not part of the publication (tags were auto-assigned in the old archive).
+    if ( ! $gone && is_tag() ) {
+        $gone = true;
+    }
     if ( ! $gone ) {
         return;
     }
