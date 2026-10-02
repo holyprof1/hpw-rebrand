@@ -1,0 +1,41 @@
+{
+  "id": 82,
+  "slug": "moniepoint-explained",
+  "section": "apps-websites",
+  "cluster": "fintech",
+  "title": "Moniepoint: How a Nigerian Software Firm Became a Banking Network for Small Businesses",
+  "seo_title": "Moniepoint Explained: From TeamApt to Business Banking",
+  "meta_description": "Moniepoint began as TeamApt, a Nigerian software company founded in 2015, and became a business banking and POS network. Its timeline and services.",
+  "dek": "Moniepoint began as TeamApt, a Nigerian software company founded in 2015, and became a banking and POS network for small businesses. Here is the timeline and what it offers.",
+  "primary_query": "what is moniepoint",
+  "facts": {
+    "type": "company",
+    "name": "Moniepoint",
+    "operator": "Moniepoint Inc.",
+    "launched": "2015 (as TeamApt)",
+    "availability": "Nigeria",
+    "pricing": "Fees vary by product; see Moniepoint's pricing",
+    "url": "https://www.moniepoint.com/",
+    "limits": "Transaction volumes and user counts are company or press figures"
+  },
+  "body": "<p>Moniepoint is a Nigerian financial technology company that offers business and personal banking, point-of-sale terminals and agent banking. It began in 2015 as TeamApt, a software company for banks, founded by Tosin Eniolorunda and Felix Ike, and was described by investors in 2024 as a unicorn after a US$110 million funding round.</p>\n<h2>Timeline</h2>\n<ul>\n<li><strong>2015:</strong> TeamApt is founded to build software for traditional banks.</li>\n<li><strong>2019:</strong> It obtains a licence for agency banking, launches Moniepoint as a mobile-money agent network and raises US$5.5 million in Series A funding from Quantum Capital, per company-history write-ups.</li>\n<li><strong>2020:</strong> It adds POS terminals for agents.</li>\n<li><strong>February 2022:</strong> It receives a business banking licence.</li>\n<li><strong>2024 and 2025:</strong> A US$110 million round marks unicorn status, followed by a further US$200 million in October 2025, according to funding coverage.</li>\n</ul>\n<h2>Why agents mattered</h2>\n<p>Agent banking let Moniepoint reach customers in places traditional banks considered unprofitable. A merchant with a POS terminal can take card payments and offer withdrawals and transfers without sending customers to a branch. Rest of World describes how businesses in Nigeria increasingly skip traditional banks and use Moniepoint instead.</p>\n<h2>Scale figures to treat carefully</h2>\n<p>Company and press accounts quote processing of well over US$100 billion a year and more than ten million customers. Figures differ between sources and years, so we do not give a single number here.</p>\n<h2>Related</h2>\n<p>For the founder behind it, see <a href=\"/tosin-eniolorunda-moniepoint-founder/\">Tosin Eniolorunda</a>.</p>\n<h2>What we could not verify</h2>\n<p>We did not test Moniepoint's products. Licences and balances should be checked against the Central Bank of Nigeria's published lists.</p>",
+  "sources": [
+    [
+      "Wikipedia: Moniepoint Inc.",
+      "https://en.wikipedia.org/wiki/Moniepoint_Inc."
+    ],
+    [
+      "Rest of World: Nigerian businesses increasingly skip traditional banks",
+      "https://restofworld.org/2024/nigeria-fintech-moniepoint/"
+    ],
+    [
+      "Moniepoint: Redefining payments and banking in Nigeria",
+      "https://moniepoint.com/blog/redefining-payments-and-banking-in-nigeria-the-moniepoint-story"
+    ],
+    [
+      "Disrupt Africa: Moniepoint raises $200m extra funding",
+      "https://disruptafrica.com/2025/10/22/nigerian-fintech-unicorn-moniepoint-raises-200m-extra-funding/"
+    ]
+  ],
+  "merge": []
+}

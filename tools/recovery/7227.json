@@ -1,0 +1,47 @@
+{
+ "id": 7227,
+ "slug": "incogni-explained",
+ "section": "apps-websites",
+ "cluster": "privacy",
+ "title": "Incogni: How Surfshark's Data Removal Service Sends Opt-Out Requests to Brokers",
+ "seo_title": "Incogni Explained: How Data Broker Removal Works",
+ "meta_description": "Incogni is a data removal service from Surfshark that sends opt-out requests to hundreds of data brokers. How it works, how often requests repeat and its limits.",
+ "dek": "Incogni is a data removal service from Surfshark that sends opt-out requests to hundreds of data brokers. This explains how it works, how often requests repeat and its limits.",
+ "primary_query": "what does incogni do",
+ "facts": {
+  "type": "website",
+  "name": "Incogni",
+  "operator": "Surfshark",
+  "launched": "",
+  "availability": "Many countries",
+  "pricing": "Annual subscription",
+  "url": "https://incogni.com/",
+  "limits": "It covers listed brokers only, not every site that holds your data"
+ },
+ "sources": [
+  [
+   "Surfshark: Incogni data removal service",
+   "https://surfshark.com/incogni"
+  ],
+  [
+   "Surfshark blog: Incogni will free you from data brokers",
+   "https://surfshark.com/blog/introducing-incogni"
+  ],
+  [
+   "Comparitech: Incogni review",
+   "https://www.comparitech.com/data-privacy-management/reviews/incogni-review/"
+  ],
+  [
+   "Privacy.com: What is Incogni?",
+   "https://www.privacy.com/blog/what-is-incogni-data-removal-service"
+  ]
+ ],
+ "merge": [],
+ "post_id": 7227,
+ "content_html": "<p>Incogni is an automated personal-data removal service built by Surfshark, the company behind the <a href=\"/surfshark-vpn-explained/\">Surfshark VPN</a>. It sends opt-out and deletion requests to data brokers and people-search sites on your behalf, then keeps repeating them so your information does not reappear.</p>\n<h2>How a removal cycle runs</h2>\n<p>You sign up and authorise Incogni to act for you. It checks where your information appears across more than 420 people-search sites and data-broker databases and sends legally framed requests asking for removal. Guides describe follow-ups roughly every 60 days for public brokers and every 90 days for private ones, continuing until a broker confirms it has suppressed your records. A dashboard shows request status.</p>\n<h2>Why repeat requests are needed</h2>\n<p>Data brokers collect from public records, apps and websites as a core part of their business, so a deleted profile can be rebuilt from new source data. Repeating requests is how a service like this tries to keep records off the lists.</p>\n<h2>What it cannot do</h2>\n<ul>\n<li>It cannot remove information from social networks, news articles or government records.</li>\n<li>It covers the brokers on its own list, not every company that holds data about you.</li>\n<li>Removal depends on each broker honouring the request.</li>\n</ul>\n<h2>Doing it yourself</h2>\n<p>Many brokers publish free opt-out forms. Doing it manually costs no money but takes a great deal of time, which is the trade a paid service sells.</p>\n<h2>What we could not verify</h2>\n<p>We did not subscribe, so we cannot confirm removal rates. Broker counts and timing come from Surfshark's own pages and independent explainers.</p>\n<h2>Sources</h2>\n<ol>\n<li><a href=\"https://surfshark.com/incogni\" rel=\"noopener nofollow\">Surfshark: Incogni data removal service</a></li>\n<li><a href=\"https://surfshark.com/blog/introducing-incogni\" rel=\"noopener nofollow\">Surfshark blog: Incogni will free you from data brokers</a></li>\n<li><a href=\"https://www.comparitech.com/data-privacy-management/reviews/incogni-review/\" rel=\"noopener nofollow\">Comparitech: Incogni review</a></li>\n<li><a href=\"https://www.privacy.com/blog/what-is-incogni-data-removal-service\" rel=\"noopener nofollow\">Privacy.com: What is Incogni?</a></li>\n</ol>",
+ "related": [
+  "https://holyprofweb.com/surfshark-vpn-explained/"
+ ],
+ "image_alt": "Holyprofweb editorial graphic for Incogni",
+ "image_slug": "incogni-explained"
+}

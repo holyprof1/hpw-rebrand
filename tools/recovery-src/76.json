@@ -1,0 +1,41 @@
+{
+  "id": 76,
+  "slug": "luno-explained",
+  "section": "apps-websites",
+  "cluster": "fintech",
+  "title": "Luno: How the Crypto Exchange Lets Nigerians Buy Bitcoin in Naira",
+  "seo_title": "Luno Explained: Naira Crypto Trading and Who Owns the Exchange",
+  "meta_description": "Luno is a crypto exchange founded in 2013 and owned by Digital Currency Group since 2020. How Nigerians can buy and sell bitcoin and ethereum in naira.",
+  "dek": "Luno is a crypto exchange founded in 2013 and owned by Digital Currency Group since 2020. This explains how Nigerians buy and sell bitcoin and ethereum in naira.",
+  "primary_query": "how does luno work in nigeria",
+  "facts": {
+    "type": "app",
+    "name": "Luno",
+    "operator": "Luno (owned by Digital Currency Group)",
+    "launched": "2013",
+    "availability": "Including Nigeria, South Africa, Indonesia, Malaysia and others",
+    "pricing": "Trading fees per the Luno fee schedule",
+    "url": "https://www.luno.com/",
+    "limits": "Crypto prices are volatile; availability and rules change"
+  },
+  "body": "<p>Luno is a cryptocurrency exchange and wallet, founded in 2013 and led by co-founder and chief executive Marcus Swanepoel, that serves countries with high crypto adoption including South Africa, Nigeria, Indonesia and Malaysia. In 2020 the US-based Digital Currency Group acquired the exchange, having invested in its 2014 seed round.</p>\n<h2>In Nigeria</h2>\n<p>Luno began serving Nigeria in 2016 and started physical operations in 2017, according to a Techpoint Africa feature. Customers can buy bitcoin and ethereum with naira using local bank cards and domestic transfers, and the exchange has naira trading pairs that let users convert crypto back to naira and withdraw it to a bank account.</p>\n<h2>Who is behind it</h2>\n<p>Digital Currency Group, founded by Barry Silbert in 2015, is an investment company focused on digital currencies and decentralised technologies. Silbert said he was proud to have supported Luno as an early investor when the acquisition was announced.</p>\n<h2>Taking care when buying crypto</h2>\n<ul>\n<li>Prices move sharply, so invest only what you can afford to lose.</li>\n<li>Turn on two-factor authentication and protect the email account tied to the exchange.</li>\n<li>Read fee tables for buying, selling and withdrawing in naira before you trade.</li>\n<li>Keep records of transactions, since tax treatment of crypto differs by country.</li>\n</ul>\n<h2>What we could not verify</h2>\n<p>We did not trade on Luno. Nigerian rules on crypto change, so check the latest regulator guidance and the exchange's own terms before depositing money.</p>",
+  "sources": [
+    [
+      "Nairametrics: Digital Currency Group acquires crypto exchange Luno",
+      "https://nairametrics.com/2020/09/09/digital-currency-group-acquires-crypto-exchange-luno/"
+    ],
+    [
+      "Techpoint Africa: Luno wants to be Nigeria's bitcoin bank",
+      "https://techpoint.africa/feature/luno-in-nigeria/"
+    ],
+    [
+      "Forbes: Digital Currency Group reveals acquisition of Luno",
+      "https://www.forbes.com/sites/billybambrough/2020/09/09/digital-currency-group-reveals-sudden-acquisition-of-bitcoin-and-crypto-exchange-luno/"
+    ],
+    [
+      "Decrypt: Digital Currency Group acquires Luno",
+      "https://decrypt.co/41282/digital-currency-group-acquires-crypto-exchange-luno"
+    ]
+  ],
+  "merge": []
+}

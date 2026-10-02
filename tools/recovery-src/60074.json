@@ -1,0 +1,44 @@
+{
+  "id": 60074,
+  "slug": "welocalize-explained",
+  "section": "apps-websites",
+  "cluster": "work",
+  "title": "Welocalize: The Localization Company That Also Runs an AI Data Network",
+  "seo_title": "Welocalize Explained: Localization, Welo Data and Freelance Work",
+  "meta_description": "Welocalize is a Maryland localization and translation company founded in 1997 that also supplies AI training data through Welo Data. What it does.",
+  "dek": "Welocalize is a Maryland localization company founded in 1997 that also supplies AI training data through Welo Data. This covers what it does and how freelancers fit in.",
+  "primary_query": "what is welocalize",
+  "facts": {
+    "type": "company",
+    "name": "Welocalize",
+    "operator": "Welocalize, Inc.",
+    "launched": "1997",
+    "availability": "Global; headquartered in Frederick, Maryland",
+    "pricing": "Business services; freelancers are paid per task",
+    "url": "https://www.welocalize.com/",
+    "limits": "Revenue and staffing numbers are profile-site estimates"
+  },
+  "body": "<p>Welocalize is a translation and localisation company headquartered in Frederick, Maryland, founded in 1997. It adapts software, websites, manuals and marketing for other languages and markets, and through its Welo Data brand also supplies the human-labelled data used to train AI systems.</p>\n<h2>What localisation covers</h2>\n<p>Localisation goes beyond translation: user interfaces, technical manuals, websites, mobile content, advertising campaigns and sales training are all adapted to the language and conventions of each market. Company profiles say Welocalize works across more than 300 languages and serves industries such as medical, legal and marketing.</p>\n<h2>Welo Data and AI training</h2>\n<p>Welo Data describes a network of more than 500,000 vetted experts across 300-plus languages and locales for AI data work such as evaluation and annotation. It says a proprietary identity and fraud-prevention framework, NIMO, is used to verify those contributors. Third-party profiles also report around 1,900 employees and about 30,000 linguists, reviewers and subject-matter experts, and annual revenue of roughly US$255 million; these are estimates from profile sites.</p>\n<h2>If you want to work with it</h2>\n<ul>\n<li>Roles are usually for linguists, reviewers and evaluators and are posted on the company's own careers page.</li>\n<li>Pay is task-based or hourly depending on the project, and the project brief states it.</li>\n<li>Be cautious of unsolicited offers asking for payment, which are not how a company of this type recruits.</li>\n</ul>\n<h2>What we could not verify</h2>\n<p>We did not apply for work or test onboarding. Headcount, revenue and network sizes are drawn from third-party profile sites and company statements.</p>",
+  "sources": [
+    [
+      "Welocalize on Forbes",
+      "https://www.forbes.com/companies/welocalize/"
+    ],
+    [
+      "Craft.co: Welocalize company profile",
+      "https://craft.co/welocalize-646"
+    ],
+    [
+      "Inc. profile: Welocalize",
+      "https://www.inc.com/profile/welocalize"
+    ],
+    [
+      "Tracxn: Welocalize profile",
+      "https://tracxn.com/d/companies/welocalize/__uJFuTFABZRccBSpAyoQz71XYVGcz1AiiHBPlv28JtOc"
+    ]
+  ],
+  "merge": [
+    6001,
+    1024
+  ]
+}

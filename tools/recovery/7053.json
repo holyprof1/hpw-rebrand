@@ -1,0 +1,49 @@
+{
+ "id": 7053,
+ "slug": "joom-explained",
+ "section": "apps-websites",
+ "cluster": "marketplaces",
+ "title": "Joom: The Mobile-First Shopping App Built by a Latvian Team and Based in Lisbon",
+ "seo_title": "Joom Explained: Origin, Headquarters and How the App Works",
+ "meta_description": "Joom is a mobile shopping marketplace founded in Latvia in 2016 and headquartered in Lisbon. Where it began, how the app works and who sells on it.",
+ "dek": "Joom is a mobile shopping marketplace founded in Latvia in 2016. This covers where it is based, how its sellers and logistics work, and what to check before ordering.",
+ "primary_query": "what is joom app",
+ "facts": {
+  "type": "app",
+  "name": "Joom",
+  "operator": "Joom Group",
+  "launched": "2016, Riga, Latvia",
+  "availability": "Mobile app and website in many countries",
+  "pricing": "Free to use; prices set by sellers",
+  "url": "https://www.joom.com/",
+  "limits": "Delivery times vary by seller and route"
+ },
+ "sources": [
+  [
+   "Wikipedia: Joom",
+   "https://en.wikipedia.org/wiki/Joom"
+  ],
+  [
+   "ChannelX: Meet the marketplace, Joom",
+   "https://channelx.world/2020/09/meet-the-marketplace-joom/"
+  ],
+  [
+   "Baltic Times: Joom announces new business strategy for 2023",
+   "https://www.baltictimes.com/joom_announces_new_business_strategy_for_2023/"
+  ],
+  [
+   "Google Play: Joom listing",
+   "https://play.google.com/store/apps/details?id=com.joom"
+  ]
+ ],
+ "merge": [],
+ "post_id": 7053,
+ "content_html": "<p>Joom is a shopping marketplace, used mostly through its mobile app, that connects buyers with sellers primarily in China and elsewhere in Asia. It was founded in Latvia in 2016, is described as headquartered in Lisbon, Portugal, and was one of the most downloaded shopping apps in Europe in 2018.</p>\n<h2>Where the company is based</h2>\n<p>Reference profiles describe Joom as a group of e-commerce companies founded in Riga by Ilya Shirokov and a team, with offices in Luxembourg, Hong Kong, China, the United States and other places. Treat the founder and office details as profile-level information; Joom's own corporate pages are the place to check the current legal entity before you rely on them for anything formal.</p>\n<h2>How it works</h2>\n<p>Sellers list goods, Joom handles the app, payment and customer support, and a logistics arm called Joom Logistics supports delivery. The company says about 95% of its transactions happen on mobile, which explains why the web version is lighter than the app. Over time it added a social feed, personalised recommendations and a section for brands and influencers.</p>\n<h2>What to look at before ordering</h2>\n<ul>\n<li>The shipping estimate and the country the parcel ships from; goods from Asia can take weeks.</li>\n<li>Whether import tax applies in your country.</li>\n<li>The return window shown for that particular item.</li>\n<li>Photos and comments from other buyers for the same product.</li>\n</ul>\n<h2>Compared with other cross-border apps</h2>\n<p>The closest comparisons are <a href=\"/aliexpress-explained/\">AliExpress</a> and Temu. Joom's differences are its European roots and its in-house logistics, while the product catalogue overlaps heavily with those apps.</p>\n<h2>What we could not verify</h2>\n<p>We did not place an order, so delivery speed and return handling are untested. Download and installation counts are the company's and press sources' figures.</p>\n<h2>Sources</h2>\n<ol>\n<li><a href=\"https://en.wikipedia.org/wiki/Joom\" rel=\"noopener nofollow\">Wikipedia: Joom</a></li>\n<li><a href=\"https://channelx.world/2020/09/meet-the-marketplace-joom/\" rel=\"noopener nofollow\">ChannelX: Meet the marketplace, Joom</a></li>\n<li><a href=\"https://www.baltictimes.com/joom_announces_new_business_strategy_for_2023/\" rel=\"noopener nofollow\">Baltic Times: Joom announces new business strategy for 2023</a></li>\n<li><a href=\"https://play.google.com/store/apps/details?id=com.joom\" rel=\"noopener nofollow\">Google Play: Joom listing</a></li>\n</ol>",
+ "related": [
+  "https://holyprofweb.com/wayfair-explained/",
+  "https://holyprofweb.com/whatnot-explained/",
+  "https://holyprofweb.com/alibaba-com-explained/"
+ ],
+ "image_alt": "Holyprofweb editorial graphic for Joom",
+ "image_slug": "joom-explained"
+}

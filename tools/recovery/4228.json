@@ -1,0 +1,51 @@
+{
+ "id": 4228,
+ "slug": "freetaxusa-explained",
+ "section": "apps-websites",
+ "cluster": "fintech",
+ "title": "FreeTaxUSA: What the Free Federal Filing Service Covers and What It Charges For",
+ "seo_title": "FreeTaxUSA Explained: Pricing, Deluxe Upgrade and Who Runs It",
+ "meta_description": "FreeTaxUSA is a US online tax preparation service owned by TaxHawk. Federal filing is free; state returns cost extra. Pricing, support tiers and the guarantee.",
+ "dek": "FreeTaxUSA is a US online tax preparation service owned by TaxHawk. Federal filing is free and state returns cost extra. Here is what each tier includes.",
+ "primary_query": "freetaxusa pricing federal free state fee",
+ "facts": {
+  "type": "website",
+  "name": "FreeTaxUSA",
+  "operator": "TaxHawk, Inc.",
+  "launched": "",
+  "availability": "United States federal and state returns",
+  "pricing": "Federal e-file free; state return around US$15; optional Deluxe add-on",
+  "url": "https://www.freetaxusa.com/",
+  "limits": "US tax filing only; prices change each tax year"
+ },
+ "sources": [
+  [
+   "FreeTaxUSA: free online tax filing",
+   "https://www.freetaxusa.com/"
+  ],
+  [
+   "California Franchise Tax Board: FreeTaxUSA e-file offer",
+   "https://www.ftb.ca.gov/file/ways-to-file/online/free-tax-usa.html"
+  ],
+  [
+   "CNBC Select: FreeTaxUSA review",
+   "https://www.cnbc.com/select/freetaxusa-review/"
+  ],
+  [
+   "IRS: TaxHawk news release (2015)",
+   "https://www.irs.gov/pub/newsroom/Tax_Hawk_news_release_October_2015.pdf"
+  ]
+ ],
+ "merge": [
+  1017
+ ],
+ "post_id": 4228,
+ "content_html": "<p>FreeTaxUSA is an online tax preparation service for United States federal and state returns, owned by TaxHawk, Inc. Filing a federal return costs nothing, and a state return carries a fee that review sites put at roughly US$15; an optional Deluxe upgrade of about US$8 adds live-chat support and audit help.</p>\n<h2>What is free and what is not</h2>\n<p>Reviewers describe the free tier as covering federal filing even for more complex situations, which is where some other tax-software brands begin to charge. State filing is billed per return. You are not asked to pay until you are ready to submit, and the software checks for deductions and credits as you answer interview-style questions.</p>\n<h2>The Deluxe upgrade</h2>\n<p>The Deluxe package adds live chat support, unlimited amendments and audit support. If you expect to need help or to amend a return, compare the cost of Deluxe against filing a plain return. Prices vary by tax year, so read the current pricing page.</p>\n<h2>Who stands behind it</h2>\n<p>FreeTaxUSA is owned by TaxHawk, Inc., and its products are described as backed by Sovos Compliance, LLC. The site publishes an Accuracy Guarantee: if a calculation error in the software leads to a penalty or interest from the IRS or a state, FreeTaxUSA says it will reimburse those amounts, subject to its terms.</p>\n<h2>When it may not fit</h2>\n<ul>\n<li>Very complicated situations, such as multi-state business income, may call for a tax professional.</li>\n<li>It prepares United States returns only.</li>\n<li>Check your state's own free-file programmes, which may cover a state return at no cost.</li>\n</ul>\n<h2>What we could not verify</h2>\n<p>We did not file a return. Fees are quoted from third-party reviews and change each season; the company's pricing page is authoritative. This article is general information, not tax advice.</p>\n<h2>Sources</h2>\n<ol>\n<li><a href=\"https://www.freetaxusa.com/\" rel=\"noopener nofollow\">FreeTaxUSA: free online tax filing</a></li>\n<li><a href=\"https://www.ftb.ca.gov/file/ways-to-file/online/free-tax-usa.html\" rel=\"noopener nofollow\">California Franchise Tax Board: FreeTaxUSA e-file offer</a></li>\n<li><a href=\"https://www.cnbc.com/select/freetaxusa-review/\" rel=\"noopener nofollow\">CNBC Select: FreeTaxUSA review</a></li>\n<li><a href=\"https://www.irs.gov/pub/newsroom/Tax_Hawk_news_release_October_2015.pdf\" rel=\"noopener nofollow\">IRS: TaxHawk news release (2015)</a></li>\n</ol>",
+ "related": [
+  "https://holyprofweb.com/insurify-explained/",
+  "https://holyprofweb.com/upstart-explained/",
+  "https://holyprofweb.com/chime-explained/"
+ ],
+ "image_alt": "Holyprofweb editorial graphic for FreeTaxUSA",
+ "image_slug": "freetaxusa-explained"
+}

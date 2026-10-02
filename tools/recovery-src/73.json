@@ -1,0 +1,41 @@
+{
+  "id": 73,
+  "slug": "fairmoney-explained",
+  "section": "apps-websites",
+  "cluster": "fintech",
+  "title": "FairMoney: The Nigerian Loan App That Became a Licensed Microfinance Bank",
+  "seo_title": "FairMoney Explained: Regulation, Loans and the App's Services",
+  "meta_description": "FairMoney is a Nigerian digital lender that started in 2017 and operates as a CBN-licensed microfinance bank. What the app offers and what to check.",
+  "dek": "FairMoney is a Nigerian digital lender that started in 2017 and operates as a regulated microfinance bank. This covers what the app offers and what to check before borrowing.",
+  "primary_query": "what is fairmoney",
+  "facts": {
+    "type": "app",
+    "name": "FairMoney",
+    "operator": "FairMoney Microfinance Bank Limited",
+    "launched": "2017",
+    "availability": "Nigeria",
+    "pricing": "Interest and fees are shown in the app before you accept",
+    "url": "https://fairmoney.io/",
+    "limits": "Loan limits and rates depend on the applicant"
+  },
+  "body": "<p>FairMoney is a Nigerian financial app that began as a loan provider in 2017 under chief executive Laurin Hainy and now operates as FairMoney Microfinance Bank Limited, licensed by the Central Bank of Nigeria. It offers loans, savings and everyday banking tools.</p>\n<h2>What the app does</h2>\n<p>The company says it makes thousands of loan disbursements daily, has more than five million users, and offers instant loans of up to NGN 3,000,000. Those figures come from the company's app-store and website descriptions, and the amount any one person is offered depends on its own assessment.</p>\n<h2>Regulation</h2>\n<p>FairMoney describes itself as CBN-licensed and its deposits as NDIC-insured. A useful habit with any Nigerian lender is to confirm the licence in the Central Bank's published list of licensed microfinance banks, and to avoid apps that are not on it.</p>\n<h2>Before you borrow</h2>\n<ul>\n<li>Read the interest rate and repayment period in the offer. Short-term loans can carry a high effective annual rate.</li>\n<li>Work out the total you will repay, not just the monthly figure.</li>\n<li>Check what permissions the app requests and how it uses your contact data.</li>\n<li>Use only the official app from the Google Play or Apple App Store listing.</li>\n</ul>\n<h2>Other features</h2>\n<p>Besides loans, the app offers savings and bill payments, and a USSD route for instant loan access has been described by Nigerian finance blogs.</p>\n<h2>What we could not verify</h2>\n<p>We did not take a loan. Founder details beyond the chief executive and user figures come from the company and app-store descriptions, and loan terms change.</p>",
+  "sources": [
+    [
+      "FairMoney: About",
+      "https://fairmoney.io/about"
+    ],
+    [
+      "FairMoney: How to use the FairMoney app",
+      "https://fairmoney.io/blog/how-to-use-fairmoney-app"
+    ],
+    [
+      "Google Play: FairMoney listing",
+      "https://play.google.com/store/apps/details?id=ng.com.fairmoney.fairmoney&hl=en_GB&gl=GB"
+    ],
+    [
+      "Apple App Store: FairMoney, loan app in Nigeria",
+      "https://apps.apple.com/ng/app/fairmoney-loan-app-in-nigeria/id6456485223"
+    ]
+  ],
+  "merge": []
+}

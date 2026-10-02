@@ -1,0 +1,52 @@
+{
+ "id": 7010,
+ "slug": "handshake-ai-explained",
+ "section": "apps-websites",
+ "cluster": "work",
+ "title": "Handshake AI: How a College Career Network Became an Expert Data Supplier for AI Labs",
+ "seo_title": "Handshake AI Explained: From Career Network to Expert Data",
+ "meta_description": "Handshake is a 2014 career network for students that launched Handshake AI in 2025 to supply expert-labelled training data to AI labs. What changed and how it works.",
+ "dek": "Handshake is a 2014 career network for students that launched Handshake AI in 2025 to supply expert-labelled data to AI labs. This explains what changed and how contributors take part.",
+ "primary_query": "what is handshake ai",
+ "facts": {
+  "type": "company",
+  "name": "Handshake",
+  "operator": "Handshake",
+  "launched": "2014; Handshake AI launched 2025",
+  "availability": "Primarily United States",
+  "pricing": "Contributors are paid per project",
+  "url": "https://joinhandshake.com/",
+  "limits": "Revenue and network numbers are company or press figures"
+ },
+ "sources": [
+  [
+   "Handshake: About us",
+   "https://joinhandshake.com/about/"
+  ],
+  [
+   "Handshake: Introducing Handshake AI",
+   "https://joinhandshake.com/blog/our-team/introducing-handshake-ai/"
+  ],
+  [
+   "Lenny's Newsletter: Inside the expert network training every frontier AI model",
+   "https://www.lennysnewsletter.com/p/inside-handshake-garrett-lord"
+  ],
+  [
+   "The AI Economy: Handshake connects PhDs to AI labs",
+   "https://theaieconomy.substack.com/p/handshake-connects-phds-to-ai-labs"
+  ]
+ ],
+ "merge": [
+  7243,
+  20009
+ ],
+ "post_id": 7010,
+ "content_html": "<p>Handshake is a career network founded in 2014 that connects students and graduates with employers, and in 2025 it launched Handshake AI to supply human-labelled training data to AI labs. The new business uses its network of university experts, including PhD and master's holders, to write and evaluate material that AI models learn from.</p>\n<h2>From jobs board to data business</h2>\n<p>For about a decade Handshake was where a student at a state school looked for a summer job. Its own announcements and the Lenny's Newsletter interview with chief executive Garrett Lord say that it realised its verified academic network was exactly what AI labs needed for expert data work. The company describes a three-sided marketplace of about 25 million knowledge workers, 1,600 educational institutions and a million employers.</p>\n<h2>What contributors do</h2>\n<p>Experts produce and review training material in nearly 200 specialties, from medicine and law to engineering. Profiles say the AI arm reached US$50 million in revenue in its first four months and later reports put annualised AI revenue near US$1.1 billion; these come from the company and from newsletters and should be read as claims.</p>\n<h2>Joining as an expert</h2>\n<ul>\n<li>Sign up through the Handshake AI pages on Handshake's own site.</li>\n<li>Expect to verify your degree and subject area.</li>\n<li>Read the project brief for pay, deadlines and confidentiality before accepting.</li>\n</ul>\n<h2>What we could not verify</h2>\n<p>We did not apply as a contributor. Network size and revenue are self-reported, and we have not independently confirmed pay levels.</p>\n<h2>Sources</h2>\n<ol>\n<li><a href=\"https://joinhandshake.com/about/\" rel=\"noopener nofollow\">Handshake: About us</a></li>\n<li><a href=\"https://joinhandshake.com/blog/our-team/introducing-handshake-ai/\" rel=\"noopener nofollow\">Handshake: Introducing Handshake AI</a></li>\n<li><a href=\"https://www.lennysnewsletter.com/p/inside-handshake-garrett-lord\" rel=\"noopener nofollow\">Lenny&#x27;s Newsletter: Inside the expert network training every frontier AI model</a></li>\n<li><a href=\"https://theaieconomy.substack.com/p/handshake-connects-phds-to-ai-labs\" rel=\"noopener nofollow\">The AI Economy: Handshake connects PhDs to AI labs</a></li>\n</ol>",
+ "related": [
+  "https://holyprofweb.com/amazon-kdp-royalties-explained/",
+  "https://holyprofweb.com/amazon-mechanical-turk-explained/",
+  "https://holyprofweb.com/welocalize-explained/"
+ ],
+ "image_alt": "Holyprofweb editorial graphic for Handshake",
+ "image_slug": "handshake-ai-explained"
+}

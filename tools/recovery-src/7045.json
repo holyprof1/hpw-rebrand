@@ -1,0 +1,43 @@
+{
+  "id": 7045,
+  "slug": "alibaba-com-explained",
+  "section": "apps-websites",
+  "cluster": "marketplaces",
+  "title": "Alibaba.com: How the Wholesale Marketplace, MOQs and Trade Assurance Work",
+  "seo_title": "Alibaba.com Explained: Wholesale Buying, MOQs and Trade Assurance",
+  "meta_description": "Alibaba.com is a business-to-business marketplace for buying from suppliers in China and Asia. How quotes, minimum orders and Trade Assurance payments work.",
+  "dek": "Alibaba.com is a wholesale marketplace, not a shop. This explains how buying from suppliers works, what a minimum order quantity means and how Trade Assurance holds your payment.",
+  "primary_query": "how does alibaba.com work",
+  "facts": {
+    "type": "website",
+    "name": "Alibaba.com",
+    "operator": "Alibaba Group",
+    "launched": "1999",
+    "availability": "Global buyers; suppliers mainly in China and Asia",
+    "pricing": "Free to browse; orders priced by supplier quote",
+    "url": "https://www.alibaba.com/",
+    "limits": "Terms differ for every supplier and order"
+  },
+  "body": "<p>Alibaba.com is a business-to-business marketplace run by Alibaba Group where companies buy goods in bulk from suppliers, mostly in China and elsewhere in Asia. It is a wholesale platform with minimum order quantities and negotiated prices, which is what separates it from the consumer marketplace <a href=\"/aliexpress-explained/\">AliExpress</a>.</p>\n<h2>The usual buying path</h2>\n<p>Guides from Alibaba's own buyer and seller sites describe the same sequence: search for a product, contact several suppliers, request quotes, order a sample, then place the production order. Prices are often quoted per unit at stepped quantities, so the price you see on a listing is a starting range rather than a final figure.</p>\n<h2>Minimum order quantity</h2>\n<p>A minimum order quantity (MOQ) is the smallest batch a supplier will make or sell. It exists because factories price around production runs. If an MOQ is too high for you, ask whether the supplier sells a sample, a smaller trial order, or stock items that are not made to order.</p>\n<h2>Trade Assurance</h2>\n<p>Trade Assurance is Alibaba's order protection service. It places a trade contract on the order and holds payment so that, if a supplier ships late or the goods differ from what was agreed, the buyer can raise a dispute for a refund. Alibaba reports the programme has handled more than 160 million orders for 37 million buyers. Those are company figures, and the cover applies only to orders paid through the platform that follow its terms.</p>\n<h2>Checks before you place an order</h2>\n<ul>\n<li>Confirm the specification, packaging, lead time and shipping terms in writing inside the order contract.</li>\n<li>Order a sample before a production run.</li>\n<li>Pay through the platform rather than by direct bank transfer.</li>\n<li>Ask about import duties and any product certifications your country requires.</li>\n</ul>\n<h2>What we could not verify</h2>\n<p>We did not place a trade order or test a dispute. What Trade Assurance covers depends on the current terms and on the individual order.</p>",
+  "sources": [
+    [
+      "Alibaba.com: How Alibaba B2B works",
+      "https://smartbuy.alibaba.com/b2b/how-alibaba-b2b-works"
+    ],
+    [
+      "Alibaba.com: Trade Assurance",
+      "https://activity.alibaba.com/ggs/tradeassurance.html"
+    ],
+    [
+      "Alibaba.com Seller Blog: Trade Assurance complete guide",
+      "https://seller.alibaba.com/blogs/2026/southeast-asia/b2b-trade/trade-assurance-complete-guide-alibaba-secure-payment"
+    ],
+    [
+      "Jungle Scout: Alibaba vs AliExpress",
+      "https://www.junglescout.com/blog/alibaba-vs-aliexpress/"
+    ]
+  ],
+  "merge": [
+    1044
+  ]
+}

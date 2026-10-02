@@ -1,0 +1,41 @@
+{
+  "id": 7063,
+  "slug": "eneba-explained",
+  "section": "apps-websites",
+  "cluster": "marketplaces",
+  "title": "Eneba: The Lithuanian Marketplace for Game Keys and Digital Gift Cards",
+  "seo_title": "Eneba Explained: How the Game Key Marketplace Works",
+  "meta_description": "Eneba is a Kaunas-based marketplace for game keys, gift cards and subscriptions sold by third-party merchants. Founders, how it works and the resale caveat.",
+  "dek": "Eneba is a Kaunas-based marketplace for game keys, gift cards and subscriptions sold by third-party merchants. This covers the founders, how orders work and the resale caveat.",
+  "primary_query": "what is eneba",
+  "facts": {
+    "type": "website",
+    "name": "Eneba",
+    "operator": "UAB Helis Play (Eneba)",
+    "launched": "2018, Kaunas, Lithuania",
+    "availability": "Global",
+    "pricing": "Prices set by competing sellers",
+    "url": "https://www.eneba.com/",
+    "limits": "Many keys are resold, not authorised by publishers"
+  },
+  "body": "<p>Eneba is a digital marketplace for video game keys and other digital products, founded in 2018 in Kaunas, Lithuania, by Vytis Uogintas and Žygimantas Mikšta. It does not sell games itself: independent merchants list keys, gift cards, subscriptions and in-game currency, and Eneba manages the sellers, order fulfilment and customer support.</p>\n<h2>Who sells there</h2>\n<p>The platform allows third-party merchants to reach more than 10 million registered users, per the company's profile. Sellers compete on price, which is why the same game can cost very different amounts from one listing to the next.</p>\n<h2>The resale caveat</h2>\n<p>A 2026 comparison of key stores notes that the core marketplace is grey-market resale that many publishers have not authorised, though Eneba also holds distribution deals with Riot Games, Garena and Konami. Practically, that means a key can be region-locked, and a publisher may later take action over keys it did not license. Pick listings labelled for your region and check the activation instructions.</p>\n<h2>Growth</h2>\n<p>Business-register reporting says the operating company, UAB Helis Play, had revenue of €63.6 million and net profit of €7.85 million for the year, with revenue up about 43%. It raised €6.65 million in an earlier round and a €10 million investment in 2025.</p>\n<h2>Before you buy a key</h2>\n<ul>\n<li>Check the platform (Steam, Xbox, PlayStation, Nintendo) and the region.</li>\n<li>Compare against the official store price and sales.</li>\n<li>Keep the order details until the key is redeemed.</li>\n</ul>\n<h2>What we could not verify</h2>\n<p>We did not buy a key. Financial figures come from press reports of the company's filings.</p>",
+  "sources": [
+    [
+      "Wikipedia: Eneba",
+      "https://en.wikipedia.org/wiki/Eneba"
+    ],
+    [
+      "Emerging Europe: Eneba receives 6.65 million euros",
+      "https://emerging-europe.com/lithuanian-gaming-marketplace-start-up-eneba-gets-6-65-million-euros-to-grow-internationally/"
+    ],
+    [
+      "Baltic VC: Eneba receives €10M from ILTE Lietuva",
+      "https://www.balticvc.com/2025/11/lithuanian-company-eneba-receives-10m.html"
+    ],
+    [
+      "Inpulse: Eneba from a Kaunas marketplace to mobile games",
+      "https://inpulse.lt/en/eneba-from-a-kaunas-gaming-marketplace-to-a-bet-on-the-future-of-mobile-games/"
+    ]
+  ],
+  "merge": []
+}

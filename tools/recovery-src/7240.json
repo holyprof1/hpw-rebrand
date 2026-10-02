@@ -1,0 +1,41 @@
+{
+  "id": 7240,
+  "slug": "chime-explained",
+  "section": "apps-websites",
+  "cluster": "fintech",
+  "title": "Chime: Why the Fintech Feels Like a Bank but Works Through Partner Banks",
+  "seo_title": "Chime Explained: Partner Banks, Interchange and the 2025 IPO",
+  "meta_description": "Chime is a US fintech app that looks like a bank but offers accounts through partner banks. How it earns money, who founded it and its 2025 IPO.",
+  "dek": "Chime is a US fintech app that looks like a bank but offers accounts through partner banks. This covers how it earns money, who founded it and its 2025 stock listing.",
+  "primary_query": "is chime a bank",
+  "facts": {
+    "type": "app",
+    "name": "Chime",
+    "operator": "Chime Financial, Inc.",
+    "launched": "2012",
+    "availability": "United States",
+    "pricing": "Many accounts have no monthly fee; see the fee schedule",
+    "url": "https://www.chime.com/",
+    "limits": "Chime is a financial technology company, not a bank"
+  },
+  "body": "<p>Chime is an American financial technology company that offers checking and savings accounts, debit cards and a secured credit card through an app. It is not a bank: its accounts are issued by partner banks, The Bancorp Bank, N.A. and Stride Bank, N.A., which hold the deposits.</p>\n<h2>Who started it</h2>\n<p>Chris Britt and Ryan King founded Chime in 2012. It listed on the stock market in 2025, raising US$864 million at US$27 a share, and its prospectus reported 8.6 million active members at 31 March 2025.</p>\n<h2>How it earns money</h2>\n<p>Chime's regulatory filings say most of its revenue is interchange, the small fee the merchant's bank pays each time a Chime card is used. Its partner banks are small enough to fall outside the Durbin Amendment's cap on interchange, which makes the rate per swipe higher than at large banks. That model is the reason many accounts carry no monthly fees.</p>\n<h2>What the bank partnership means for you</h2>\n<ul>\n<li>Deposit insurance from the FDIC applies through the partner bank, so check that your account is listed under that bank.</li>\n<li>Terms of the account are with the partner bank as well as Chime.</li>\n<li>If you search for a bank by name in the FDIC tool, look for The Bancorp Bank or Stride Bank rather than Chime.</li>\n</ul>\n<h2>Compared with other neobanks</h2>\n<p>Several US fintech apps, such as Varo or Current, use similar partner-bank arrangements, though Varo holds its own bank charter. Compare fees, overdraft features and cash-deposit options before moving your pay.</p>\n<h2>What we could not verify</h2>\n<p>We did not open an account. Financial data is from Chime's SEC filings, which are the best source for current numbers.</p>",
+  "sources": [
+    [
+      "Chime Financial, Inc. Form 424B4 prospectus (SEC)",
+      "https://www.sec.gov/Archives/edgar/data/1795586/000162828025030855/chimefinancialinc-finalpro.htm"
+    ],
+    [
+      "Chime Financial, Inc. Form 10-Q, September 2025 (SEC)",
+      "https://www.sec.gov/Archives/edgar/data/1795586/000179558625000019/chym-20250930.htm"
+    ],
+    [
+      "Chime Financial, Inc. Form ARS, FY2025 (SEC)",
+      "https://www.sec.gov/Archives/edgar/data/1795586/000179558626000032/chimefy25ars.pdf"
+    ],
+    [
+      "Capital.com: Chime IPO launch date, valuation and trading details",
+      "https://capital.com/en-int/learn/ipo/chime-ipo"
+    ]
+  ],
+  "merge": []
+}

@@ -1,0 +1,41 @@
+{
+  "id": 4025,
+  "slug": "zenhotels-explained",
+  "section": "apps-websites",
+  "cluster": "travel",
+  "title": "ZenHotels: The Hotel Booking Brand of Emerging Travel Group",
+  "seo_title": "ZenHotels Explained: Who Operates It and How Booking Works",
+  "meta_description": "ZenHotels is a hotel booking brand of Emerging Travel Group, alongside Ostrovok and the B2B platform RateHawk. Operator, history and what to check.",
+  "dek": "ZenHotels is a hotel booking brand of Emerging Travel Group, alongside Ostrovok and the B2B platform RateHawk. Here is who operates it and what to check before paying.",
+  "primary_query": "who owns zenhotels",
+  "facts": {
+    "type": "website",
+    "name": "ZenHotels",
+    "operator": "Emerging Travel Group",
+    "launched": "2010 (Ostrovok origin)",
+    "availability": "Hotel booking in many source markets",
+    "pricing": "Free to search; prices set per hotel and rate",
+    "url": "https://www.zenhotels.com/",
+    "limits": "Terms, fees and cancellation rules vary by hotel and rate"
+  },
+  "body": "<p>ZenHotels is an online hotel booking service run by Emerging Travel Group, a company that also operates Ostrovok and the business-to-business platform RateHawk. Profile sites say it is based in Limassol, Cyprus, and that it grew out of the Russian booking service Ostrovok, which Serge Faguet and Kirill Makharinsky founded in 2010.</p>\n<h2>The group behind it</h2>\n<p>Emerging Travel Group says it serves more than 100 source markets: RateHawk is the travel-professional brand, launched in 2016 for agents and tour operators, with access to over a million accommodations, while ZenHotels and Ostrovok serve consumers. The group raised US$10 million from investors including Lev Leviev and the family office of Igor and Dmitri Bukhman, according to travel-industry reporting.</p>\n<h2>What to read before you pay</h2>\n<p>ZenHotels, like other hotel resellers, passes on a room supplied by a hotel or a wholesaler. Check that the property name, dates, room type and meal plan match your search, then read the cancellation conditions for the specific rate, since some rates are non-refundable.</p>\n<h2>Keeping a paper trail</h2>\n<ul>\n<li>Save the confirmation email and booking number.</li>\n<li>If you want to change a booking, use the booking-management link first.</li>\n<li>Ask the hotel directly to confirm that the booking exists before travelling.</li>\n</ul>\n<h2>What we could not verify</h2>\n<p>We did not make a booking, and we cannot assess how its support handles problems. User posts on travel forums describe a range of experiences, which we did not rely on. Founding and funding details are drawn from industry reports and company profile pages.</p>",
+  "sources": [
+    [
+      "PhocusWire: Emerging Travel Group raises $10M for RateHawk",
+      "https://www.phocuswire.com/ratehawk-emerging-travel-group-10M-funding"
+    ],
+    [
+      "bne IntelliNews: Emerging Travel Group secures $10mn",
+      "https://www.intellinews.com/russia-s-emerging-travel-group-secures-10mn-from-lev-leviev-igor-and-dmitri-bukhman-165279/"
+    ],
+    [
+      "Wikipedia: Ostrovok.ru",
+      "https://en.wikipedia.org/wiki/Ostrovok.ru"
+    ],
+    [
+      "ZenHotels blog: Emerging Travel Group is 10 years old",
+      "https://blog.zenhotels.com/happy-birthday-10/"
+    ]
+  ],
+  "merge": []
+}

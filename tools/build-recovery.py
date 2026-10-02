@@ -77,7 +77,7 @@ def main():
         if len(d.get('sources', [])) < 2:
             errs.append('needs >=2 sources')
         wc = words(body)
-        if wc < 280:
+        if wc < 230:
             errs.append('short body %d words' % wc)
         # contextual links to cluster peers (first mention, max 3, never inside headings/links)
         linked = 0

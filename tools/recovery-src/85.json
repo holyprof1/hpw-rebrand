@@ -1,0 +1,41 @@
+{
+  "id": 85,
+  "slug": "paystack-explained",
+  "section": "apps-websites",
+  "cluster": "fintech",
+  "title": "Paystack: How Nigeria's Payment Gateway Works and What Stripe Bought in 2020",
+  "seo_title": "Paystack Explained: How the Payment Gateway Works for Businesses",
+  "meta_description": "Paystack is a Nigerian payments company founded in 2015 and acquired by Stripe in 2020. How it processes card, transfer and USSD payments for businesses.",
+  "dek": "Paystack is a Nigerian payments company founded in 2015 and acquired by Stripe in 2020. This explains how businesses use it to accept payments and how settlement works.",
+  "primary_query": "what is paystack and how does it work",
+  "facts": {
+    "type": "company",
+    "name": "Paystack",
+    "operator": "Paystack Payments Limited (a Stripe company)",
+    "launched": "2015",
+    "availability": "Nigeria, Ghana, Kenya, South Africa",
+    "pricing": "Per-transaction fees charged to the business",
+    "url": "https://paystack.com/",
+    "limits": "Fees, settlement terms and limits depend on country and business type"
+  },
+  "body": "<p>Paystack is a Nigerian payments company that lets businesses accept online and in-person payments by card, bank transfer, USSD and mobile money. Shola Akinlade and Ezra Olubi founded it in 2015, and Stripe acquired it in 2020 in a deal reported at more than US$200 million.</p>\n<h2>What a business actually gets</h2>\n<p>A business creates an account, supplies its details, and then connects Paystack to its website, app or a hosted payment page. When a customer pays, Paystack handles the technical side of the transaction and then settles the money to the business's bank account, in many cases within about a day. Alongside payments it provides a dashboard, dispute tools and fraud screening.</p>\n<h2>Where it operates</h2>\n<p>Company profiles describe more than 200,000 businesses across Nigeria, Ghana, Kenya and South Africa using Paystack, from small shops using payment links to enterprises with custom integrations. Treat the business count as a company-level figure.</p>\n<h2>Why Stripe bought it</h2>\n<p>Stripe is a global payments company with little presence in African markets at the time, and Paystack had a developer-friendly API, local payment methods and a large customer base. The acquisition gave Stripe an African entry point while Paystack continued to operate under its own brand.</p>\n<h2>If you are choosing a gateway</h2>\n<ul>\n<li>Compare the fee per transaction for local and international cards, which differ.</li>\n<li>Check settlement times and what happens to funds during a dispute.</li>\n<li>Confirm that your business type is supported and what verification documents are needed.</li>\n</ul>\n<h2>What we could not verify</h2>\n<p>We did not open a Paystack account or measure settlement times ourselves, and the business count and deal value are company and press figures.</p>",
+  "sources": [
+    [
+      "CGAP: How Paystack's APIs are enabling entrepreneurs in Nigeria",
+      "https://www.cgap.org/blog/how-paystacks-apis-are-enabling-entrepreneurs-in-nigeria"
+    ],
+    [
+      "TechCrunch: Nigerian businesses can now accept Apple Pay on Paystack",
+      "https://techcrunch.com/2021/09/23/nigerian-businesses-can-now-accept-apple-pay-on-paystack/amp/"
+    ],
+    [
+      "Sell Digital NG: Paystack Payments Limited overview",
+      "https://selldigital.ng/paystack-payments-limited/"
+    ],
+    [
+      "TechAfrica News: Paystack launches Paystack Index",
+      "https://techafricanews.com/2026/06/25/paystack-launches-paystack-index-for-ai-powered-payments-in-nigeria/"
+    ]
+  ],
+  "merge": []
+}

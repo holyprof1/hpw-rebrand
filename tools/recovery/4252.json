@@ -1,0 +1,51 @@
+{
+ "id": 4252,
+ "slug": "wayfair-explained",
+ "section": "apps-websites",
+ "cluster": "marketplaces",
+ "title": "Wayfair: From Racks and Stands to a $12.5 Billion Home Goods Retailer",
+ "seo_title": "Wayfair Explained: History, Brands and How the Retailer Works",
+ "meta_description": "Wayfair is a Boston-based online home goods retailer founded in 2002 by Niraj Shah and Steve Conine. Its history, family of brands and how it sells.",
+ "dek": "Wayfair is a Boston-based online home goods retailer founded in 2002. This covers its founders, its family of brands and how the business has grown.",
+ "primary_query": "what is wayfair",
+ "facts": {
+  "type": "company",
+  "name": "Wayfair",
+  "operator": "Wayfair Inc.",
+  "launched": "August 2002, Boston",
+  "availability": "North America and Europe",
+  "pricing": "Free to browse; goods sold at retail prices",
+  "url": "https://www.wayfair.com/",
+  "limits": "Delivery and returns vary by item and supplier"
+ },
+ "sources": [
+  [
+   "Wikipedia: Wayfair",
+   "https://en.wikipedia.org/wiki/Wayfair"
+  ],
+  [
+   "About Wayfair: leadership bios",
+   "https://www.aboutwayfair.com/leadership-bios"
+  ],
+  [
+   "Wikipedia: Niraj Shah",
+   "https://en.wikipedia.org/wiki/Niraj_Shah"
+  ],
+  [
+   "Boston Globe: Steve Conine, Tech Power Players 2022",
+   "https://www.bostonglobe.com/tech-power-players/year/2022/person/steve-conine-wayfair/"
+  ]
+ ],
+ "merge": [
+  7219
+ ],
+ "post_id": 4252,
+ "content_html": "<p>Wayfair is an American online retailer of furniture, home furnishings, housewares and home improvement goods, headquartered in Boston, Massachusetts. It was founded in August 2002 by Niraj Shah and Steve Conine, and reports net revenue of US$12.5 billion for 2025 and about 12,000 employees.</p>\n<h2>The early years</h2>\n<p>The business began as CSN Stores, a name formed from the founders' initials, and its first site was racksandstands.com, selling media stands and storage furniture. Shah and Conine, both Cornell graduates, had previously run Simplify Mobile and the consulting firm iXL. Wayfair started operating from Conine's nursery in Boston. The company later consolidated its many niche sites under the Wayfair name.</p>\n<h2>The brands</h2>\n<p>Wayfair says its family includes Wayfair itself, Joss &amp; Main, AllModern, Birch Lane, Perigold and Wayfair Professional, which serves trade customers. They differ mainly in style and price tier but share a back end.</p>\n<h2>How it sells</h2>\n<p>Much of the catalogue ships from suppliers rather than from Wayfair's own warehouses, which is why a single order can arrive in several deliveries from different places. Large items may use specialist freight carriers with scheduled delivery windows.</p>\n<h2>Buying tips for bulky goods</h2>\n<ul>\n<li>Check the dimensions against the room and the doorway, not only the product photo.</li>\n<li>Read the return terms for the specific item, because large goods often have different return conditions from small ones.</li>\n<li>Look at the delivery type shown at checkout, including whether assembly is included.</li>\n</ul>\n<h2>What we could not verify</h2>\n<p>We did not place an order or test returns. Revenue and headcount figures come from Wayfair's published leadership and company information as summarised by reference sources.</p>\n<h2>Sources</h2>\n<ol>\n<li><a href=\"https://en.wikipedia.org/wiki/Wayfair\" rel=\"noopener nofollow\">Wikipedia: Wayfair</a></li>\n<li><a href=\"https://www.aboutwayfair.com/leadership-bios\" rel=\"noopener nofollow\">About Wayfair: leadership bios</a></li>\n<li><a href=\"https://en.wikipedia.org/wiki/Niraj_Shah\" rel=\"noopener nofollow\">Wikipedia: Niraj Shah</a></li>\n<li><a href=\"https://www.bostonglobe.com/tech-power-players/year/2022/person/steve-conine-wayfair/\" rel=\"noopener nofollow\">Boston Globe: Steve Conine, Tech Power Players 2022</a></li>\n</ol>",
+ "related": [
+  "https://holyprofweb.com/whatnot-explained/",
+  "https://holyprofweb.com/alibaba-com-explained/",
+  "https://holyprofweb.com/stockx-explained/"
+ ],
+ "image_alt": "Holyprofweb editorial graphic for Wayfair",
+ "image_slug": "wayfair-explained"
+}

@@ -1,0 +1,51 @@
+{
+ "id": 4238,
+ "slug": "insurify-explained",
+ "section": "apps-websites",
+ "cluster": "fintech",
+ "title": "Insurify: The Cambridge Startup Built on an MIT Idea to Compare Insurance Quotes",
+ "seo_title": "Insurify Explained: How the Insurance Comparison Site Works",
+ "meta_description": "Insurify is a US insurance comparison site founded in 2013 that compares quotes from many insurers, and added a ChatGPT app in 2026. How it works.",
+ "dek": "Insurify is a US insurance comparison site founded in 2013 that compares quotes from many insurers and added a ChatGPT app in 2026. This explains how it works.",
+ "primary_query": "what is insurify",
+ "facts": {
+  "type": "website",
+  "name": "Insurify",
+  "operator": "Insurify, Inc.",
+  "launched": "2013, Cambridge, Massachusetts",
+  "availability": "United States",
+  "pricing": "Free to compare; the company is paid by insurers",
+  "url": "https://insurify.com/",
+  "limits": "Quotes are estimates until finalised with the insurer"
+ },
+ "sources": [
+  [
+   "Insurify: How Insurify works",
+   "https://insurify.com/company/about/"
+  ],
+  [
+   "Wikipedia: Insurify",
+   "https://en.wikipedia.org/wiki/Insurify"
+  ],
+  [
+   "MIT Sloan: Snejina Zacharia",
+   "https://mitsloan.mit.edu/alumni/snejina-zacharia-sf-13"
+  ],
+  [
+   "Beinsure: Insurify launches car insurance comparison app on ChatGPT",
+   "https://beinsure.com/news/insurify-car-insurance-comparison-app-on-chatgpt/"
+  ]
+ ],
+ "merge": [
+  1066
+ ],
+ "post_id": 4238,
+ "content_html": "<p>Insurify is an American insurance comparison website headquartered in Cambridge, Massachusetts. Snejina Zacharia, Giorgos Zacharia and Tod Kiryazov founded it in 2013, and it lets users compare quotes for car, home, renters, pet and life insurance from many insurers in one place.</p>\n<h2>The founding story</h2>\n<p>Snejina Zacharia says the idea came after a minor car accident raised her premium and she found no comparison service as comprehensive as the ones for travel. The company began as an idea in the MIT $100K Entrepreneurship Competition.</p>\n<h2>How comparison works</h2>\n<p>You answer one application, and Insurify retrieves quotes from several providers. In 2016 it opened its car-insurance comparison engine in 30 states with quotes from up to 82 insurers, and within a year it covered all 50 states. The company calls the product a virtual insurance agent and uses AI to match you with quotes. In February 2026 it launched an app inside ChatGPT for comparing car insurance.</p>\n<h2>Using it well</h2>\n<ul>\n<li>Enter the same coverage limits and deductibles in every comparison, or prices are not comparable.</li>\n<li>Treat a quote as an estimate until the insurer confirms it after checking your driving record.</li>\n<li>Insurify is paid by insurers; compare the final quote against the insurer's own site.</li>\n</ul>\n<h2>Who it suits</h2>\n<p>It is most useful when your renewal price has jumped or you have moved, since those are the moments when a fresh comparison finds the largest differences between insurers. If you have an unusual vehicle or claims history, an independent broker may still beat an automated comparison.</p>\n<h2>What we could not verify</h2>\n<p>We did not purchase a policy through Insurify. Coverage counts and years come from the company's pages and press coverage.</p>\n<h2>Sources</h2>\n<ol>\n<li><a href=\"https://insurify.com/company/about/\" rel=\"noopener nofollow\">Insurify: How Insurify works</a></li>\n<li><a href=\"https://en.wikipedia.org/wiki/Insurify\" rel=\"noopener nofollow\">Wikipedia: Insurify</a></li>\n<li><a href=\"https://mitsloan.mit.edu/alumni/snejina-zacharia-sf-13\" rel=\"noopener nofollow\">MIT Sloan: Snejina Zacharia</a></li>\n<li><a href=\"https://beinsure.com/news/insurify-car-insurance-comparison-app-on-chatgpt/\" rel=\"noopener nofollow\">Beinsure: Insurify launches car insurance comparison app on ChatGPT</a></li>\n</ol>",
+ "related": [
+  "https://holyprofweb.com/freetaxusa-explained/",
+  "https://holyprofweb.com/upstart-explained/",
+  "https://holyprofweb.com/chime-explained/"
+ ],
+ "image_alt": "Holyprofweb editorial graphic for Insurify",
+ "image_slug": "insurify-explained"
+}

@@ -1,0 +1,49 @@
+{
+ "id": 60069,
+ "slug": "amazon-mechanical-turk-explained",
+ "section": "apps-websites",
+ "cluster": "work",
+ "title": "Amazon Mechanical Turk: The Microtask Marketplace Behind a Lot of AI and Research Data",
+ "seo_title": "Amazon Mechanical Turk Explained: HITs, Requesters and Workers",
+ "meta_description": "Amazon Mechanical Turk is a microtask marketplace launched in 2005 where requesters post small tasks that people complete. How HITs work and who uses it.",
+ "dek": "Amazon Mechanical Turk is a microtask marketplace launched in 2005 where requesters post small tasks for people to complete. This explains HITs, who uses it and the research debate.",
+ "primary_query": "what is amazon mechanical turk",
+ "facts": {
+  "type": "website",
+  "name": "Amazon Mechanical Turk",
+  "operator": "Amazon Web Services",
+  "launched": "2005",
+  "availability": "Requesters and workers in many countries",
+  "pricing": "Requesters pay per task plus a fee; workers are paid per task",
+  "url": "https://www.mturk.com/",
+  "limits": "Worker eligibility and task supply vary"
+ },
+ "sources": [
+  [
+   "Amazon Mechanical Turk: What is Amazon Mechanical Turk?",
+   "https://docs.aws.amazon.com/AWSMechTurk/latest/AWSMechanicalTurkRequester/WhatIs.html"
+  ],
+  [
+   "Wikipedia: Amazon Mechanical Turk",
+   "https://en.wikipedia.org/wiki/Amazon_Mechanical_Turk"
+  ],
+  [
+   "PMC: Mechanical Turk data collection in addiction research",
+   "https://pmc.ncbi.nlm.nih.gov/articles/PMC7483427/"
+  ],
+  [
+   "Duke University Press, Labor: Amazon Mechanical Turk, the human sciences' labor problem",
+   "https://read.dukeupress.edu/labor/article/21/3/6/390482/Amazon-Mechanical-Turk-The-Human-Sciences-Labor"
+  ]
+ ],
+ "merge": [],
+ "post_id": 60069,
+ "content_html": "<p>Amazon Mechanical Turk (MTurk) is a crowdsourcing marketplace, launched in 2005, where businesses and researchers post small online tasks that need human judgment and workers complete them for payment. The tasks are called HITs, short for human intelligence tasks.</p>\n<h2>How it works</h2>\n<p>A requester designs a task, sets a reward and publishes it to the marketplace. Workers, often called Turkers, browse and accept tasks in their browser. Typical HITs include tagging images, transcribing audio, checking data, moderating content and answering survey questions. Requesters can also automate this through the API, which is how many businesses integrate human review into software.</p>\n<h2>Why researchers use it</h2>\n<p>Academic papers describe MTurk as a fast way to recruit survey and experiment participants, including in addiction research, where authors have also set out concerns and best practices about data quality and worker protections.</p>\n<h2>The labour question</h2>\n<p>Scholarly work in the journal Labor has examined MTurk as a case of human-science labour, noting that low per-task pay and limited protections for workers are recurring issues. Amazon's documentation describes the marketplace as an on-demand, scalable human workforce, which is a requester's point of view.</p>\n<h2>If you are thinking of working on it</h2>\n<ul>\n<li>Check that your country is supported before registering.</li>\n<li>Track time against reward to see your effective hourly rate.</li>\n<li>Be wary of any third party that sells MTurk accounts.</li>\n</ul>\n<h2>What we could not verify</h2>\n<p>We did not use MTurk as a worker or requester, so we cannot give typical earnings.</p>\n<h2>Sources</h2>\n<ol>\n<li><a href=\"https://docs.aws.amazon.com/AWSMechTurk/latest/AWSMechanicalTurkRequester/WhatIs.html\" rel=\"noopener nofollow\">Amazon Mechanical Turk: What is Amazon Mechanical Turk?</a></li>\n<li><a href=\"https://en.wikipedia.org/wiki/Amazon_Mechanical_Turk\" rel=\"noopener nofollow\">Wikipedia: Amazon Mechanical Turk</a></li>\n<li><a href=\"https://pmc.ncbi.nlm.nih.gov/articles/PMC7483427/\" rel=\"noopener nofollow\">PMC: Mechanical Turk data collection in addiction research</a></li>\n<li><a href=\"https://read.dukeupress.edu/labor/article/21/3/6/390482/Amazon-Mechanical-Turk-The-Human-Sciences-Labor\" rel=\"noopener nofollow\">Duke University Press, Labor: Amazon Mechanical Turk, the human sciences&#x27; labor problem</a></li>\n</ol>",
+ "related": [
+  "https://holyprofweb.com/amazon-kdp-royalties-explained/",
+  "https://holyprofweb.com/welocalize-explained/",
+  "https://holyprofweb.com/handshake-ai-explained/"
+ ],
+ "image_alt": "Holyprofweb editorial graphic for Amazon Mechanical Turk",
+ "image_slug": "amazon-mechanical-turk-explained"
+}

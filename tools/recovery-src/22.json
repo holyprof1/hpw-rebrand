@@ -1,0 +1,41 @@
+{
+  "id": 22,
+  "slug": "elon-musk-companies-and-roles",
+  "section": "people",
+  "cluster": "people",
+  "title": "Elon Musk: The Companies He Leads, the Roles He Holds and How They Fit Together",
+  "seo_title": "Elon Musk's Companies and Roles: Tesla, SpaceX, X, xAI and More",
+  "meta_description": "A factual guide to Elon Musk's companies and current roles: Tesla, SpaceX, Neuralink, The Boring Company and X, with the 2026 SpaceX and xAI deal.",
+  "dek": "A factual guide to Elon Musk's companies and current roles: Tesla, SpaceX, Neuralink, The Boring Company and X, including the reported 2026 SpaceX and xAI deal.",
+  "primary_query": "what companies does elon musk own",
+  "facts": {
+    "type": "person",
+    "name": "Elon Musk",
+    "operator": "Tesla, SpaceX, Neuralink, The Boring Company, X",
+    "launched": "",
+    "availability": "",
+    "pricing": "",
+    "url": "https://en.wikipedia.org/wiki/Elon_Musk",
+    "limits": "Roles and ownership change; check company filings for current detail"
+  },
+  "body": "<p>Elon Musk is the chief executive of Tesla and SpaceX, the founder and chief executive of Neuralink and The Boring Company, and the executive chairman and chief technology officer of X. In February 2026 SpaceX agreed to acquire his AI company xAI in an all-stock deal, according to reference sources, which made xAI a wholly owned subsidiary.</p>\n<h2>Roles by company</h2>\n<ul>\n<li><strong>SpaceX:</strong> founded in 2002; he is chief executive, chief technology officer and chairman.</li>\n<li><strong>Tesla:</strong> he joined in April 2004 and has been chief executive since October 2008, with the title Technoking.</li>\n<li><strong>Neuralink:</strong> co-founded in 2016 with an initial investment of US$100 million; he is chief executive.</li>\n<li><strong>The Boring Company:</strong> a tunnelling company he founded and leads.</li>\n<li><strong>X:</strong> he completed the acquisition of Twitter in 2022, stepped down as chief executive in June 2023 and remains executive chairman and chief technology officer.</li>\n<li><strong>xAI:</strong> an AI company he founded in 2023, now reported to be part of SpaceX.</li>\n</ul>\n<h2>How his career began</h2>\n<p>Before Tesla and SpaceX he co-founded Zip2, X.com and then PayPal, starting in 1995, which gave him the capital for his later companies.</p>\n<h2>Why the roles matter online</h2>\n<p>Three of the companies touch daily online life: X is a social platform, Starlink (a SpaceX service) sells satellite internet, and xAI makes the Grok chatbot. That is why his announcements often trend across the web.</p>\n<h2>Reading company news carefully</h2>\n<p>Take acquisitions and ownership changes from the companies' filings and press releases rather than from social posts. Deal details are often revised after the first reports.</p>\n<h2>What we left out</h2>\n<p>This guide does not cover wealth estimates or family matters.</p>",
+  "sources": [
+    [
+      "Wikipedia: Elon Musk",
+      "https://en.wikipedia.org/wiki/Elon_Musk"
+    ],
+    [
+      "Wikipedia: Business career of Elon Musk",
+      "https://en.wikipedia.org/wiki/Business_career_of_Elon_Musk"
+    ],
+    [
+      "Built In: Elon Musk's companies, a full list",
+      "https://builtin.com/articles/elon-musk-companies"
+    ],
+    [
+      "Wikipedia: X Corp.",
+      "https://en.wikipedia.org/wiki/X_Corp."
+    ]
+  ],
+  "merge": []
+}
