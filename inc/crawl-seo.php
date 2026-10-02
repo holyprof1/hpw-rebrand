@@ -138,6 +138,23 @@ add_action( 'template_redirect', function () {
     }
 }, 1 );
 
+// Production returns 404 for /wp-sitemap.xml while the child sitemaps work, i.e. the core index route is
+// not matching there (stale or shadowed rewrite rule, cause not visible from outside the server).
+// Serve the core index for that exact path ourselves so it does not depend on the rewrite table.
+add_action( 'parse_request', function ( $wp ) {
+    $path = isset( $_SERVER['REQUEST_URI'] ) ? wp_parse_url( wp_unslash( $_SERVER['REQUEST_URI'] ), PHP_URL_PATH ) : '';
+    if ( '/wp-sitemap.xml' !== $path || ! function_exists( 'wp_sitemaps_get_server' ) ) {
+        return;
+    }
+    $server = wp_sitemaps_get_server();
+    if ( ! $server->sitemaps_enabled() ) {
+        return;
+    }
+    status_header( 200 );
+    $server->renderer->render_index( $server->index->get_sitemap_list() );
+    exit;
+}, 0 );
+
 // ---- llms.txt (a discovery aid only; crawling, sitemaps and markup remain the real signals) -----
 
 function holyprofweb_llms_txt() {

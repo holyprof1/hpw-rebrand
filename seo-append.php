@@ -288,15 +288,10 @@ function holyprofweb_get_home_schema_items( $limit = 8 ) {
 }
 
 function holyprofweb_get_home_schema_navigation() {
-    $links = array(
-        array( 'name' => 'Home',      'url' => home_url( '/' ) ),
-        array( 'name' => 'Reviews',   'url' => home_url( '/category/reviews/' ) ),
-        array( 'name' => 'Companies', 'url' => home_url( '/category/companies/' ) ),
-        array( 'name' => 'Salaries',  'url' => home_url( '/category/salaries/' ) ),
-        array( 'name' => 'Reports',   'url' => home_url( '/reports/' ) ),
-        array( 'name' => 'Submit',    'url' => home_url( '/submit/' ) ),
-        array( 'name' => 'Contact',   'url' => home_url( '/contact/' ) ),
-    );
+    $links = array( array( 'name' => 'Home', 'url' => home_url( '/' ) ) );
+    foreach ( holyprofweb_sections() as $slug => $section ) {
+        $links[] = array( 'name' => $section['label'], 'url' => holyprofweb_section_url( $slug ) );
+    }
 
     $items = array();
     foreach ( $links as $link ) {
@@ -324,7 +319,7 @@ function holyprofweb_seo_head() {
     if ( is_singular() && $post instanceof WP_Post ) {
         $raw_desc = $post->post_excerpt
             ? wp_strip_all_tags( $post->post_excerpt )
-            : wp_trim_words( wp_strip_all_tags( $post->post_content ), 30, '...' );
+            : wp_trim_words( wp_strip_all_tags( preg_replace( '#</(p|h[1-6]|li|div|blockquote)>|<br\s*/?>#i', ' ', strip_shortcodes( $post->post_content ) ) ), 30, '…' );
         $og_title = get_the_title( $post );
         $og_url   = get_permalink( $post );
         $og_img   = holyprofweb_get_post_image_url( $post->ID, 'full' );
@@ -344,7 +339,7 @@ function holyprofweb_seo_head() {
         $og_url   = get_search_link( get_search_query() );
         $og_img   = holyprofweb_placeholder_url(); $rating = 0; $r_count = 0;
     } else {
-        $raw_desc = get_bloginfo( 'description' );
+        $raw_desc = is_front_page() ? __( 'New apps, websites, products, people and internet trends explained clearly.', 'holyprofweb' ) : get_bloginfo( 'description' );
         $og_title = $site_name;
         $og_url   = $site_url;
         $og_img   = holyprofweb_placeholder_url(); $rating = 0; $r_count = 0;
@@ -405,9 +400,9 @@ function holyprofweb_seo_head() {
         '@context'        => 'https://schema.org',
         '@type'           => 'WebSite',
         '@id'             => $website_id,
-        'name'            => 'HolyprofWeb',
+        'name'            => $site_name,
         'url'             => $site_url,
-        'description'     => mb_substr( wp_strip_all_tags( $raw_desc ), 0, 200 ),
+        'description'     => __( 'Discover what’s new online: new apps, websites, products, people and internet trends explained clearly.', 'holyprofweb' ),
         'potentialAction' => array(
             '@type'       => 'SearchAction',
             'target'      => home_url( '/?s={search_term_string}' ),
@@ -422,7 +417,7 @@ function holyprofweb_seo_head() {
         '@context' => 'https://schema.org',
         '@type'    => 'Organization',
         '@id'      => $organization_id,
-        'name'     => 'HolyprofWeb',
+        'name'     => $site_name,
         'url'      => $site_url,
     );
     if ( $publisher_logo ) {
@@ -538,6 +533,7 @@ function holyprofweb_seo_head() {
 
         $reading_time = (int) get_post_meta( $post->ID, '_hpw_reading_time', true );
         $author_id    = (int) $post->post_author;
+        $kick         = holyprofweb_post_kicker( $post->ID );
         $author_url   = function_exists( 'holyprofweb_author_url' ) ? holyprofweb_author_url( $author_id ) : get_author_posts_url( $author_id );
 
         $schema = array(
@@ -564,7 +560,7 @@ function holyprofweb_seo_head() {
                 'url'   => $publisher_logo,
             );
         }
-        if ( $og_img ) $schema['image'] = array( $og_img );
+        if ( $og_img && holyprofweb_pub_has_real_image( $post->ID ) ) $schema['image'] = array( $og_img ); // generated title cards are not editorial images
         if ( $reading_time > 0 ) $schema['timeRequired'] = 'PT' . $reading_time . 'M';
         if ( $cat_name ) {
             $schema['articleSection'] = $cat_name;
@@ -575,7 +571,7 @@ function holyprofweb_seo_head() {
             '@type'           => 'BreadcrumbList',
             'itemListElement' => array(
                 array( '@type' => 'ListItem', 'position' => 1, 'name' => 'Home', 'item' => $site_url ),
-                array( '@type' => 'ListItem', 'position' => 2, 'name' => ( $cat_name ?: 'Articles' ), 'item' => ( $cat_name && ! empty( $cats ) ? get_category_link( $cats[0]->term_id ) : $site_url ) ),
+                array( '@type' => 'ListItem', 'position' => 2, 'name' => ( $kick['label'] ?: 'Articles' ), 'item' => ( $kick['url'] ?: $site_url ) ),
                 array( '@type' => 'ListItem', 'position' => 3, 'name' => get_the_title( $post ), 'item' => get_permalink( $post ) ),
             ),
         );

@@ -10,7 +10,7 @@ if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 
-const HPW_SECTIONS_VERSION = '2';
+const HPW_SECTIONS_VERSION = '3';
 
 function holyprofweb_sections() {
     return array(
