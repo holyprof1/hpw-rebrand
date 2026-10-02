@@ -58,9 +58,11 @@ add_filter( 'robots_txt', 'holyprofweb_virtual_robots_txt', 10, 2 );
 // The core index at /wp-sitemap.xml returned 404 on production while its child sitemaps worked,
 // so a second index is served at /sitemap-index.xml, built from the same providers.
 
-add_filter( 'wp_sitemaps_add_provider', function ( $provider, $name ) {
-    return in_array( $name, array( 'users' ), true ) ? false : $provider;
-}, 10, 2 );
+// Only authors who wrote a bio get a sitemap entry (matches the noindex rule in inc/authors.php).
+add_filter( 'wp_sitemaps_users_query_args', function ( $args ) {
+    $args['meta_query'] = array( array( 'key' => 'description', 'value' => '', 'compare' => '!=' ) );
+    return $args;
+} );
 
 add_filter( 'wp_sitemaps_taxonomies', function ( $taxonomies ) {
     unset( $taxonomies['post_tag'] );

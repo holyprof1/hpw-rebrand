@@ -10155,7 +10155,8 @@ function holyprofweb_block_author_enumeration() {
     }
 
     $author_param = isset( $_GET['author'] ) ? wp_unslash( $_GET['author'] ) : '';
-    if ( '' === $author_param && ! is_author() ) {
+    // Only the ?author=N enumeration probe is blocked; real /author/slug/ profile pages are public.
+    if ( '' === $author_param ) {
         return;
     }
 
@@ -11462,4 +11463,5 @@ require_once get_template_directory() . '/seo-append.php';
 require_once get_template_directory() . '/inc/sections.php';
 require_once get_template_directory() . '/inc/crawl-seo.php';
 require_once get_template_directory() . '/inc/publication.php';
+require_once get_template_directory() . '/inc/authors.php';
 require_once get_template_directory() . '/inc/seo-rankmath-compat.php';
