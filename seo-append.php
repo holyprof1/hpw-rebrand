@@ -545,7 +545,7 @@ function holyprofweb_seo_head() {
             'description'      => mb_substr( wp_strip_all_tags( $raw_desc ), 0, 200 ),
             'url'              => get_permalink( $post ),
             'datePublished'    => get_the_date( 'c', $post ),
-            'dateModified'     => get_the_modified_date( 'c', $post ),
+            'dateModified'     => holyprofweb_content_modified_iso( $post->ID ),
             'inLanguage'       => get_bloginfo( 'language' ),
             'author'           => array(
                 '@type' => 'Person',

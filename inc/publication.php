@@ -57,13 +57,13 @@ function holyprofweb_pub_has_real_image( $post_id ) {
     return function_exists( 'holyprofweb_post_has_trusted_featured_image' ) && holyprofweb_post_has_trusted_featured_image( $post_id );
 }
 
-/** "Updated" is shown only when the post was meaningfully modified (more than a day after publishing). */
+/** "Updated" shows only when a meaningful edit was recorded (see inc/dates.php) and it is more than a day after publishing. */
 function holyprofweb_pub_dates( $post_id ) {
-    $pub = get_post_time( 'U', true, $post_id );
-    $mod = get_post_modified_time( 'U', true, $post_id );
+    $pub = (int) get_post_time( 'U', true, $post_id );
+    $mod = holyprofweb_content_modified_ts( $post_id );
     $out = '<time datetime="' . esc_attr( get_the_date( 'c', $post_id ) ) . '">' . esc_html( get_the_date( 'M j, Y', $post_id ) ) . '</time>';
     if ( $mod - $pub > DAY_IN_SECONDS ) {
-        $out .= ' <span class="pub-updated">· Updated <time datetime="' . esc_attr( get_the_modified_date( 'c', $post_id ) ) . '">' . esc_html( get_the_modified_date( 'M j, Y', $post_id ) ) . '</time></span>';
+        $out .= ' <span class="pub-updated">· Updated <time datetime="' . esc_attr( holyprofweb_content_modified_iso( $post_id ) ) . '">' . esc_html( wp_date( 'M j, Y', $mod ) ) . '</time></span>';
     }
     return $out;
 }
