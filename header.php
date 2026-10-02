@@ -26,8 +26,11 @@
                         $logo_svg = get_template_directory() . '/assets/images/logo.svg';
                         if ( file_exists( $logo_png ) ) :
                         ?>
-                        <img src="<?php echo esc_url( get_template_directory_uri() . '/assets/images/logo.png' ); ?>"
-                             alt="<?php bloginfo( 'name' ); ?>" width="360" height="96" loading="eager" />
+                        <picture>
+                            <source srcset="<?php echo esc_url( get_template_directory_uri() . '/assets/images/logo-360.webp' ); ?>" type="image/webp" />
+                            <img src="<?php echo esc_url( get_template_directory_uri() . '/assets/images/logo-360.png' ); ?>"
+                                 alt="<?php bloginfo( 'name' ); ?>" width="90" height="60" loading="eager" decoding="async" />
+                        </picture>
                         <?php elseif ( file_exists( $logo_svg ) ) : ?>
                         <img src="<?php echo esc_url( get_template_directory_uri() . '/assets/images/logo.svg' ); ?>"
                              alt="<?php bloginfo( 'name' ); ?>" width="360" height="96" loading="eager" />
@@ -124,7 +127,7 @@
 
     <div id="live-search-overlay" class="live-search-overlay" role="dialog"
          aria-label="<?php esc_attr_e( 'Search', 'holyprofweb' ); ?>"
-         aria-hidden="true">
+         aria-hidden="true" inert>
         <div class="live-search-inner">
             <div class="live-search-bar">
                 <svg class="live-search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none"

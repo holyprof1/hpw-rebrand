@@ -77,7 +77,8 @@ function holyprofweb_pub_excerpt( $post_id, $words = 22 ) {
  * $o: variant (''|'lead'|'compact'|'row'), excerpt (bool), eager (bool).
  */
 function holyprofweb_pub_card( $post_id, array $o = array() ) {
-    $o       = wp_parse_args( $o, array( 'variant' => '', 'excerpt' => false, 'eager' => false ) );
+    $o       = wp_parse_args( $o, array( 'variant' => '', 'excerpt' => false, 'eager' => false, 'tag' => 'h3' ) );
+    $tag     = in_array( $o['tag'], array( 'h2', 'h3' ), true ) ? $o['tag'] : 'h3';
     $kicker  = holyprofweb_post_kicker( $post_id );
     $lead    = 'lead' === $o['variant'];
     $size    = $lead ? 'large' : 'holyprofweb-card';
@@ -96,7 +97,7 @@ function holyprofweb_pub_card( $post_id, array $o = array() ) {
             <?php if ( $kicker['label'] ) : ?>
             <a class="pub-kicker" href="<?php echo esc_url( $kicker['url'] ); ?>"><?php echo esc_html( $kicker['label'] ); ?></a>
             <?php endif; ?>
-            <h3 class="pub-card__title"><a href="<?php echo esc_url( get_permalink( $post_id ) ); ?>"><?php echo esc_html( $title ); ?></a></h3>
+            <<?php echo $tag; ?> class="pub-card__title"><a href="<?php echo esc_url( get_permalink( $post_id ) ); ?>"><?php echo esc_html( $title ); ?></a></<?php echo $tag; ?>>
             <?php if ( $o['excerpt'] ) : ?>
             <p class="pub-card__excerpt"><?php echo esc_html( holyprofweb_pub_excerpt( $post_id, $lead ? 34 : 20 ) ); ?></p>
             <?php endif; ?>

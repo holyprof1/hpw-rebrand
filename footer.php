@@ -20,9 +20,11 @@
 
                     if ( file_exists( $logo_png ) ) :
                     ?>
-                        <img src="<?php echo esc_url( get_template_directory_uri() . '/assets/images/logo.png' ); ?>"
-                             alt="<?php bloginfo( 'name' ); ?>"
-                             width="140" height="32" loading="lazy" />
+                        <picture>
+                            <source srcset="<?php echo esc_url( get_template_directory_uri() . '/assets/images/logo-360.webp' ); ?>" type="image/webp" />
+                            <img src="<?php echo esc_url( get_template_directory_uri() . '/assets/images/logo-360.png' ); ?>"
+                                 alt="<?php bloginfo( 'name' ); ?>" width="90" height="60" loading="lazy" decoding="async" />
+                        </picture>
                     <?php elseif ( file_exists( $logo_svg ) ) : ?>
                         <img src="<?php echo esc_url( get_template_directory_uri() . '/assets/images/logo.svg' ); ?>"
                              alt="<?php bloginfo( 'name' ); ?>"

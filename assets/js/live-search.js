@@ -27,6 +27,7 @@
     function openOverlay() {
         overlay.classList.add('is-open');
         overlay.setAttribute('aria-hidden', 'false');
+        overlay.removeAttribute('inert');
         document.body.classList.add('search-open');
         renderRecentSearches();
         setTimeout(function () { input.focus(); }, 40);
@@ -35,6 +36,7 @@
     function closeOverlay() {
         overlay.classList.remove('is-open');
         overlay.setAttribute('aria-hidden', 'true');
+        overlay.setAttribute('inert', '');
         document.body.classList.remove('search-open');
         input.value = '';
         results.innerHTML = '';
