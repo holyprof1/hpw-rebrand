@@ -54,7 +54,7 @@ function holyprofweb_trust_copy( $key ) {
                 array(
                     'h' => 'Older articles',
                     'p' => array(
-                        Holyprofweb has changed direction. In October 2026 we removed most of the older articles, which did not meet these standards, and then restored the topics that could be rewritten properly: each restored page was researched again, rewritten from sources and given a new headline. Pages that could not be sourced stay removed. A story shows an “Updated” date only when someone has made a meaningful change to it.',
+                        'Holyprofweb has changed direction. In October 2026 we removed most of the older articles, which did not meet these standards, and then restored the topics that could be rewritten properly: each restored page was researched again, rewritten from sources and given a new headline. Pages that could not be sourced stay removed. A story shows an “Updated” date only when someone has made a meaningful change to it.',
                     ),
                 ),
                 array(
