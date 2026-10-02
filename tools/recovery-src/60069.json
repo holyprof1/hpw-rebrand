@@ -3,39 +3,46 @@
   "slug": "amazon-mechanical-turk-explained",
   "section": "apps-websites",
   "cluster": "work",
-  "title": "Amazon Mechanical Turk: The Microtask Marketplace Behind a Lot of AI and Research Data",
-  "seo_title": "Amazon Mechanical Turk Explained: HITs, Requesters and Workers",
-  "meta_description": "Amazon Mechanical Turk is a microtask marketplace launched in 2005 where requesters post small tasks that people complete. How HITs work and who uses it.",
-  "dek": "Amazon Mechanical Turk is a microtask marketplace launched in 2005 where requesters post small tasks for people to complete. This explains HITs, who uses it and the research debate.",
-  "primary_query": "what is amazon mechanical turk",
+  "title": "Amazon Mechanical Turk Has Closed: What Happened and What Workers and Requesters Should Know",
+  "seo_title": "Amazon Mechanical Turk Closed on 30 September 2026: What Happens Next",
+  "meta_description": "Amazon closed Mechanical Turk on 30 September 2026 after 21 years. What the notice says, key dates for workers and requesters, and where the work went.",
+  "dek": "Amazon closed Mechanical Turk on 30 September 2026 after 21 years. This covers what the notice says, the dates that matter for workers and requesters, and where the work has gone.",
+  "primary_query": "is amazon mechanical turk shutting down",
   "facts": {
     "type": "website",
     "name": "Amazon Mechanical Turk",
     "operator": "Amazon Web Services",
     "launched": "2005",
-    "availability": "Requesters and workers in many countries",
-    "pricing": "Requesters pay per task plus a fee; workers are paid per task",
+    "availability": "Closed on 30 September 2026",
+    "pricing": "",
     "url": "https://www.mturk.com/",
-    "limits": "Worker eligibility and task supply vary"
+    "limits": "Wind-down dates are from the closure FAQ as reported; check Amazon's help page"
   },
-  "body": "<p>Amazon Mechanical Turk (MTurk) is a crowdsourcing marketplace, launched in 2005, where businesses and researchers post small online tasks that need human judgment and workers complete them for payment. The tasks are called HITs, short for human intelligence tasks.</p>\n<h2>How it works</h2>\n<p>A requester designs a task, sets a reward and publishes it to the marketplace. Workers, often called Turkers, browse and accept tasks in their browser. Typical HITs include tagging images, transcribing audio, checking data, moderating content and answering survey questions. Requesters can also automate this through the API, which is how many businesses integrate human review into software.</p>\n<h2>Why researchers use it</h2>\n<p>Academic papers describe MTurk as a fast way to recruit survey and experiment participants, including in addiction research, where authors have also set out concerns and best practices about data quality and worker protections.</p>\n<h2>The labour question</h2>\n<p>Scholarly work in the journal Labor has examined MTurk as a case of human-science labour, noting that low per-task pay and limited protections for workers are recurring issues. Amazon's documentation describes the marketplace as an on-demand, scalable human workforce, which is a requester's point of view.</p>\n<h2>If you are thinking of working on it</h2>\n<ul>\n<li>Check that your country is supported before registering.</li>\n<li>Track time against reward to see your effective hourly rate.</li>\n<li>Be wary of any third party that sells MTurk accounts.</li>\n</ul>\n<h2>What we could not verify</h2>\n<p>We did not use MTurk as a worker or requester, so we cannot give typical earnings.</p>",
+  "body": "<p>Amazon Mechanical Turk (MTurk), the crowdsourcing marketplace Amazon launched in 2005, permanently closed on 30 September 2026. Amazon's own site now carries the notice \"Mechanical Turk is no longer available\", and says the service permanently closed on that date.</p>\n<h2>What the announcement said</h2>\n<p>Amazon told users on 25 August 2026, in a notice on the Mechanical Turk website, that it would close the service entirely on 30 September after an assessment of its programmes, tools and services. That gave workers and requesters about five weeks to wrap up after a run of more than 20 years. Amazon has not given a more specific reason.</p>\n<h2>Dates that matter after closure</h2>\n<ul>\n<li><strong>Worker payments:</strong> workers are paid for completed and approved tasks on their existing payment schedules, according to reports of the closure FAQ.</li>\n<li><strong>30 October 2026:</strong> requesters can still approve submissions and award bonuses until this date.</li>\n<li><strong>28 January 2027:</strong> transaction history stays available until this date, so export what you need for tax or research records.</li>\n</ul>\n<p>These dates come from news coverage of Amazon's FAQ; confirm them on Amazon's help page.</p>\n<h2>What MTurk was</h2>\n<p>Businesses and researchers posted small online tasks called HITs, human intelligence tasks, and workers around the world completed them for a payment per task. It was widely used for survey and experiment recruitment in academic research and for data labelling in machine learning.</p>\n<h2>Where the work is going</h2>\n<p>Analysts quoted in the coverage say workers had already been moving to other data-labelling businesses such as Scale AI and Mercor. Other options for people who do expert AI-training work include <a href=\"/dataannotation-explained/\">DataAnnotation</a> and <a href=\"/handshake-ai-explained/\">Handshake AI</a>, and companies like <a href=\"/welocalize-explained/\">Welocalize</a> hire linguists for similar data work.</p>\n<h2>If you used it for research</h2>\n<p>Researchers who recruited participants through MTurk now need another panel provider. Check any replacement's participant screening and data-quality controls before moving a study, since results can differ between panels.</p>\n<h2>What we could not verify</h2>\n<p>We could not read Amazon's closure FAQ in full, so payment and export details are as reported by news outlets. The worker count of more than 500,000 comes from press coverage.</p>",
   "sources": [
     [
-      "Amazon Mechanical Turk: What is Amazon Mechanical Turk?",
-      "https://docs.aws.amazon.com/AWSMechTurk/latest/AWSMechanicalTurkRequester/WhatIs.html"
+      "Amazon Mechanical Turk: closure notice",
+      "https://www.mturk.com/"
     ],
     [
-      "Wikipedia: Amazon Mechanical Turk",
-      "https://en.wikipedia.org/wiki/Amazon_Mechanical_Turk"
+      "CNBC: Amazon service that Jeff Bezos called 'artificial artificial intelligence' is shutting down",
+      "https://www.cnbc.com/2026/08/25/amazon-service-that-jeff-bezos-called-artificial-ai-is-shutting-down.html"
     ],
     [
-      "PMC: Mechanical Turk data collection in addiction research",
-      "https://pmc.ncbi.nlm.nih.gov/articles/PMC7483427/"
+      "The Next Web: Amazon is closing Mechanical Turk",
+      "https://thenextweb.com/news/amazon-mechanical-turk-closing-september-2026"
     ],
     [
-      "Duke University Press, Labor: Amazon Mechanical Turk, the human sciences' labor problem",
-      "https://read.dukeupress.edu/labor/article/21/3/6/390482/Amazon-Mechanical-Turk-The-Human-Sciences-Labor"
+      "Slator: Amazon Mechanical Turk closes",
+      "https://slator.com/amazon-mechanical-turk-closure-ai-data/"
+    ],
+    [
+      "AlternativeTo: Mechanical Turk will permanently close on September 30, 2026",
+      "https://alternativeto.net/news/2026/8/amazon-mechanical-turk-will-permanently-close-on-september-30-2026/"
     ]
   ],
-  "merge": []
+  "merge": [],
+  "shot_alt": "Amazon Mechanical Turk home page with the notice that Mechanical Turk is no longer available",
+  "shot_caption": "Amazon's Mechanical Turk page on 2 October 2026, carrying the closure notice (screenshot: Holyprofweb).",
+  "shot_title": "Amazon Mechanical Turk home page with the notice that Mechanical Turk is no longer available"
 }

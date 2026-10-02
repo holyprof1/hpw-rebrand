@@ -16,7 +16,7 @@
 if ( 'cli' !== php_sapi_name() ) {
     exit( 'CLI only' );
 }
-$opts = getopt( '', array( 'apply', 'only::', 'dir::', 'prepend::', 'noimages' ) );
+$opts = getopt( '', array( 'apply', 'only::', 'dir::', 'prepend::', 'noimages', 'shotsonly' ) );
 if ( ! empty( $opts['prepend'] ) ) {
     require $opts['prepend'];
 }
@@ -137,7 +137,7 @@ foreach ( glob( $dir . '/*.json' ) as $file ) {
     // Featured image.
     foreach ( array( 'feature' => true, 'inline' => false ) as $kind => $is_feature ) {
         $img = $dir . '/images/' . $id . ( 'inline' === $kind ? '-shot' : '' ) . '.webp';
-        if ( isset( $opts['noimages'] ) || ! file_exists( $img ) ) {
+        if ( isset( $opts['noimages'] ) || ( isset( $opts['shotsonly'] ) && $is_feature ) || ! file_exists( $img ) ) {
             continue;
         }
         $tmp   = wp_tempnam( basename( $img ) );

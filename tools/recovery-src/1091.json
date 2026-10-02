@@ -8,13 +8,37 @@
   "meta_description": "Agoda is a Singapore-based online travel agency founded in 2005 and owned by Booking Holdings since 2007. Who runs it, what it sells and how it works.",
   "dek": "Agoda is a Singapore-based online travel agency founded in 2005 and owned by Booking Holdings since 2007. Here is who runs it, what it sells and how booking through it works.",
   "primary_query": "what is agoda",
-  "facts": {"type": "website", "name": "Agoda", "operator": "Agoda Company Pte. Ltd., part of Booking Holdings Inc.", "launched": "Founded in 2005; acquired by Booking Holdings (then Priceline Group) in 2007", "availability": "Operates across dozens of markets in 39 languages, according to the company", "pricing": "Free to use; the platform earns from partners", "url": "https://www.agoda.com/", "limits": "Prices and cancellation terms are set per property and rate"},
+  "facts": {
+    "type": "website",
+    "name": "Agoda",
+    "operator": "Agoda Company Pte. Ltd., part of Booking Holdings Inc.",
+    "launched": "Founded in 2005; acquired by Booking Holdings (then Priceline Group) in 2007",
+    "availability": "Operates across dozens of markets in 39 languages, according to the company",
+    "pricing": "Free to use; the platform earns from partners",
+    "url": "https://www.agoda.com/",
+    "limits": "Prices and cancellation terms are set per property and rate"
+  },
   "body": "<p>Agoda is an online travel agency headquartered in Singapore. It was founded in 2005 by Michael Kenny and Robert Rosenstein, was bought by The Priceline Group, now Booking Holdings, in 2007, and sells hotel and holiday-property bookings along with flights, ground transport and activities.</p>\n<h2>What Agoda sells</h2>\n<p>Agoda says its platform gives access to more than six million hotels and holiday properties worldwide, and that its flight product covers over 130,000 routes. It also lists tours, attractions and experiences, and runs a business-to-business arm, Rocket Travel by Agoda, for travel companies that want to resell its inventory. The company reports service in 39 languages with round-the-clock customer support and more than 8,000 staff in offices around the world, so those numbers come from Agoda rather than from an independent count.</p>\n<h2>Who owns it</h2>\n<p>Agoda is one of the six consumer brands of Booking Holdings, alongside Booking.com, Priceline, Rentalcars.com, KAYAK and OpenTable. Day to day it is run from Singapore, and its strongest markets are in Asia, where it started.</p>\n<h2>How booking works</h2>\n<p>You search a destination and dates, compare properties, and pay either to Agoda or at the property depending on the rate. As with other travel agencies, the property supplies the room and sets the rate conditions, so the cancellation rules you see on one listing can differ from another. Read the cancellation line and the payment line for the rate you pick before confirming.</p>\n<h2>How it compares</h2>\n<p>Agoda competes most directly with Booking.com and Expedia, and with regional services such as Trip.com. If you compare prices across several of them, make sure you compare the same room type, the same meal plan and the same cancellation terms, since the headline price can hide differences.</p>\n<h2>What we could not verify</h2>\n<p>We did not test a booking. The scale figures above are Agoda's own, and we did not independently confirm current market and language counts or how prices compare with other sites on a given day.</p>",
   "sources": [
-    ["Agoda Partner Hub: Who is Agoda?", "https://partnerhub.agoda.com/who-is-agoda/"],
-    ["Wikipedia: Agoda", "https://en.wikipedia.org/wiki/Agoda"],
-    ["Skift: Booking Holdings' six brands, explained", "https://skift.com/2023/03/08/booking-holdings-explainer/"],
-    ["PitchBook: Agoda company profile", "https://pitchbook.com/profiles/company/56233-09"]
+    [
+      "Agoda Partner Hub: Who is Agoda?",
+      "https://partnerhub.agoda.com/who-is-agoda/"
+    ],
+    [
+      "Wikipedia: Agoda",
+      "https://en.wikipedia.org/wiki/Agoda"
+    ],
+    [
+      "Skift: Booking Holdings' six brands, explained",
+      "https://skift.com/2023/03/08/booking-holdings-explainer/"
+    ],
+    [
+      "PitchBook: Agoda company profile",
+      "https://pitchbook.com/profiles/company/56233-09"
+    ]
   ],
-  "merge": []
+  "merge": [],
+  "shot_alt": "Agoda home page showing the hotel search form",
+  "shot_caption": "The Agoda home page on 2 October 2026 (screenshot: Holyprofweb).",
+  "shot_title": "Agoda home page showing the hotel search form"
 }
