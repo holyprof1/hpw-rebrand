@@ -1,0 +1,55 @@
+{
+ "id": 7072,
+ "slug": "booking-com-explained",
+ "section": "apps-websites",
+ "cluster": "travel",
+ "title": "Booking.com: How the Travel Platform Works, Who Owns It and What Cancellation Terms Mean",
+ "seo_title": "Booking.com Explained: Ownership, Fees and How Bookings Work",
+ "meta_description": "Booking.com is an Amsterdam-based travel platform owned by Booking Holdings. How bookings work, how it earns money and what to check before you pay.",
+ "dek": "Booking.com is an Amsterdam-based travel platform owned by Booking Holdings. This explains who runs it, how a booking works, how it earns money and what to check before you pay.",
+ "primary_query": "what is booking.com",
+ "facts": {
+  "type": "website",
+  "name": "Booking.com",
+  "operator": "Booking.com B.V., part of Booking Holdings Inc. (Nasdaq: BKNG)",
+  "launched": "Founded in 1996 in Amsterdam",
+  "availability": "Listings in more than 220 countries and territories, according to the company",
+  "pricing": "Free for travellers; properties pay Booking.com a commission",
+  "url": "https://www.booking.com/",
+  "limits": "Prices, fees and cancellation terms are set per property and per rate"
+ },
+ "sources": [
+  [
+   "Booking.com: About us",
+   "https://www.booking.com/content/about.html"
+  ],
+  [
+   "Booking.com: How we work",
+   "https://www.booking.com/content/how_we_work.html"
+  ],
+  [
+   "Booking.com news: new campus in Amsterdam",
+   "https://news.booking.com/bookingcom-officially-opens-new-campus-in-the--heart-of-amsterdam/"
+  ],
+  [
+   "Booking.com partner help: cancellation fees and commission",
+   "https://partner.booking.com/en-us/help/reservations/reduce-cancellations/handling-cancellation-fees-and-commission"
+  ],
+  [
+   "Skift: Booking Holdings' six brands, explained",
+   "https://skift.com/2023/03/08/booking-holdings-explainer/"
+  ]
+ ],
+ "merge": [
+  1081
+ ],
+ "post_id": 7072,
+ "content_html": "<p>Booking.com is an online travel platform based in Amsterdam that lets people book hotels, apartments and other stays, and also flights, car rentals and attractions, from partner properties and suppliers. It was founded in 1996, is owned by Booking Holdings, and is free for travellers to use because the properties it lists pay it a commission.</p>\n<h2>Who owns Booking.com</h2>\n<p>Booking.com is part of Booking Holdings Inc., which traded as The <a href=\"/priceline-explained/\">Priceline</a> Group until it changed its name to match its biggest business. Booking Holdings describes itself as providing online travel services in more than 220 countries and territories through six consumer brands: Booking.com, Priceline, Agoda, Rentalcars.com, KAYAK and OpenTable. The company says its Amsterdam campus is its international headquarters and home to more than 6,500 employees there.</p>\n<h2>How a booking works</h2>\n<p>Booking.com says it provides and is responsible for the platform, not for the travel experience itself. In practice that means you choose a property, the property supplies the stay, and the property decides the price, the house rules and the cancellation terms for each rate it offers. A rate marked free cancellation can be cancelled without charge until a deadline shown for that specific rate; after the deadline, or on a non-refundable rate, the booking can cost you part or all of the price.</p>\n<h2>How it makes money</h2>\n<p>Travellers do not pay Booking.com to search or book. The platform earns a commission from properties on confirmed stays, and its partner help pages describe commission on non-refundable bookings and on some cancellation and no-show charges. This is why the same room can sometimes be priced differently on a property's own site; the commission is one reason properties set their direct rates separately.</p>\n<h2>What to check before you pay</h2>\n<ul>\n<li>The free-cancellation deadline, with its time zone, for the exact rate you picked.</li>\n<li>The total price including taxes and local fees, which can be shown separately from the room rate.</li>\n<li>Whether you pay now or at the property, and in which currency.</li>\n<li>The property's own rules on check-in times, deposits and children.</li>\n</ul>\n<h2>Alternatives</h2>\n<p>Comparable booking services include <a href=\"/expedia-group-explained/\">Expedia</a>, Agoda, Priceline and <a href=\"/trip-com-explained/\">Trip.com</a>. Agoda and Priceline sit in the same group as Booking.com.</p>\n<h2>What we could not verify</h2>\n<p>We did not make a test booking, so we cannot describe the checkout experience first-hand. Listing counts and country coverage are the company's own figures, and fees and cancellation terms change by property, so read the terms shown at checkout.</p>\n<h2>Sources</h2>\n<ol>\n<li><a href=\"https://www.booking.com/content/about.html\" rel=\"noopener nofollow\">Booking.com: About us</a></li>\n<li><a href=\"https://www.booking.com/content/how_we_work.html\" rel=\"noopener nofollow\">Booking.com: How we work</a></li>\n<li><a href=\"https://news.booking.com/bookingcom-officially-opens-new-campus-in-the--heart-of-amsterdam/\" rel=\"noopener nofollow\">Booking.com news: new campus in Amsterdam</a></li>\n<li><a href=\"https://partner.booking.com/en-us/help/reservations/reduce-cancellations/handling-cancellation-fees-and-commission\" rel=\"noopener nofollow\">Booking.com partner help: cancellation fees and commission</a></li>\n<li><a href=\"https://skift.com/2023/03/08/booking-holdings-explainer/\" rel=\"noopener nofollow\">Skift: Booking Holdings&#x27; six brands, explained</a></li>\n</ol>",
+ "related": [
+  "https://holyprofweb.com/agoda-explained/",
+  "https://holyprofweb.com/priceline-explained/",
+  "https://holyprofweb.com/expedia-group-explained/"
+ ],
+ "image_alt": "Holyprofweb editorial graphic for Booking.com",
+ "image_slug": "booking-com-explained"
+}

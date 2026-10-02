@@ -1,0 +1,21 @@
+{
+  "id": 1096,
+  "slug": "priceline-explained",
+  "section": "apps-websites",
+  "cluster": "travel",
+  "title": "Priceline: How Name Your Own Price, Express Deals and Pricebreakers Work",
+  "seo_title": "Priceline Explained: Express Deals and Name Your Own Price",
+  "meta_description": "Priceline is a US online travel agency owned by Booking Holdings. How Name Your Own Price, Express Deals and Pricebreakers work, and the trade-offs.",
+  "dek": "Priceline is a US online travel agency owned by Booking Holdings, known for naming your own price. This explains Express Deals, Pricebreakers and the trade-offs of deep discounts.",
+  "primary_query": "what is priceline express deals",
+  "facts": {"type": "website", "name": "Priceline", "operator": "Priceline.com LLC, part of Booking Holdings Inc.", "launched": "Late 1990s", "availability": "Primarily the United States", "pricing": "Free to use; discounts on some products are non-refundable", "url": "https://www.priceline.com/", "limits": "Express Deals hide the exact hotel until you book and cannot be refunded"},
+  "body": "<p>Priceline is an American online travel agency, now part of Booking Holdings, that sells hotels, flights, rental cars and vacation packages. It became widely known in the late 1990s for \"name your own price\", a reverse-auction style of booking, and today its best-known discount products are Express Deals and Pricebreakers.</p>\n<h2>Where it sits in the company</h2>\n<p>Booking Holdings was called The Priceline Group until 2018, when it renamed itself after its biggest business, Booking.com. Priceline remains one of its six consumer brands next to Booking.com, Agoda, Rentalcars.com, KAYAK and OpenTable.</p>\n<h2>Name Your Own Price</h2>\n<p>In the original format a traveller chooses a hotel quality, such as three or four stars, and a general area, then offers a price. The traveller cannot choose a specific hotel. Priceline matches the offer to hotels that have agreed to accept bids at some price, and a successful bid is a firm booking.</p>\n<h2>Express Deals</h2>\n<p>Express Deals are discounted hotel rates where the hotel name stays hidden until you pay. Travel guides say the listing shows the star rating, neighbourhood, guest score and some amenities. The trade-off is that the booking is generally non-refundable and non-changeable, so you commit before you see exactly where you will stay. Guides advise using the neighbourhood and review score to narrow the likely hotel, and comparing against standard rates, before accepting.</p>\n<h2>Pricebreakers</h2>\n<p>Pricebreakers are a related product where Priceline offers a lower price on a named hotel; the hotel is shown, but the discount is not on every room. As with Express Deals, check what is included and whether changes or refunds are allowed.</p>\n<h2>Things to compare before booking</h2>\n<ul>\n<li>The refund and change rules for that specific deal.</li>\n<li>The total price with taxes and resort or facility fees.</li>\n<li>The same dates on Booking.com or Expedia, to see whether the discount is real.</li>\n</ul>\n<h2>What we could not verify</h2>\n<p>We did not make bookings, and discount sizes quoted in travel guides vary by date and city, so we do not give a percentage. The launch year is given loosely because sources differ between the 1997 founding and the 1998 launch.</p>",
+  "sources": [
+    ["PhocusWire: Priceline Group changes its name to Booking Holdings", "https://www.phocuswire.com/Priceline-Group-now-Bookings-Holdings"],
+    ["CFO.com: Priceline changes name to Booking Holdings", "https://www.cfo.com/news/priceline-changes-name-to-booking-holdings/659333/"],
+    ["Skift: Booking Holdings' six brands, explained", "https://skift.com/2023/03/08/booking-holdings-explainer/"],
+    ["Wikipedia: Name your own price", "https://en.wikipedia.org/wiki/Name_your_own_price"],
+    ["FlyerTalk: pros and cons of the Express Deal on Priceline", "https://www.flyertalk.com/articles/pros-and-cons-of-the-express-deal-on-priceline.html"]
+  ],
+  "merge": []
+}

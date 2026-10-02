@@ -1,0 +1,20 @@
+{
+  "id": 4242,
+  "slug": "expedia-group-explained",
+  "section": "apps-websites",
+  "cluster": "travel",
+  "title": "Expedia Group: The Company Behind Expedia, Hotels.com and Vrbo",
+  "seo_title": "Expedia Group: Brands, History and How Expedia Works",
+  "meta_description": "Expedia Group is a Seattle-based online travel company behind Expedia, Hotels.com and Vrbo. Brands, how bookings work and where to get help.",
+  "dek": "Expedia Group is a Seattle-based online travel company behind Expedia, Hotels.com and Vrbo. This covers its brands, how bookings work, and where to take a problem.",
+  "primary_query": "what is expedia",
+  "facts": {"type": "company", "name": "Expedia", "operator": "Expedia Group, Inc. (Nasdaq: EXPE)", "launched": "Founded in 1996", "availability": "Global; local sites in many countries", "pricing": "Free to search and book; suppliers pay for distribution", "url": "https://www.expedia.com/", "limits": "Cancellation and refund terms depend on the supplier and the rate"},
+  "body": "<p>Expedia Group is an online travel company headquartered in Seattle, Washington, founded in 1996. Its best-known consumer brands are Expedia, Hotels.com and the holiday-rental marketplace Vrbo, and it sells flights, hotels, rental cars, packages, cruises and activities supplied by airlines, hotel companies and other partners.</p>\n<h2>The brands</h2>\n<p>Company profiles describe three core online travel brands: Expedia, Hotels.com and Vrbo. Expedia Group also has a metasearch brand, Trivago, and has bought other travel sites over the years, including Orbitz. Which logo you see usually depends on the country and the product, but the supply behind them is largely shared.</p>\n<h2>How it works</h2>\n<p>Expedia connects travellers with travel suppliers. Hotel and room supply comes from hotel companies and distribution partners, flights come through airline connections and global distribution systems such as Amadeus and Sabre, and rental cars come from car companies. Lodging is the largest part of its business by revenue, according to financial profiles of the company, which is why hotel terms matter most when you book.</p>\n<h2>When something goes wrong</h2>\n<p>Because Expedia sells services provided by other companies, the first question is who owns the problem. A change or cancellation is governed by the rate you booked, a flight disruption is mostly an airline matter, and a property dispute may need the hotel to act. In each case start from the booking itself: open it in your Expedia account, use the change or cancel options shown for that booking, and keep the confirmation number and the dates of any messages. If you booked an airline ticket, the airline's own rules on refunds and delays apply alongside the booking site's.</p>\n<h2>Alternatives</h2>\n<p>The nearest alternatives are Booking.com, Agoda, Priceline and Trip.com. Comparing the same room, dates and cancellation terms across two or three of them is the simplest way to see whether a price is competitive.</p>\n<h2>What we could not verify</h2>\n<p>We did not test a booking or a refund claim, and we did not check Expedia's current customer-service response times. Revenue shares and employee counts come from third-party company profiles and change every year.</p>",
+  "sources": [
+    ["Wikipedia: Expedia Group", "https://en.wikipedia.org/wiki/Expedia_Group"],
+    ["Expedia Group Form 10-K (SEC filing)", "https://www.sec.gov/Archives/edgar/data/1324424/000132442419000006/q42018-10k.htm"],
+    ["StockAnalysis: Expedia Group company profile", "https://stockanalysis.com/stocks/expe/company/"],
+    ["GlobalData: Expedia Group company profile", "https://www.globaldata.com/company-profile/expedia-group-inc/"]
+  ],
+  "merge": [4038]
+}

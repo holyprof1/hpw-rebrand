@@ -334,7 +334,13 @@ function holyprofweb_seo_head() {
         if ( '' === trim( $raw_desc ) && is_page( 'contact' ) ) {
             $raw_desc = __( 'Send Holyprofweb a tip, a correction or a question. For a factual error, include the article link and a source.', 'holyprofweb' );
         }
-        $og_title = get_the_title( $post );
+        // Editor-written search title and description (set in the post editor or by tools/recover.php).
+        $custom_desc  = trim( (string) get_post_meta( $post->ID, '_hpw_seo_desc', true ) );
+        $custom_title = trim( (string) get_post_meta( $post->ID, '_hpw_seo_title', true ) );
+        if ( '' !== $custom_desc ) {
+            $raw_desc = $custom_desc;
+        }
+        $og_title = '' !== $custom_title ? $custom_title : get_the_title( $post );
         $og_url   = get_permalink( $post );
         $og_img   = holyprofweb_get_post_image_url( $post->ID, 'full' );
         if ( 0 === strpos( (string) $og_img, 'data:image/' ) ) {
@@ -385,6 +391,17 @@ function holyprofweb_seo_head() {
     echo '<meta name="description" content="' . $description . '" />' . "\n";
     echo '<meta property="og:type"        content="' . esc_attr( $og_type ) . '" />' . "\n";
     echo '<meta property="og:title"       content="' . esc_attr( $og_title ) . '" />' . "\n";
+    if ( is_singular( 'post' ) && $post instanceof WP_Post ) {
+        echo '<meta property="article:published_time" content="' . esc_attr( get_the_date( 'c', $post ) ) . '" />' . "
+";
+        echo '<meta property="article:modified_time" content="' . esc_attr( holyprofweb_content_modified_iso( $post->ID ) ) . '" />' . "
+";
+        $kick_og = holyprofweb_post_kicker( $post->ID );
+        if ( $kick_og['label'] ) {
+            echo '<meta property="article:section" content="' . esc_attr( $kick_og['label'] ) . '" />' . "
+";
+        }
+    }
     echo '<meta property="og:description" content="' . $description . '" />' . "\n";
     echo '<meta property="og:url"         content="' . esc_url( $og_url ) . '" />' . "\n";
     echo '<meta property="og:site_name"   content="' . esc_attr( $site_name ) . '" />' . "\n";

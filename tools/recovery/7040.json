@@ -1,0 +1,47 @@
+{
+ "id": 7040,
+ "slug": "trip-com-explained",
+ "section": "apps-websites",
+ "cluster": "travel",
+ "title": "Trip.com: The Shanghai-Based Travel Group Behind Ctrip and Skyscanner",
+ "seo_title": "Trip.com Explained: Ownership, Brands and How It Works",
+ "meta_description": "Trip.com is the international brand of Trip.com Group, a Shanghai-based company that also owns Ctrip, Qunar and Skyscanner. Brands and how it works.",
+ "dek": "Trip.com is the international brand of Trip.com Group, a Shanghai-based travel company that also owns Ctrip, Qunar and Skyscanner. Here is how the group is structured.",
+ "primary_query": "what is trip.com",
+ "facts": {
+  "type": "company",
+  "name": "Trip.com",
+  "operator": "Trip.com Group Limited (Nasdaq: TCOM)",
+  "launched": "Founded in June 1999 as Ctrip; renamed Trip.com Group in 2019",
+  "availability": "Sites in about 40 languages, serving travellers in around 200 countries and regions",
+  "pricing": "Free to search and book; suppliers pay for distribution",
+  "url": "https://www.trip.com/",
+  "limits": "Service terms and refund rules depend on the supplier"
+ },
+ "sources": [
+  [
+   "Wikipedia: Trip.com Group",
+   "https://en.wikipedia.org/wiki/Trip.com_Group"
+  ],
+  [
+   "Trip.com Group investor FAQs",
+   "https://investors.trip.com/shareholder-services/investor-faqs"
+  ],
+  [
+   "StockAnalysis: Trip.com Group company profile",
+   "https://stockanalysis.com/stocks/tcom/company/"
+  ]
+ ],
+ "merge": [
+  1065
+ ],
+ "post_id": 7040,
+ "content_html": "<p>Trip.com is the international travel brand of Trip.com Group Limited, a company headquartered in Shanghai and listed on Nasdaq under the ticker TCOM. The group started as Ctrip in 1999, was renamed Trip.com Group in October 2019, and also owns the Chinese travel brands Ctrip and Qunar and the flight-search site Skyscanner.</p>\n<h2>Who founded it</h2>\n<p>Reference sources name James Liang, Neil Shen, Min Fan and Qi Ji as the founders. The company listed on Nasdaq in December 2003, which makes it one of the longest-listed Chinese internet companies in the United States.</p>\n<h2>How the group is organised</h2>\n<p>Trip.com Group operates several travel fare aggregators and metasearch engines. In China, travellers mostly use Ctrip and Qunar. Outside China the group's flagship is Trip.com, with Skyscanner and Travix (the parent of brands such as CheapTickets) giving it additional reach. It describes services that include flights, hotels, trains, tickets and activities, packaged tours, insurance and visa assistance.</p>\n<h2>Using Trip.com as a traveller outside China</h2>\n<p>You search for flights, hotels or train tickets, and pay in your own currency. As with other online travel agencies, the airline, hotel or rail operator provides the service, so refund and change rules follow the supplier's terms for the fare or rate you chose. For flights, keep the airline booking reference that Trip.com issues, since that is what you present to the airline.</p>\n<h2>Alternatives</h2>\n<p>Comparable services for international travel include <a href=\"/booking-com-explained/\">Booking.com</a>, <a href=\"/expedia-group-explained/\">Expedia</a>, Agoda and <a href=\"/kiwi-com-explained/\">Kiwi.com</a>.</p>\n<h2>What we could not verify</h2>\n<p>We did not make a booking, and we did not verify current language or country counts, which are the group's and reference sites' figures. Skyscanner and Travix operate under their own brands and terms, and this page describes Trip.com only.</p>\n<h2>Sources</h2>\n<ol>\n<li><a href=\"https://en.wikipedia.org/wiki/Trip.com_Group\" rel=\"noopener nofollow\">Wikipedia: Trip.com Group</a></li>\n<li><a href=\"https://investors.trip.com/shareholder-services/investor-faqs\" rel=\"noopener nofollow\">Trip.com Group investor FAQs</a></li>\n<li><a href=\"https://stockanalysis.com/stocks/tcom/company/\" rel=\"noopener nofollow\">StockAnalysis: Trip.com Group company profile</a></li>\n</ol>",
+ "related": [
+  "https://holyprofweb.com/agoda-explained/",
+  "https://holyprofweb.com/priceline-explained/",
+  "https://holyprofweb.com/expedia-group-explained/"
+ ],
+ "image_alt": "Holyprofweb editorial graphic for Trip.com",
+ "image_slug": "trip-com-explained"
+}

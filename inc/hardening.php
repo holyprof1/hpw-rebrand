@@ -89,3 +89,22 @@ add_filter( 'wp_robots', function ( $robots ) {
     }
     return $robots;
 }, 33 );
+
+// The <title> tag uses the editor-written search title when there is one.
+add_filter( 'document_title_parts', function ( $parts ) {
+    if ( is_singular( 'post' ) ) {
+        $t = trim( (string) get_post_meta( get_queried_object_id(), '_hpw_seo_title', true ) );
+        if ( '' !== $t ) {
+            $parts['title'] = $t;
+        }
+    }
+    return $parts;
+}, 20 );
+
+// Plain http requests are sent to https.
+add_action( 'template_redirect', function () {
+    if ( ! is_ssl() && ! is_admin() && ! wp_doing_cron() && 'cli' !== php_sapi_name() && isset( $_SERVER['HTTP_HOST'] ) && false === strpos( (string) $_SERVER['HTTP_HOST'], 'localhost' ) && false === strpos( (string) $_SERVER['HTTP_HOST'], '127.0.0.1' ) && 'https' === wp_parse_url( home_url(), PHP_URL_SCHEME ) ) {
+        wp_safe_redirect( 'https://' . $_SERVER['HTTP_HOST'] . ( isset( $_SERVER['REQUEST_URI'] ) ? $_SERVER['REQUEST_URI'] : '/' ), 301 );
+        exit;
+    }
+}, 0 );
