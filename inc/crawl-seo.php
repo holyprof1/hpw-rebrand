@@ -197,6 +197,23 @@ function holyprofweb_llms_txt() {
             $out .= '- [' . $label . '](' . home_url( '/' . $slug . '/' ) . ")\n";
         }
     }
+    // Published articles by section (title and standfirst), newest meaningful update first.
+    $ids = get_posts( array(
+        'post_type' => 'post', 'post_status' => 'publish', 'numberposts' => 80, 'fields' => 'ids', 'no_found_rows' => true,
+        'meta_query' => holyprofweb_real_posts_meta_query(), 'orderby' => 'modified', 'order' => 'DESC',
+    ) );
+    $by = array();
+    foreach ( $ids as $pid ) {
+        $by[ holyprofweb_post_section( $pid ) ][] = $pid;
+    }
+    foreach ( holyprofweb_sections() as $slug => $sec ) {
+        if ( empty( $by[ $slug ] ) ) { continue; }
+        $out .= "\n## " . $sec['title'] . " articles\n\n";
+        foreach ( $by[ $slug ] as $pid ) {
+            $dek = trim( preg_replace( '/\s+/', ' ', wp_strip_all_tags( get_the_excerpt( $pid ) ) ) );
+            $out .= '- [' . wp_strip_all_tags( html_entity_decode( get_the_title( $pid ), ENT_QUOTES, 'UTF-8' ) ) . '](' . get_permalink( $pid ) . ')' . ( $dek ? ': ' . mb_substr( $dek, 0, 200 ) : '' ) . "\n";
+        }
+    }
     $out .= "\n## Machine-readable\n\n- [Sitemap index](" . home_url( '/sitemap-index.xml' ) . ")\n- [RSS feed](" . home_url( '/feed/' ) . ")\n";
     return $out;
 }

@@ -369,3 +369,5 @@ html[data-theme='dark'] .theme-toggle__moon { display: block; }
 .pub-hero__side .pub-card--compact .pub-card__title { font-size: clamp(1.2rem, 2vw, 1.5rem); line-height: 1.18; }
 .pub-hero__side { gap: 24px; }
 .pub-hero__side .pub-card--compact { padding-bottom: 22px; }
+
+.pub-card__body .pub-kicker { align-self: flex-start; padding: 5px 0; min-height: 24px; }
