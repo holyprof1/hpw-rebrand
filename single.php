@@ -40,7 +40,7 @@ while ( have_posts() ) :
             </p>
         </header>
 
-        <?php if ( $img_id && holyprofweb_post_has_trusted_featured_image( $post_id ) ) : ?>
+        <?php if ( $img_id && holyprofweb_pub_has_real_image( $post_id ) ) : ?>
         <figure class="pub-article__figure">
             <?php
             echo wp_get_attachment_image( $img_id, 'large', false, array(
@@ -72,19 +72,18 @@ while ( have_posts() ) :
     </article>
 
     <?php
-    $related = holyprofweb_get_related_posts( $post_id, 3 );
-    if ( $related instanceof WP_Query && $related->have_posts() ) :
+    $related_ids = holyprofweb_pub_related( $post_id, 3 );
+    if ( $related_ids ) :
         ?>
         <section class="pub-section" aria-labelledby="related-h">
             <div class="pub-wrap">
                 <header class="pub-section__head"><h2 id="related-h"><?php esc_html_e( 'Keep reading', 'holyprofweb' ); ?></h2></header>
                 <div class="pub-grid pub-grid--3">
-                    <?php while ( $related->have_posts() ) : $related->the_post(); holyprofweb_pub_card( get_the_ID() ); endwhile; ?>
+                    <?php foreach ( $related_ids as $rid ) { holyprofweb_pub_card( $rid ); } ?>
                 </div>
             </div>
         </section>
         <?php
-        wp_reset_postdata();
     endif;
 
     if ( comments_open() || get_comments_number() ) :

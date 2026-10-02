@@ -34,7 +34,7 @@ function holyprofweb_pub_media( $post_id, $size = 'holyprofweb-card', $sizes = '
     } else {
         $attrs['loading'] = 'lazy';
     }
-    if ( function_exists( 'holyprofweb_post_has_trusted_featured_image' ) && holyprofweb_post_has_trusted_featured_image( $post_id ) ) {
+    if ( holyprofweb_pub_has_real_image( $post_id ) && has_post_thumbnail( $post_id ) ) {
         return wp_get_attachment_image( get_post_thumbnail_id( $post_id ), $size, false, $attrs );
     }
     // Only editorial images: an attached real featured image (above) or an explicitly set external image.
@@ -56,9 +56,32 @@ function holyprofweb_pub_media( $post_id, $size = 'holyprofweb-card', $sizes = '
 /** True when a post has a real (non-generated) featured image. */
 function holyprofweb_pub_has_real_image( $post_id ) {
     if ( function_exists( 'holyprofweb_post_has_trusted_featured_image' ) && holyprofweb_post_has_trusted_featured_image( $post_id ) ) {
-        return true;
+        // The generic brand/placeholder artwork is not an editorial image.
+        $file = (string) get_post_meta( get_post_thumbnail_id( $post_id ), '_wp_attached_file', true );
+        return ! preg_match( '/placeholder|hpw-generated|logo/i', wp_basename( $file ) );
     }
     return 0 === strpos( trim( (string) get_post_meta( $post_id, 'external_image', true ) ), 'https://' );
+}
+
+/**
+ * Related stories chosen for relevance, not just "same broad category":
+ * Other posts that mention the subject named at the start of the title. Tags and broad categories are
+ * deliberately not used: on this archive they were auto-assigned and produced unrelated links.
+ * Returns up to $n IDs; an empty array means "show nothing".
+ */
+function holyprofweb_pub_related( $post_id, $n = 3 ) {
+    $found = array();
+    $base  = array( 'post_type' => 'post', 'post_status' => 'publish', 'post__not_in' => array( $post_id ), 'fields' => 'ids', 'no_found_rows' => true, 'ignore_sticky_posts' => true, 'meta_query' => holyprofweb_real_posts_meta_query() );
+
+    {
+        $title = wp_strip_all_tags( html_entity_decode( get_the_title( $post_id ), ENT_QUOTES, 'UTF-8' ) );
+        $subject = trim( preg_split( '/\s+(?:review|reviews|—|–|-|:|is|how|what|who|why)\b|[:—–?]/i', $title, 2 )[0] );
+        if ( mb_strlen( $subject ) >= 4 ) {
+            $found = array_merge( $found, get_posts( array_merge( $base, array( 'posts_per_page' => $n, 's' => $subject, 'post__not_in' => array_merge( array( $post_id ), $found ) ) ) ) );
+        }
+    }
+
+    return array_slice( array_values( array_unique( array_map( 'intval', $found ) ) ), 0, $n );
 }
 
 /** "Updated" shows only when a meaningful edit was recorded (see inc/dates.php) and it is more than a day after publishing. */
