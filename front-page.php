@@ -62,6 +62,11 @@ $head = function ( $id, $title, $slug = '', $link_text = 'See all' ) {
             <div class="pub-hero__intro">
                 <h1 class="pub-hero__title"><?php esc_html_e( 'Discover what’s new online.', 'holyprofweb' ); ?></h1>
                 <p class="pub-hero__sub"><?php esc_html_e( 'New apps, websites, products, people and internet trends explained clearly.', 'holyprofweb' ); ?></p>
+                <nav class="pub-hero__chips" aria-label="<?php esc_attr_e( 'Sections', 'holyprofweb' ); ?>">
+                    <?php foreach ( $sections as $chip_slug => $chip ) : ?>
+                    <a href="<?php echo esc_url( holyprofweb_section_url( $chip_slug ) ); ?>"><?php echo esc_html( $chip['label'] ); ?></a>
+                    <?php endforeach; ?>
+                </nav>
             </div>
             <?php if ( $lead_id ) { holyprofweb_pub_card( $lead_id, array( 'variant' => 'lead', 'excerpt' => true, 'eager' => true, 'tag' => 'h2' ) ); } ?>
         </div>
@@ -136,7 +141,7 @@ $head = function ( $id, $title, $slug = '', $link_text = 'See all' ) {
         <div class="pub-wrap pub-wrap--narrow">
             <?php $head( 'pub-latest', __( 'Latest', 'holyprofweb' ), 'blog', __( 'All stories', 'holyprofweb' ) ); ?>
             <div class="pub-list">
-                <?php foreach ( $latest_ids as $id ) { holyprofweb_pub_card( $id, array( 'variant' => 'row' ) ); } ?>
+                <?php foreach ( $latest_ids as $id ) { holyprofweb_pub_card( $id, array( 'variant' => 'row', 'thumb' => false ) ); } ?>
             </div>
         </div>
     </section>

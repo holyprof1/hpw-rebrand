@@ -77,7 +77,7 @@ function holyprofweb_pub_excerpt( $post_id, $words = 22 ) {
  * $o: variant (''|'lead'|'compact'|'row'), excerpt (bool), eager (bool).
  */
 function holyprofweb_pub_card( $post_id, array $o = array() ) {
-    $o       = wp_parse_args( $o, array( 'variant' => '', 'excerpt' => false, 'eager' => false, 'tag' => 'h3' ) );
+    $o       = wp_parse_args( $o, array( 'variant' => '', 'excerpt' => false, 'eager' => false, 'tag' => 'h3', 'thumb' => true ) );
     $tag     = in_array( $o['tag'], array( 'h2', 'h3' ), true ) ? $o['tag'] : 'h3';
     $kicker  = holyprofweb_post_kicker( $post_id );
     $lead    = 'lead' === $o['variant'];
@@ -88,7 +88,7 @@ function holyprofweb_pub_card( $post_id, array $o = array() ) {
     $classes = 'pub-card' . ( $o['variant'] ? ' pub-card--' . $o['variant'] : '' );
     ?>
     <article class="<?php echo esc_attr( $classes ); ?>">
-        <?php if ( 'compact' !== $o['variant'] ) : ?>
+        <?php if ( 'compact' !== $o['variant'] && $o['thumb'] ) : ?>
         <a class="pub-card__media<?php echo $img ? '' : ' pub-card__media--empty'; ?>" href="<?php echo esc_url( get_permalink( $post_id ) ); ?>" tabindex="-1" aria-hidden="true">
             <?php echo $img ? $img : '<span class="pub-card__mark">' . esc_html( $kicker['label'] ? $kicker['label'] : get_bloginfo( 'name' ) ) . '</span>'; // phpcs:ignore WordPress.Security.EscapeOutput ?>
         </a>

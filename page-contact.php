@@ -123,43 +123,33 @@ if ( isset( $_POST['hpw_contact_nonce'] ) ) {
 }
 ?>
 
-<div class="platform-wrap">
+<main id="primary" class="site-main pub-article pub-contact">
+    <div class="pub-article__inner pub-contact__inner">
+        <header class="pub-article__head">
+            <nav class="pub-crumbs" aria-label="<?php esc_attr_e( 'Breadcrumb', 'holyprofweb' ); ?>">
+                <a href="<?php echo esc_url( home_url( '/' ) ); ?>"><?php esc_html_e( 'Home', 'holyprofweb' ); ?></a>
+            </nav>
+            <h1 class="pub-article__title"><?php esc_html_e( 'Contact', 'holyprofweb' ); ?></h1>
+            <p class="pub-article__summary"><?php esc_html_e( 'Tips, corrections, questions or partnerships: send them here. To report a factual error, include the article link and a source if you have one.', 'holyprofweb' ); ?></p>
+        </header>
 
-    <?php holyprofweb_left_sidebar(); ?>
-
-    <main id="primary" class="site-main platform-main">
-        <div class="contact-page-wrap">
-            <?php holyprofweb_render_page_breadcrumbs( get_queried_object_id() ); ?>
-
-            <div class="contact-header">
-                <h1 class="contact-title"><?php esc_html_e( 'Contact Us', 'holyprofweb' ); ?></h1>
-                <p class="contact-subtitle">
-                    <?php esc_html_e( 'Have a tip, correction, advertising question, or just want to say hi? We read every message.', 'holyprofweb' ); ?>
-                </p>
-            </div>
-
-            <div class="contact-layout">
-
-                <div class="contact-form-col">
-
-                    <?php if ( $success ) : ?>
-                    <div class="contact-success" role="alert">
-                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                        <p><?php esc_html_e( 'Thanks! Your message has been sent. We usually reply within 1-2 business days.', 'holyprofweb' ); ?></p>
-                    </div>
-                    <?php else : ?>
-
-                    <?php if ( ! empty( $errors ) ) : ?>
-                    <div class="contact-errors" role="alert">
-                        <ul>
-                            <?php foreach ( $errors as $err ) : ?>
-                            <li><?php echo esc_html( $err ); ?></li>
-                            <?php endforeach; ?>
-                        </ul>
-                    </div>
-                    <?php endif; ?>
-
-                    <form method="post" class="contact-form" novalidate>
+        <div class="pub-contact__grid">
+            <div class="pub-contact__form">
+                <?php if ( $success ) : ?>
+                <div class="contact-success" role="status">
+                    <p><?php esc_html_e( 'Thanks. Your message has been sent.', 'holyprofweb' ); ?></p>
+                </div>
+                <?php else : ?>
+                <?php if ( ! empty( $errors ) ) : ?>
+                <div class="contact-errors" role="alert">
+                    <ul>
+                        <?php foreach ( $errors as $err ) : ?>
+                        <li><?php echo esc_html( $err ); ?></li>
+                        <?php endforeach; ?>
+                    </ul>
+                </div>
+                <?php endif; ?>
+                <form method="post" class="contact-form" novalidate>
                         <?php wp_nonce_field( 'hpw_contact_submit', 'hpw_contact_nonce' ); ?>
                         <?php if ( function_exists( 'holyprofweb_render_public_form_guard' ) ) { holyprofweb_render_public_form_guard( 'contact' ); } ?>
 
@@ -205,42 +195,20 @@ if ( isset( $_POST['hpw_contact_nonce'] ) ) {
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
                         </button>
                     </form>
-                    <?php endif; ?>
-
-                </div>
-
-                <aside class="contact-info-col" aria-label="<?php esc_attr_e( 'Contact information', 'holyprofweb' ); ?>">
-                    <div class="contact-info-card">
-                        <h3 class="contact-info-heading"><?php esc_html_e( 'Direct Email', 'holyprofweb' ); ?></h3>
-                        <a href="mailto:admin@holyprofweb.com" class="contact-email-link">admin@holyprofweb.com</a>
-                        <p class="contact-info-note"><?php esc_html_e( 'We reply within 1-2 business days.', 'holyprofweb' ); ?></p>
-                    </div>
-
-                    <div class="contact-info-card">
-                        <h3 class="contact-info-heading"><?php esc_html_e( 'Response Time', 'holyprofweb' ); ?></h3>
-                        <ul class="contact-info-list">
-                            <li><strong><?php esc_html_e( 'General enquiries:', 'holyprofweb' ); ?></strong> 1-2 days</li>
-                            <li><strong><?php esc_html_e( 'Content corrections:', 'holyprofweb' ); ?></strong> 24 hours</li>
-                            <li><strong><?php esc_html_e( 'Advertising:', 'holyprofweb' ); ?></strong> Same business day</li>
-                        </ul>
-                    </div>
-
-                    <div class="contact-info-card">
-                        <h3 class="contact-info-heading"><?php esc_html_e( 'Other Pages', 'holyprofweb' ); ?></h3>
-                        <ul class="contact-info-list">
-                            <li><a href="<?php echo esc_url( home_url( '/about/' ) ); ?>"><?php esc_html_e( 'About HolyprofWeb', 'holyprofweb' ); ?></a></li>
-                            <li><a href="<?php echo esc_url( home_url( '/advertise/' ) ); ?>"><?php esc_html_e( 'Advertise With Us', 'holyprofweb' ); ?></a></li>
-                            <li><a href="<?php echo esc_url( home_url( '/work-with-us/' ) ); ?>"><?php esc_html_e( 'Work With Us', 'holyprofweb' ); ?></a></li>
-                        </ul>
-                    </div>
-
-                </aside>
-
+                <?php endif; ?>
             </div>
 
+            <aside class="pub-contact__side" aria-label="<?php esc_attr_e( 'Contact information', 'holyprofweb' ); ?>">
+                <h2><?php esc_html_e( 'Email', 'holyprofweb' ); ?></h2>
+                <p><a href="mailto:admin@holyprofweb.com">admin@holyprofweb.com</a></p>
+                <h2><?php esc_html_e( 'Before you write', 'holyprofweb' ); ?></h2>
+                <ul>
+                    <li><a href="<?php echo esc_url( home_url( '/corrections-updates-policy/' ) ); ?>"><?php esc_html_e( 'How we handle corrections', 'holyprofweb' ); ?></a></li>
+                    <li><a href="<?php echo esc_url( home_url( '/editorial-policy/' ) ); ?>"><?php esc_html_e( 'Editorial policy', 'holyprofweb' ); ?></a></li>
+                    <li><a href="<?php echo esc_url( home_url( '/advertise/' ) ); ?>"><?php esc_html_e( 'Advertising', 'holyprofweb' ); ?></a></li>
+                </ul>
+            </aside>
         </div>
-    </main>
-
-</div>
-
+    </div>
+</main>
 <?php get_footer(); ?>

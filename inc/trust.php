@@ -50,6 +50,12 @@ function holyprofweb_trust_copy( $key ) {
                     ),
                 ),
                 array(
+                    'h' => 'Older articles',
+                    'p' => array(
+                        'Holyprofweb has changed direction. Many older articles on this site were published before these standards and are being reviewed. Some will be updated, merged or removed, so treat their dates and claims with care until they carry a recent update.',
+                    ),
+                ),
+                array(
                     'h' => 'When we get it wrong',
                     'p' => array(
                         'Mistakes are corrected openly. See our <a href="' . esc_url( home_url( '/corrections-updates-policy/' ) ) . '">Corrections Policy</a> and <a href="' . esc_url( home_url( '/editorial-policy/' ) ) . '">Editorial Policy</a>.',
@@ -84,7 +90,7 @@ function holyprofweb_trust_copy( $key ) {
                 ),
                 array(
                     'h' => 'Use of AI tools',
-                    'p' => array( 'We may use AI tools to help with research, outlining or editing. AI is not used to invent facts, sources, quotes, test results or screenshots, and a person is responsible for checking every published claim.' ),
+                    'p' => array( 'Going forward, we may use AI tools to help with research, outlining or editing. AI is not used to invent facts, sources, quotes, test results or screenshots, and a person is responsible for checking every published claim before it goes live. Nothing is published automatically.' ),
                 ),
                 array(
                     'h' => 'Sponsored content and affiliate links',
