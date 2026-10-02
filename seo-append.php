@@ -323,6 +323,17 @@ function holyprofweb_seo_head() {
         return;
     }
 
+    // Search engine ownership tags, only from codes already stored by the site owner (Rank Math > General Settings > Webmaster Tools).
+    if ( is_front_page() ) {
+        $codes = (array) get_option( 'verification_services_codes', array() );
+        foreach ( array( 'google' => 'google-site-verification', 'bing' => 'msvalidate.01' ) as $k => $meta_name ) {
+            if ( ! empty( $codes[ $k ] ) && is_string( $codes[ $k ] ) ) {
+                echo '<meta name="' . esc_attr( $meta_name ) . '" content="' . esc_attr( $codes[ $k ] ) . '" />' . "
+";
+            }
+        }
+    }
+
     $post      = get_queried_object();
     $site_name = get_bloginfo( 'name' );
     $site_url  = home_url( '/' );
