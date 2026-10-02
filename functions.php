@@ -9452,7 +9452,7 @@ function holyprofweb_settings_automation_page() {
                     </td>
                 </tr>
                 <tr>
-                    <th><?php esc_html_e( 'Auto-publish ready drafts', 'holyprofweb' ); ?></th>
+                    <th><?php esc_html_e( 'Auto-publish ready drafts (permanently off)', 'holyprofweb' ); ?></th>
                     <td><label><input type="checkbox" name="hpw_enable_draft_autopublish" value="1" <?php checked( 1, get_option( 'hpw_enable_draft_autopublish', 1 ) ); ?> /> <?php esc_html_e( 'Let the 5-minute cron review imported drafts and publish only the ones that pass quality checks.', 'holyprofweb' ); ?></label></td>
                 </tr>
                 <tr>
@@ -10990,6 +10990,10 @@ function holyprofweb_build_longform_sections( $post_id ) {
 }
 
 function holyprofweb_expand_thin_post_content( $post_id, $force = false ) {
+    // Disabled: no automatic padding of posts (see inc/editorial-safety.php).
+    if ( ! apply_filters( 'holyprofweb_allow_thin_content_expansion', false ) ) {
+        return;
+    }
     $post = get_post( $post_id );
     if ( ! $post || 'post' !== $post->post_type || ! in_array( $post->post_status, array( 'publish', 'draft', 'pending' ), true ) ) {
         return;
@@ -11466,4 +11470,5 @@ require_once get_template_directory() . '/inc/publication.php';
 require_once get_template_directory() . '/inc/authors.php';
 require_once get_template_directory() . '/inc/trust.php';
 require_once get_template_directory() . '/inc/dates.php';
+require_once get_template_directory() . '/inc/editorial-safety.php';
 require_once get_template_directory() . '/inc/seo-rankmath-compat.php';
