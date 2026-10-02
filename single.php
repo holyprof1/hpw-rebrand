@@ -19,7 +19,6 @@ while ( have_posts() ) :
     $author  = (int) get_the_author_meta( 'ID' );
     $bio     = get_the_author_meta( 'description', $author );
     $img_id  = get_post_thumbnail_id( $post_id );
-    $sources = function_exists( 'holyprofweb_get_post_source_url' ) ? holyprofweb_get_post_source_url( $post_id, get_post( $post_id ) ) : '';
     ?>
     <article id="post-<?php the_ID(); ?>" <?php post_class( 'pub-article__inner' ); ?>>
         <header class="pub-article__head">
@@ -62,12 +61,6 @@ while ( have_posts() ) :
             <?php the_content(); ?>
         </div>
 
-        <?php if ( $sources ) : ?>
-        <section class="pub-article__sources" aria-labelledby="sources-h">
-            <h2 id="sources-h"><?php esc_html_e( 'Sources', 'holyprofweb' ); ?></h2>
-            <ul><li><a href="<?php echo esc_url( $sources ); ?>" rel="noopener nofollow" target="_blank"><?php echo esc_html( wp_parse_url( $sources, PHP_URL_HOST ) ); ?></a></li></ul>
-        </section>
-        <?php endif; ?>
 
         <aside class="pub-authorbox" aria-label="<?php esc_attr_e( 'About the author', 'holyprofweb' ); ?>">
             <?php echo get_avatar( $author, 64, '', '', array( 'class' => 'pub-authorbox__avatar' ) ); ?>

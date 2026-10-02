@@ -65,6 +65,15 @@ function holyprofweb_section_term_ids( $slug ) {
     return $cache[ $slug ] = array_values( array_unique( $ids ) );
 }
 
+/** Meta query that leaves out the theme's seeded demo/placeholder posts. */
+function holyprofweb_real_posts_meta_query() {
+    return array(
+        'relation' => 'AND',
+        array( 'key' => '_hpw_placeholder_post', 'compare' => 'NOT EXISTS' ),
+        array( 'key' => '_hpw_seed_post', 'compare' => 'NOT EXISTS' ),
+    );
+}
+
 /** Query args for posts belonging to a section (placeholder posts excluded). */
 function holyprofweb_section_query_args( $slug, array $args = array() ) {
     $ids = holyprofweb_section_term_ids( $slug );
@@ -74,9 +83,7 @@ function holyprofweb_section_query_args( $slug, array $args = array() ) {
             'post_status'         => 'publish',
             'ignore_sticky_posts' => true,
             'category__in'        => $ids ? $ids : array( 0 ),
-            'meta_query'          => array(
-                array( 'key' => '_hpw_placeholder_post', 'compare' => 'NOT EXISTS' ),
-            ),
+            'meta_query'          => holyprofweb_real_posts_meta_query(),
         ),
         $args
     );
@@ -158,7 +165,7 @@ add_action( 'template_redirect', function () {
     if ( ! $term || ! isset( holyprofweb_sections()[ $term->slug ] ) ) {
         return;
     }
-    $path = wp_parse_url( home_url( add_query_arg( array() ) ), PHP_URL_PATH );
+    $path = wp_parse_url( isset( $_SERVER['REQUEST_URI'] ) ? wp_unslash( $_SERVER['REQUEST_URI'] ) : '', PHP_URL_PATH );
     if ( false !== strpos( (string) $path, '/category/' . $term->slug ) ) {
         $paged = (int) get_query_var( 'paged' );
         $dest  = holyprofweb_section_url( $term->slug ) . ( $paged > 1 ? 'page/' . $paged . '/' : '' );
@@ -181,11 +188,12 @@ add_action( 'pre_get_posts', function ( $q ) {
     if ( ! $ids ) {
         return;
     }
-    // The section's own term stays first so get_queried_object() keeps resolving to it.
+    // WP resolves the queried term from the lowest term ID, so the section term is pinned again on 'wp' below.
+    $q->set( 'hpw_section', $slug );
     $q->set( 'category_name', '' );
     $q->set( 'cat', implode( ',', $ids ) );
     $q->set( 'posts_per_page', 12 );
-    $q->set( 'meta_query', array( array( 'key' => '_hpw_placeholder_post', 'compare' => 'NOT EXISTS' ) ) );
+    $q->set( 'meta_query', holyprofweb_real_posts_meta_query() );
 } );
 
 add_filter( 'template_include', function ( $template ) {
@@ -200,3 +208,16 @@ add_filter( 'template_include', function ( $template ) {
     }
     return $template;
 }, 20 );
+
+add_action( 'wp', function () {
+    global $wp_query;
+    $slug = $wp_query->get( 'hpw_section' );
+    if ( ! $slug ) {
+        return;
+    }
+    $term = get_term_by( 'slug', $slug, 'category' );
+    if ( $term ) {
+        $wp_query->queried_object    = $term;
+        $wp_query->queried_object_id = (int) $term->term_id;
+    }
+} );

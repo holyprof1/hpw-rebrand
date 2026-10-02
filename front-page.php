@@ -7,14 +7,14 @@ get_header();
 
 $sections = holyprofweb_sections();
 $used     = array();
-$no_ph    = array( array( 'key' => '_hpw_placeholder_post', 'compare' => 'NOT EXISTS' ) );
+$no_ph    = holyprofweb_real_posts_meta_query();
 
 // The newest story across the four sections leads; each section also feeds its own block below.
 $lead_candidates = array();
 foreach ( array_keys( $sections ) as $slug ) {
-    $q = new WP_Query( holyprofweb_section_query_args( $slug, array( 'posts_per_page' => 1, 'fields' => 'ids', 'no_found_rows' => true ) ) );
-    if ( $q->posts ) {
-        $lead_candidates[ $q->posts[0] ] = get_post_time( 'U', true, $q->posts[0] );
+    $q = new WP_Query( holyprofweb_section_query_args( $slug, array( 'posts_per_page' => 8, 'fields' => 'ids', 'no_found_rows' => true ) ) );
+    foreach ( $q->posts as $cand ) {
+        $lead_candidates[ $cand ] = get_post_time( 'U', true, $cand ) + ( holyprofweb_pub_has_real_image( $cand ) ? 100 * YEAR_IN_SECONDS : 0 );
     }
 }
 arsort( $lead_candidates );
@@ -23,9 +23,16 @@ if ( $lead_id ) {
     $used[] = $lead_id;
 }
 
+// Trending and the section blocks come from the four sections only, so old review-farm
+// categories (scam checks, betting, salaries, reports) do not lead the page just because they are recent.
+$section_term_ids = array();
+foreach ( array_keys( $sections ) as $slug ) {
+    $section_term_ids = array_merge( $section_term_ids, holyprofweb_section_term_ids( $slug ) );
+}
 $trending_ids = ( new WP_Query( array(
     'post_type' => 'post', 'post_status' => 'publish', 'posts_per_page' => 6, 'post__not_in' => $used,
     'ignore_sticky_posts' => true, 'fields' => 'ids', 'no_found_rows' => true, 'meta_query' => $no_ph,
+    'category__in' => $section_term_ids ? $section_term_ids : array( 0 ),
 ) ) )->posts;
 $used = array_merge( $used, $trending_ids );
 
@@ -103,7 +110,8 @@ $head = function ( $id, $title, $slug = '', $link_text = 'See all' ) {
             <div class="pub-people__row">
                 <?php foreach ( $people_ids as $id ) : ?>
                 <a class="pub-person" href="<?php echo esc_url( get_permalink( $id ) ); ?>">
-                    <img src="<?php echo esc_url( holyprofweb_pub_image_url( $id ) ); ?>" alt="" width="240" height="240" loading="lazy" decoding="async" />
+                    <?php $portrait = holyprofweb_pub_media( $id, 'holyprofweb-thumb', '180px' ); ?>
+                    <span class="pub-person__img<?php echo $portrait ? '' : ' pub-person__img--empty'; ?>"><?php echo $portrait ? $portrait : '<span>' . esc_html( mb_substr( wp_strip_all_tags( holyprofweb_get_decoded_post_title( $id ) ), 0, 1 ) ) . '</span>'; // phpcs:ignore WordPress.Security.EscapeOutput ?></span>
                     <span class="pub-person__name"><?php echo esc_html( holyprofweb_get_decoded_post_title( $id ) ); ?></span>
                 </a>
                 <?php endforeach; ?>

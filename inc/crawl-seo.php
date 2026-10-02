@@ -86,7 +86,7 @@ add_filter( 'wp_sitemaps_taxonomies_query_args', function ( $args, $taxonomy ) {
 
 add_filter( 'wp_sitemaps_posts_query_args', function ( $args, $post_type ) {
     if ( 'post' === $post_type ) {
-        $args['meta_query'] = array( array( 'key' => '_hpw_placeholder_post', 'compare' => 'NOT EXISTS' ) );
+        $args['meta_query'] = holyprofweb_real_posts_meta_query();
     }
     if ( 'page' === $post_type ) {
         $skip = get_posts( array(
@@ -115,14 +115,8 @@ add_action( 'template_redirect', function () {
             exit;
         }
         $entries = array();
-        foreach ( $server->registry->get_sitemaps() as $sitemap ) {
-            $pages = max( 1, (int) $sitemap->get_max_num_pages() );
-            if ( ! (int) $sitemap->get_max_num_pages() ) {
-                continue;
-            }
-            for ( $i = 1; $i <= $pages; $i++ ) {
-                $entries[] = $sitemap->get_sitemap_url( $sitemap->name, $i );
-            }
+        foreach ( $server->index->get_sitemap_list() as $entry ) {
+            $entries[] = $entry['loc'];
         }
         status_header( 200 );
         header( 'Content-Type: application/xml; charset=UTF-8' );
