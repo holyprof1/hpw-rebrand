@@ -1,0 +1,20 @@
+{
+  "id": 7068,
+  "slug": "shein-explained",
+  "section": "apps-websites",
+  "cluster": "marketplaces",
+  "title": "Shein: The Fast-Fashion Retailer Founded in Nanjing and Headquartered in Singapore",
+  "seo_title": "Shein Explained: Company History, Ownership and How It Works",
+  "meta_description": "Shein is a fast-fashion retailer founded in Nanjing in 2008 as ZZKKO and now headquartered in Singapore. History, founder, business model and ownership.",
+  "dek": "Shein is a fast-fashion retailer founded in Nanjing in 2008 and now headquartered in Singapore. Here is its history, who founded it and how its design-to-delivery model works.",
+  "primary_query": "what is shein and who owns it",
+  "facts": {"type": "company", "name": "Shein", "operator": "Shein Group, headquartered in Singapore", "launched": "Founded October 2008 in Nanjing, China, as ZZKKO; renamed Sheinside, then Shein in 2015", "availability": "Online, in many countries", "pricing": "Free to browse; sells its own and third-party fashion items", "url": "https://www.shein.com/", "limits": "Revenue and headcount figures are from third-party profiles"},
+  "body": "<p>Shein is an online fast-fashion retailer headquartered in Singapore. It was founded in Nanjing, China, in October 2008 under the name ZZKKO by Chris Xu (Xu Yangtian), renamed Sheinside and then Shein in 2015, and is best known for selling very large numbers of new, low-priced clothing styles directly to shoppers.</p>\n<h2>From ZZKKO to Singapore</h2>\n<p>Chris Xu came to the business from search-engine optimisation and cross-border e-commerce. Reference sources say he moved to Singapore in February 2022, and that the company moved its legal headquarters there at the same time. Commentary in the business press has debated how much of the operation is run from China versus Singapore; we only state the registered headquarters here.</p>\n<h2>How the model works</h2>\n<p>Company profiles credit Shein with a supply chain that can release new items within about 7 to 10 days. In practice that means producing garments in small batches, watching which styles sell, and reordering the winners. The same profiles report revenue of about US$38 billion and more than 16,000 employees as of 2024; those are third-party estimates rather than audited public figures, because Shein is a private company.</p>\n<h2>What it sells</h2>\n<p>Women's clothing is the core, with menswear, children's wear, accessories, beauty, shoes, bags and home goods alongside. Listings come from Shein's own labels and from third-party sellers on its marketplace.</p>\n<h2>Questions shoppers ask</h2>\n<ul>\n<li><strong>Who owns it?</strong> It is privately held; the founder is the best-documented major shareholder, but the full shareholder list is not public.</li>\n<li><strong>Where does it ship from?</strong> It depends on the item and your country; the order page shows the dispatch location and estimated delivery.</li>\n<li><strong>How do returns work?</strong> Return windows and costs are set in Shein's return policy for your country, so read it before ordering.</li>\n</ul>\n<h2>What we could not verify</h2>\n<p>We did not place an order. Revenue, headcount and ownership are third-party estimates, and we do not report on manufacturing or labour conditions here because we have not verified them first-hand.</p>",
+  "sources": [
+    ["Wikipedia: Shein", "https://en.wikipedia.org/wiki/Shein"],
+    ["Wikipedia: Chris Xu (entrepreneur)", "https://en.wikipedia.org/wiki/Chris_Xu_(entrepreneur)"],
+    ["AGBI: Shein news and company profile", "https://www.agbi.com/companies/shein/"],
+    ["Future Startup: A brief history of SHEIN", "https://futurestartup.com/2023/11/06/a-brief-history-of-shein/"]
+  ],
+  "merge": [4287]
+}

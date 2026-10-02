@@ -1,0 +1,20 @@
+{
+  "id": 7059,
+  "slug": "etsy-explained",
+  "section": "apps-websites",
+  "cluster": "marketplaces",
+  "title": "Etsy: How the Handmade and Vintage Marketplace Works for Buyers and Sellers",
+  "seo_title": "Etsy Explained: How It Works and What Sellers Pay",
+  "meta_description": "Etsy is a marketplace for handmade, vintage and craft goods founded in Brooklyn in 2005. How buying works, what sellers pay and who owns Depop.",
+  "dek": "Etsy is a marketplace for handmade, vintage and craft goods founded in Brooklyn in 2005. This covers how buying works, what sellers pay and how Etsy's other brands fit in.",
+  "primary_query": "how does etsy work",
+  "facts": {"type": "website", "name": "Etsy", "operator": "Etsy, Inc.", "launched": "2005, Brooklyn, New York", "availability": "Global", "pricing": "Free for buyers; sellers pay listing, transaction and payment-processing fees", "url": "https://www.etsy.com/", "limits": "Fees change; confirm the current schedule in Etsy's seller policies"},
+  "body": "<p>Etsy is an online marketplace for handmade, vintage and craft-supply items, founded in 2005 in Brooklyn, New York. Independent sellers run their own shops on it, Etsy handles the storefront and payment, and it earns money from fees charged to sellers rather than from buyers.</p>\n<h2>Where it started</h2>\n<p>Reference histories say Etsy began as an idea of Rob Kalin, a furniture maker, who worked on it with Chris Maguire and Haim Schoppik, with Jared Tarbell joining later. It started as a place for makers to sell goods that mass retail did not carry.</p>\n<h2>How buying works</h2>\n<p>Each item belongs to an individual shop with its own shipping times, processing time and return policy, which are shown on the listing. Etsy takes the payment and passes it to the seller after fees. You message the seller about custom orders, and the shop page shows its order history and the comments from past buyers.</p>\n<h2>What sellers pay</h2>\n<p>Published business analyses of Etsy's fee model list a listing fee of US$0.20 per item for four months, a transaction commission of 3.5% of the sale, payment-processing fees, optional advertising, and subscription tiers. Treat those figures as a snapshot from a third-party summary; Etsy changes fees and the current numbers are in its own seller policies.</p>\n<h2>Etsy's other brands</h2>\n<p>Etsy bought the secondhand-fashion app Depop in 2021 and runs it as a separate marketplace out of London. See our separate piece on <a href=\"/depop-explained/\">Depop</a> for how that app differs.</p>\n<h2>Buyer tips</h2>\n<ul>\n<li>Check whether an item is handmade, vintage or sourced from a manufacturer, since the listing states which.</li>\n<li>Look at processing time as well as shipping time; made-to-order items can take weeks.</li>\n<li>Keep the conversation and payment on Etsy so the platform's help process remains available.</li>\n</ul>\n<h2>What we could not verify</h2>\n<p>We did not open a shop or place an order, so fee figures come from third-party summaries and should be checked on Etsy's own pages.</p>",
+  "sources": [
+    ["Wikipedia: Etsy", "https://en.wikipedia.org/wiki/Etsy"],
+    ["EBSCO Research Starters: Etsy (business)", "https://www.ebsco.com/research-starters/computer-science/etsy-business"],
+    ["Think Insights: Etsy business model", "https://thinkinsights.net/digital/etsy-business-model"],
+    ["Depop news: Depop to join the Etsy family", "https://news.depop.com/company-news/depop-to-join-the-etsy-family/"]
+  ],
+  "merge": []
+}

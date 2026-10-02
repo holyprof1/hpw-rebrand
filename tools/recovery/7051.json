@@ -1,0 +1,53 @@
+{
+ "id": 7051,
+ "slug": "temu-explained",
+ "section": "apps-websites",
+ "cluster": "marketplaces",
+ "title": "Temu: Who Owns It, How Orders Ship From China and Why Prices Are So Low",
+ "seo_title": "Temu Explained: Owner, Shipping and How the Low Prices Work",
+ "meta_description": "Temu is a shopping marketplace launched in September 2022 by PDD Holdings. Who owns it, how orders ship from China and why its prices are low.",
+ "dek": "Temu is a shopping marketplace launched in September 2022 by PDD Holdings. This explains who owns it, how orders ship from China, and the economics behind its low prices.",
+ "primary_query": "what is temu and who owns it",
+ "facts": {
+  "type": "website",
+  "name": "Temu",
+  "operator": "PDD Holdings (parent of Pinduoduo)",
+  "launched": "September 2022, United States first",
+  "availability": "Many countries",
+  "pricing": "Free to use; sellers supply goods at low prices",
+  "url": "https://www.temu.com/",
+  "limits": "Delivery times and tax rules vary by country and have changed"
+ },
+ "sources": [
+  [
+   "Umbrex: PDD Holdings strategy and business model",
+   "https://umbrex.com/resources/company-profiles/pdd-holdings-ads-inc/"
+  ],
+  [
+   "Revenue Memo: Who owns Temu?",
+   "https://www.revenuememo.com/p/who-owns-temu"
+  ],
+  [
+   "Revenue Memo: How Temu makes money",
+   "https://www.revenuememo.com/p/how-does-temu-make-money"
+  ],
+  [
+   "Business Case Weekly: PDD Holdings (Pinduoduo and Temu)",
+   "https://businesscaseweekly.substack.com/p/bcd-12-pdd-holdings-pinduoduo-and"
+  ]
+ ],
+ "merge": [
+  7098,
+  1035,
+  4240
+ ],
+ "post_id": 7051,
+ "content_html": "<p>Temu is an online shopping marketplace launched in September 2022 by PDD Holdings, the company behind China's Pinduoduo. The United States was its first market. Business profiles say the name is short for \"Team Up, Price Down\", a nod to Pinduoduo's group-buying roots, although Temu mainly works as a marketplace of low-priced goods from Chinese manufacturers.</p>\n<h2>Who owns Temu</h2>\n<p>PDD Holdings owns Temu. The group is listed in the United States, and business-press profiles have described it as one of the most valuable US-listed Chinese companies after its growth in 2023.</p>\n<h2>How an order reaches you</h2>\n<p>Reporting on Temu's logistics says sellers ship goods to a designated warehouse in southern China's Guangdong province, and Temu then handles shipping abroad and after-sales service. In the United States, packages were described as arriving in roughly five to eight business days, flown in and handed to local parcel carriers. This model is why orders can arrive in several separate parcels rather than one.</p>\n<h2>Why prices are low</h2>\n<ul>\n<li>Goods are sourced directly from manufacturers and sold without traditional retail layers.</li>\n<li>Suppliers are pressured to accept low prices, according to analysts' write-ups of the business model.</li>\n<li>Small parcels shipped by air entered the United States duty-free under the de minimis rule for packages under US$800, a rule that has since been under policy change, so the cost picture can differ by date and country.</li>\n<li>Heavy advertising and big first-order discounts drive sales volume.</li>\n</ul>\n<h2>Before you buy</h2>\n<p>Check the delivery estimate and the return policy for your country at checkout, expect product photos to be styled and compare against any buyer photos, and note that customs duties and import taxes can apply depending on where you live.</p>\n<h2>What we could not verify</h2>\n<p>We did not place an order, test product quality or measure delivery times ourselves. The figures here come from published business analyses and may change as trade rules change.</p>\n<h2>Sources</h2>\n<ol>\n<li><a href=\"https://umbrex.com/resources/company-profiles/pdd-holdings-ads-inc/\" rel=\"noopener nofollow\">Umbrex: PDD Holdings strategy and business model</a></li>\n<li><a href=\"https://www.revenuememo.com/p/who-owns-temu\" rel=\"noopener nofollow\">Revenue Memo: Who owns Temu?</a></li>\n<li><a href=\"https://www.revenuememo.com/p/how-does-temu-make-money\" rel=\"noopener nofollow\">Revenue Memo: How Temu makes money</a></li>\n<li><a href=\"https://businesscaseweekly.substack.com/p/bcd-12-pdd-holdings-pinduoduo-and\" rel=\"noopener nofollow\">Business Case Weekly: PDD Holdings (Pinduoduo and Temu)</a></li>\n</ol>",
+ "related": [
+  "https://holyprofweb.com/stockx-explained/",
+  "https://holyprofweb.com/stubhub-and-viagogo-explained/",
+  "https://holyprofweb.com/etsy-explained/"
+ ],
+ "image_alt": "Holyprofweb editorial graphic for Temu",
+ "image_slug": "temu-explained"
+}

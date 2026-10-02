@@ -1,0 +1,52 @@
+{
+ "id": 7071,
+ "slug": "back-market-explained",
+ "section": "apps-websites",
+ "cluster": "marketplaces",
+ "title": "Back Market: How a Marketplace for Refurbished Phones and Laptops Works",
+ "seo_title": "Back Market Explained: Refurbished Tech, Warranty and Sellers",
+ "meta_description": "Back Market is a Paris-founded marketplace where vetted refurbishers sell used phones and laptops with a warranty. How it works and what to check.",
+ "dek": "Back Market is a Paris-founded marketplace where vetted refurbishers sell phones and laptops. This explains how it works, what the warranty covers and what to check before you buy.",
+ "primary_query": "how does back market work",
+ "facts": {
+  "type": "website",
+  "name": "Back Market",
+  "operator": "Back Market (founded in Paris)",
+  "launched": "2014",
+  "availability": "Operates in more than a dozen countries",
+  "pricing": "Free to browse; refurbishers pay to sell",
+  "url": "https://www.backmarket.com/",
+  "limits": "The seller, not Back Market, refurbishes each device"
+ },
+ "sources": [
+  [
+   "Back Market: Certified Renewed",
+   "https://www.backmarket.com/en-us/e/controlled-renewed"
+  ],
+  [
+   "EU-Startups: Back Market raises EUR 110 million",
+   "https://www.eu-startups.com/2020/05/back-market-a-refurbished-electronics-marketplace-snaps-up-e110-million/"
+  ],
+  [
+   "Tech Startups: Back Market raises $335 million at a $3.2 billion valuation",
+   "https://techstartups.com/2021/05/18/back-market-paris-based-online-marketplace-refurbished-electronics-tech-gadgets-raises-335-million-3-2-billion-valuation/"
+  ],
+  [
+   "SlashGear: Is Back Market a reputable website?",
+   "https://www.slashgear.com/1866992/back-market-legit-website-refurbished-tech/"
+  ]
+ ],
+ "merge": [
+  7263,
+  4215
+ ],
+ "post_id": 7071,
+ "content_html": "<p>Back Market is an online marketplace, founded in Paris in 2014, for refurbished electronics such as smartphones, laptops, tablets and consoles. It does not refurbish devices itself: independent professional refurbishers list items, Back Market vets them, and each device comes with a warranty and a return window set by the platform.</p>\n<h2>What \"refurbished\" means here</h2>\n<p>A refurbished device has been used, then tested, repaired where needed, cleaned and resold. Back Market describes its listings as inspected under its own standards, and it grades each by cosmetic condition, so a scratch-free item costs more than one with visible wear. Because grades are the seller's description inside a standard, compare photos as well as the grade.</p>\n<h2>Warranty and returns</h2>\n<p>Coverage published by Back Market and summarised in the press includes a minimum one-year limited warranty for defects such as network, button and camera faults, and a 30-day money-back window. Read the current terms for your country, as they are set locally and can change.</p>\n<h2>Who the sellers are</h2>\n<p>Reports on its seller selection say that only around a third of applicants are accepted. Funding announcements have described the company as having millions of customers, over a thousand sellers and a valuation of US$3.2 billion in 2021; these are company and press figures, not audited ones.</p>\n<h2>How to compare offers</h2>\n<ul>\n<li>Compare several sellers for the same model; the price, battery health statement and included charger can differ.</li>\n<li>Check the storage size and whether the device is network-unlocked.</li>\n<li>Compare against the manufacturer's own certified-refurbished programme, which may carry a different warranty.</li>\n</ul>\n<h2>What we could not verify</h2>\n<p>We did not buy a device or test claims handling. Statistics on sellers, customers and valuation come from the company and from funding announcements.</p>\n<h2>Sources</h2>\n<ol>\n<li><a href=\"https://www.backmarket.com/en-us/e/controlled-renewed\" rel=\"noopener nofollow\">Back Market: Certified Renewed</a></li>\n<li><a href=\"https://www.eu-startups.com/2020/05/back-market-a-refurbished-electronics-marketplace-snaps-up-e110-million/\" rel=\"noopener nofollow\">EU-Startups: Back Market raises EUR 110 million</a></li>\n<li><a href=\"https://techstartups.com/2021/05/18/back-market-paris-based-online-marketplace-refurbished-electronics-tech-gadgets-raises-335-million-3-2-billion-valuation/\" rel=\"noopener nofollow\">Tech Startups: Back Market raises $335 million at a $3.2 billion valuation</a></li>\n<li><a href=\"https://www.slashgear.com/1866992/back-market-legit-website-refurbished-tech/\" rel=\"noopener nofollow\">SlashGear: Is Back Market a reputable website?</a></li>\n</ol>",
+ "related": [
+  "https://holyprofweb.com/stockx-explained/",
+  "https://holyprofweb.com/temu-explained/",
+  "https://holyprofweb.com/stubhub-and-viagogo-explained/"
+ ],
+ "image_alt": "Holyprofweb editorial graphic for Back Market",
+ "image_slug": "back-market-explained"
+}
