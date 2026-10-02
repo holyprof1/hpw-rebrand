@@ -92,7 +92,7 @@ add_filter( 'wp_sitemaps_posts_query_args', function ( $args, $post_type ) {
     }
     if ( 'page' === $post_type ) {
         $skip = get_posts( array(
-            'post_type' => 'page', 'name__in' => array( 'submit' ), 'fields' => 'ids', 'posts_per_page' => 5,
+            'post_type' => 'page', 'post_name__in' => array( 'submit' ), 'fields' => 'ids', 'posts_per_page' => 5, 'post_status' => 'publish',
         ) );
         $args['post__not_in'] = array_merge( (array) ( $args['post__not_in'] ?? array() ), $skip );
     }
