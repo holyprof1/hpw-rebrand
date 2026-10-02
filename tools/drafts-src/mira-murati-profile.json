@@ -1,0 +1,37 @@
+{
+  "section": "people",
+  "schema": "ProfilePage with Person (only verified facts)",
+  "title": "Mira Murati: From OpenAI's Chief Technology Officer to Founding Thinking Machines Lab",
+  "seo_title": "Mira Murati: Career at OpenAI and Thinking Machines Lab",
+  "meta": "Mira Murati is the former OpenAI chief technology officer who co-founded Thinking Machines Lab. A sourced profile of her role, the company and its funding.",
+  "dek": "Mira Murati is the former OpenAI chief technology officer who co-founded Thinking Machines Lab. This is a sourced profile of her role, the company and its funding.",
+  "intent": "Biographical: who is Mira Murati, what is Thinking Machines Lab.",
+  "topic": "Mira Murati",
+  "questions": [
+    "Who is Mira Murati?",
+    "What is Thinking Machines Lab?",
+    "What did she do at OpenAI?"
+  ],
+  "links": [
+    "/thinking-machines-lab-explained/"
+  ],
+  "image": "Branded editorial graphic with name.",
+  "shots": "None.",
+  "needs": "RESEARCH GAP: early-career and education details and the OpenAI start date are not in the sources collected so far; add from primary sources before publishing, or publish a shorter profile. No age, family or wealth.",
+  "body": "<p>Mira Murati is a technology executive who served as chief technology officer of OpenAI and then co-founded the AI company Thinking Machines Lab with other OpenAI alumni. The company raised a US$2 billion seed round at a US$12 billion valuation within its first five months.</p>\n<h2>Why she is in the news</h2>\n<p>Thinking Machines Lab has been the subject of continuing funding reports, including talks of a much larger valuation that reportedly did not close in January 2026 and September 2026 reports of a US$1 billion round at a US$40 billion valuation.</p>\n<h2>What she leads</h2>\n<p>Thinking Machines released its first product, Tinker, a service that helps developers fine-tune AI models. See our explainer on <a href=\"/thinking-machines-lab-explained/\">Thinking Machines Lab</a> for the funding timeline.</p>\n<h2>What is not covered yet</h2>\n<p>This draft deliberately omits her early life, education and the dates of her OpenAI career until they are checked against primary sources, and it leaves out age, family and wealth estimates.</p>",
+  "sources": [
+    [
+      "Built In: Inside Thinking Machines Lab, Mira Murati's new AI startup",
+      "https://builtin.com/articles/what-is-thinking-machines-lab"
+    ],
+    [
+      "TechCrunch: Accel in talks to lead $1B round for Thinking Machines",
+      "https://techcrunch.com/2026/09/03/accel-reportedly-in-talks-to-lead-1b-round-for-thinking-machines-at-40b-valuation/"
+    ],
+    [
+      "Wikipedia: Thinking Machines Lab",
+      "https://en.wikipedia.org/wiki/Thinking_Machines_Lab"
+    ]
+  ],
+  "slug": "mira-murati-profile"
+}

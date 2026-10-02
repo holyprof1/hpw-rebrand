@@ -1,0 +1,43 @@
+{
+  "section": "products-tech",
+  "schema": "BlogPosting with about: Product",
+  "title": "Samsung Galaxy S26 FE: Price, Exynos 2500, Battery and Where It Fits",
+  "seo_title": "Galaxy S26 FE: Price, Specs and Release Date",
+  "meta": "The Galaxy S26 FE starts at $699.99 in the US with an Exynos 2500, a 6.7-inch display and a 4,900 mAh battery. Specs, release date and who it suits.",
+  "dek": "The Galaxy S26 FE starts at US$699.99 with an Exynos 2500 chip, a 6.7-inch display and a 4,900 mAh battery. This covers specs, availability and where it sits in the range.",
+  "intent": "Product launch: price, specs and release date of the Galaxy S26 FE.",
+  "topic": "Samsung Galaxy S26 FE",
+  "questions": [
+    "How much is the Galaxy S26 FE?",
+    "When is the release date?",
+    "What chip does it use?",
+    "How is it different from the S26?"
+  ],
+  "links": [
+    "/iphone-18-pro-price-chip-camera/",
+    "/fairphone-6-repairable-phone-explained/"
+  ],
+  "image": "Samsung press images only if licensed; otherwise branded graphic.",
+  "shots": "Samsung US product page.",
+  "needs": "Confirm chip by region (Exynos or Snapdragon), storage tiers and carrier terms on Samsung's page; resolve 256 GB vs 512 GB listings.",
+  "body": "<p>The Samsung Galaxy S26 FE starts at US$699.99 in the United States, with a 256 GB variant at US$799.99. It went on sale through select carriers on 3 September 2026 and nationwide from Samsung.com, carriers and retailers on 4 September.</p>\n<h2>Specifications</h2>\n<ul>\n<li><strong>Chip:</strong> Exynos 2500 on a 3 nanometre process, in the US model per Samsung's listing.</li>\n<li><strong>Display:</strong> 6.7 inches with Gorilla Glass Victus+.</li>\n<li><strong>Battery:</strong> 4,900 mAh, up to 29 hours of video playback, with 45 W wired charging that Samsung says reaches a substantial charge in about 30 minutes.</li>\n<li><strong>Camera:</strong> a 50 megapixel main sensor.</li>\n<li><strong>Memory:</strong> 8 GB of RAM, with storage options listed up to 512 GB.</li>\n</ul>\n<h2>Where it fits</h2>\n<p>FE stands for Fan Edition: a flagship-style phone with trimmed specs at a lower price. In Europe the base model was listed at EUR 800, so prices differ by market.</p>\n<h2>Buying notes</h2>\n<p>Compare with the previous generation, which retailers discount heavily after a successor launches, as TechRadar points out for the S25 FE.</p>",
+  "sources": [
+    [
+      "Samsung US: Galaxy S26 FE",
+      "https://www.samsung.com/us/smartphones/galaxy-s26-fe/"
+    ],
+    [
+      "GSMArena: Samsung Galaxy S26 FE specifications",
+      "https://www.gsmarena.com/samsung_galaxy_s26_fe_5g-14870.php"
+    ],
+    [
+      "TechRadar: S25 FE as a discounted alternative",
+      "https://www.techradar.com/phones/samsung-galaxy-phones/dont-want-to-pay-a-premium-for-the-galaxy-s26-id-consider-this-discounted-samsung-galaxy-s25-fe-instead"
+    ],
+    [
+      "Sunday Guardian: Smartphones launching in September 2026",
+      "https://sundayguardianlive.com/tech-news/smartphones-launching-in-september-2026-iphone-18-pro-apple-iphone-ultra-samsung-galaxy-s26-fe-poco-f9-xiaomi-18-pro-vivo-x500-more-274255/"
+    ]
+  ],
+  "slug": "galaxy-s26-fe-price-specs"
+}

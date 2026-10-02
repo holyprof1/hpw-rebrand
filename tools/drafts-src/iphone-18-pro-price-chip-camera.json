@@ -1,0 +1,44 @@
+{
+  "section": "products-tech",
+  "schema": "BlogPosting with about: Product",
+  "title": "iPhone 18 Pro and 18 Pro Max: Price, A20 Pro Chip, Camera and What Changed",
+  "seo_title": "iPhone 18 Pro and Pro Max: Price, Specs and What Is New",
+  "meta": "Apple announced the iPhone 18 Pro at $1,199 and the Pro Max at $1,299 on 9 September 2026. The A20 Pro chip, variable aperture camera, battery and ship date.",
+  "dek": "Apple announced the iPhone 18 Pro at US$1,199 and the 18 Pro Max at US$1,299 on 9 September 2026. Here are the chip, camera, battery and shipping details.",
+  "intent": "Product launch: price, specs, release date, what is different from the iPhone 17 Pro.",
+  "topic": "iPhone 18 Pro and iPhone 18 Pro Max",
+  "questions": [
+    "How much is the iPhone 18 Pro?",
+    "When does it ship?",
+    "What chip does it use?",
+    "Is the battery better?",
+    "What is the iPhone Duo?"
+  ],
+  "links": [
+    "/galaxy-s26-fe-price-specs/",
+    "/fairphone-6-repairable-phone-explained/"
+  ],
+  "image": "Official Apple press images only if licensed; otherwise branded graphic.",
+  "shots": "Apple newsroom comparison table (check terms before use).",
+  "needs": "Verify every spec on Apple's own press release; do not repeat rumours. Add storage tiers and country pricing from apple.com.",
+  "body": "<p>Apple announced the iPhone 18 Pro and iPhone 18 Pro Max on 9 September 2026 at US$1,199 and US$1,299, each US$100 above the iPhone 17 Pro and Pro Max. Pre-orders opened on the Saturday after the event and the phones began shipping on 18 September.</p>\n<h2>What is new</h2>\n<ul>\n<li><strong>Chip:</strong> the A20 Pro, built on a 2 nanometre process, with a 6-core CPU (two high-performance cores and four efficiency cores), a 7-core GPU Apple says is 40% faster on graphics, and a 32-core Neural Engine.</li>\n<li><strong>Camera:</strong> a 48-megapixel Fusion main camera with variable aperture.</li>\n<li><strong>Display:</strong> a smaller Dynamic Island that can show three Live Activities at once.</li>\n<li><strong>Battery:</strong> the Pro matches the iPhone 17 Pro Max for battery life, and the Pro Max is rated up to 30 hours of video.</li>\n<li><strong>Colours:</strong> black, glacier blue, silver and burgundy.</li>\n</ul>\n<h2>The keynote itself</h2>\n<p>It was John Ternus's first keynote as Apple's chief executive, eight days after he succeeded Tim Cook. Apple also showed a folding model called the iPhone Duo.</p>\n<h2>How to read the price</h2>\n<p>The US$100 rise applies to the US launch prices. Prices elsewhere vary with taxes and exchange rates, so check Apple's local store.</p>\n<h2>Should you upgrade</h2>\n<p>If you own an iPhone 16 Pro or older, the chip and battery changes may matter. If you have a 17 Pro, the headline difference is the camera aperture and the chip.</p>",
+  "sources": [
+    [
+      "9to5Mac: Apple announces iPhone 18 Pro",
+      "https://9to5mac.com/2026/09/09/iphone-18-pro-officially-announced-heres-whats-new/"
+    ],
+    [
+      "CNBC: Apple event 2026 live updates",
+      "https://www.cnbc.com/2026/09/09/apple-event-today-live-updates.html"
+    ],
+    [
+      "MacRumors: Apple event cheat sheet",
+      "https://www.macrumors.com/2026/09/08/apple-event-week-iphone-18-pro-cheat-sheet/"
+    ],
+    [
+      "MacObserver: iPhone 18 Pro is official",
+      "https://www.macobserver.com/tips/round-ups/iphone-18-pro-official-price-release-date-specs-new-features/"
+    ]
+  ],
+  "slug": "iphone-18-pro-price-chip-camera"
+}

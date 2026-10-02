@@ -1,0 +1,44 @@
+{
+  "section": "apps-websites",
+  "schema": "BlogPosting with about: Organization",
+  "title": "Ramp: How a Corporate Card Company Reached a $44 Billion Valuation",
+  "seo_title": "Ramp Explained: Corporate Cards, Spend Software and the $44B Round",
+  "meta": "Ramp sells corporate cards and spend-management software. Who founded it, how it makes money, and what its June 2026 funding round at a $44 billion valuation means.",
+  "dek": "Ramp sells corporate cards and finance software to businesses. This covers who founded it, how it makes money and what the June 2026 funding round reported.",
+  "intent": "Informational and news: what is Ramp, how does it make money, why is it worth $44B.",
+  "topic": "Ramp (corporate card and spend management)",
+  "questions": [
+    "What does Ramp do?",
+    "How does Ramp make money?",
+    "Who founded Ramp?",
+    "What is Ramp AI spend management?",
+    "How is Ramp different from a bank card?"
+  ],
+  "links": [
+    "/chime-explained/",
+    "/paystack-explained/"
+  ],
+  "image": "Branded editorial graphic: Ramp, Apps & Websites. Optional: official product screenshot from ramp.com if clean.",
+  "shots": "Ramp product page (dashboard preview), pricing page.",
+  "needs": "Check current customer and volume figures on Ramp's own site; confirm round details in the company announcement.",
+  "body": "<p>Ramp is an American financial technology company that offers corporate charge cards, expense management and bill-payment software. Eric Glyman, Karim Atiyeh and Gene Lee founded it in March 2019, and in June 2026 it raised US$750 million at a US$44 billion valuation in a round led by ICONIQ Growth, with GIC and the Ontario Teachers' Pension Plan taking part.</p>\n<h2>What a customer buys</h2>\n<p>A business issues cards to employees, sets spending rules, and Ramp's software collects receipts, codes transactions and pushes the result into accounting systems. The pitch is that finance teams see spending as it happens instead of at month end.</p>\n<h2>How it earns money</h2>\n<p>One third-party analysis estimates that about 70% of revenue comes from card interchange, the fee a merchant's bank pays when a card is used, with the rest from software subscriptions and treasury yield. Ramp does not publish that split, so treat it as an estimate.</p>\n<h2>Scale reported in 2026</h2>\n<ul>\n<li>Annualised revenue reported above US$1 billion in mid-2026, with later figures near US$1.5 billion.</li>\n<li>More than 70,000 customers and about US$200 billion of yearly purchase volume, per press and analyst summaries.</li>\n</ul>\n<h2>The AI angle</h2>\n<p>Ramp has added tools for tracking what companies spend on AI services and model usage, which is a large reason investors were interested in this round according to TechCrunch and CNBC.</p>\n<h2>What we have not verified</h2>\n<p>Revenue and customer counts differ between reports. Use Ramp's own announcements for current numbers.</p>",
+  "sources": [
+    [
+      "Wikipedia: Ramp (company)",
+      "https://en.wikipedia.org/wiki/Ramp_(company)"
+    ],
+    [
+      "CNBC: Ramp hits $44 billion valuation",
+      "https://www.cnbc.com/2026/06/04/ramp-valuation-funding-ai-spend.html"
+    ],
+    [
+      "TechCrunch: Ramp raises $750M at $44B valuation",
+      "https://techcrunch.com/2026/06/04/ramp-raises-750m-at-44b-valuation-as-investors-hunger-for-fintechs-with-an-ai-story/"
+    ],
+    [
+      "Finovate: Ramp raises $750 million at a $44 billion valuation",
+      "https://finovate.com/ramp-raises-750-million-at-a-44-billion-valuation/"
+    ]
+  ],
+  "slug": "ramp-corporate-card-explained"
+}

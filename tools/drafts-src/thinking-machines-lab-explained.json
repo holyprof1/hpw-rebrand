@@ -1,0 +1,43 @@
+{
+  "section": "apps-websites",
+  "schema": "BlogPosting with about: Organization",
+  "title": "Thinking Machines Lab: The $12 Billion Seed Round, the Tinker Product and the Valuation Talks",
+  "seo_title": "Thinking Machines Lab Explained: Funding, Tinker and Valuation",
+  "meta": "Thinking Machines Lab is Mira Murati's AI company. Its $2 billion seed round, first product Tinker and the 2026 valuation talks, explained from the reporting.",
+  "dek": "Thinking Machines Lab is the AI company co-founded by former OpenAI CTO Mira Murati. This covers its $2 billion seed round, its first product Tinker and the on-off valuation talks.",
+  "intent": "Informational and news: what is Thinking Machines Lab, what has it released, what is its valuation.",
+  "topic": "Thinking Machines Lab",
+  "questions": [
+    "What is Thinking Machines Lab?",
+    "What is Tinker?",
+    "How much funding has it raised?",
+    "Why did the $50B round reportedly not close?"
+  ],
+  "links": [
+    "/mira-murati-profile/",
+    "/ramp-corporate-card-explained/"
+  ],
+  "image": "Branded editorial graphic.",
+  "shots": "Company site and the Tinker product page, if they load cleanly.",
+  "needs": "Check the latest round (reported Sept 2026 talks of US$1B at US$40B led by Accel) before publishing; mark anything unconfirmed as reported.",
+  "body": "<p>Thinking Machines Lab is an artificial intelligence company co-founded by Mira Murati, formerly chief technology officer at OpenAI, together with other OpenAI alumni. It raised a US$2 billion seed round at a US$12 billion valuation within five months of starting, and its first product is Tinker, a tool for fine-tuning AI models.</p>\n<h2>The seed round</h2>\n<p>The round was led by Andreessen Horowitz, with investors including NVIDIA, Accel, ServiceNow, Cisco, AMD and Jane Street. It was among the largest seed rounds in Silicon Valley's history.</p>\n<h2>What Tinker is</h2>\n<p>Tinker is aimed at developers who want to fine-tune existing models without handling the cost and complexity of distributed computing. Reports put the company's annual revenue run rate at over US$100 million.</p>\n<h2>The valuation story</h2>\n<ul>\n<li>November 2025: Bloomberg reported talks at a valuation as high as US$55 billion to US$60 billion.</li>\n<li>January 2026: reports said that round had not closed because backers wanted a stronger product record.</li>\n<li>September 2026: TechCrunch reported that Accel was in talks to lead a US$1 billion round at a US$40 billion valuation.</li>\n</ul>\n<p>Valuation talks are not completed rounds. Unless the company announces a close, treat those figures as reported negotiation.</p>\n<h2>Why it matters</h2>\n<p>The company is a test of whether a lab with a small product line can justify very large valuations, which is the question hanging over much of the AI funding market.</p>",
+  "sources": [
+    [
+      "Built In: Inside Thinking Machines Lab",
+      "https://builtin.com/articles/what-is-thinking-machines-lab"
+    ],
+    [
+      "TechCrunch: Accel in talks to lead $1B round at $40B valuation",
+      "https://techcrunch.com/2026/09/03/accel-reportedly-in-talks-to-lead-1b-round-for-thinking-machines-at-40b-valuation/"
+    ],
+    [
+      "AIwire: The Thinking Machines Lab saga",
+      "https://www.hpcwire.com/aiwire/2026/01/27/the-thinking-machines-lab-saga-and-a-changing-ai-market/"
+    ],
+    [
+      "Wikipedia: Thinking Machines Lab",
+      "https://en.wikipedia.org/wiki/Thinking_Machines_Lab"
+    ]
+  ],
+  "slug": "thinking-machines-lab-explained"
+}

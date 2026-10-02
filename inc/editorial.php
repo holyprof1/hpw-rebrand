@@ -41,6 +41,19 @@ function holyprofweb_entity_types() {
 
 add_action( 'add_meta_boxes', function () {
     add_meta_box( 'hpw_workflow', __( 'Editorial workflow', 'holyprofweb' ), 'holyprofweb_workflow_box', 'post', 'side', 'high' );
+    if ( get_post_meta( get_the_ID(), '_hpw_draft_brief', true ) ) {
+        add_meta_box( 'hpw_draft_brief', __( 'Draft brief (not published)', 'holyprofweb' ), function ( $post ) {
+            $b = json_decode( (string) get_post_meta( $post->ID, '_hpw_draft_brief', true ), true );
+            if ( ! is_array( $b ) ) { return; }
+            $labels = array( 'intent' => 'Search intent', 'topic' => 'Primary topic', 'questions' => 'Related questions', 'links' => 'Recommended internal links', 'image' => 'Suggested featured image', 'shots' => 'Suggested screenshots', 'schema' => 'Suggested schema type', 'needs' => 'Check before publishing' );
+            echo '<table class="widefat striped"><tbody>';
+            foreach ( $labels as $k => $label ) {
+                if ( empty( $b[ $k ] ) ) { continue; }
+                echo '<tr><th style="width:190px">' . esc_html( $label ) . '</th><td>' . esc_html( is_array( $b[ $k ] ) ? implode( ' | ', $b[ $k ] ) : $b[ $k ] ) . '</td></tr>';
+            }
+            echo '</tbody></table>';
+        }, 'post', 'normal', 'high' );
+    }
     add_meta_box( 'hpw_facts', __( 'At a glance: facts and related stories', 'holyprofweb' ), 'holyprofweb_facts_box', 'post', 'normal', 'default' );
 } );
 

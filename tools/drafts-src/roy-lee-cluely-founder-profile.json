@@ -1,0 +1,42 @@
+{
+  "section": "people",
+  "schema": "ProfilePage with Person (only verified facts)",
+  "title": "Roy Lee: From Interview Coder to Cluely, a Founder's Timeline",
+  "seo_title": "Roy Lee (Cluely): Career Timeline and What He Has Built",
+  "meta": "Roy Lee, also known as Chungin Lee, is the co-founder and CEO of Cluely. A verified timeline from Interview Coder at Columbia to Cluely's funding rounds.",
+  "dek": "Roy Lee, also known as Chungin Lee, is the co-founder and chief executive of Cluely. This is a timeline of what he built, verified against reporting.",
+  "intent": "Biographical: who is Roy Lee, what did he build, why is he in the news.",
+  "topic": "Roy Lee, Cluely founder",
+  "questions": [
+    "Who is Roy Lee?",
+    "Why was he suspended from Columbia?",
+    "What is Cluely?",
+    "Who is his co-founder?"
+  ],
+  "links": [
+    "/cluely-ai-assistant-explained/"
+  ],
+  "image": "Branded editorial graphic with name; use a photo only if licensed.",
+  "shots": "None.",
+  "needs": "Do NOT add age, birth date, family or net worth. Confirm education dates with a primary source before adding.",
+  "body": "<p>Roy Lee, whose full name is Chungin Lee, is the co-founder and chief executive of the AI assistant company Cluely. He began as a student at Columbia University, where he and co-founder Neel Shanmugam built a tool that coached software engineers through technical job interviews.</p>\n<h2>Why he is in the news</h2>\n<p>Cluely launched in April 2025 and raised money from Abstract Ventures, Susa Ventures and Andreessen Horowitz, while the argument over whether its product encourages cheating kept the founder in public view through interviews and podcasts.</p>\n<h2>Timeline</h2>\n<ul>\n<li><strong>Columbia University:</strong> builds Interview Coder, a Chrome extension that supplied AI solutions to coding interview problems.</li>\n<li><strong>Suspension:</strong> the university suspended him over the tool, and he later left.</li>\n<li><strong>20 April 2025:</strong> Cluely launches, reported at 70,000 sign-ups in its first week.</li>\n<li><strong>2025:</strong> a US$5.3 million seed round, then US$15 million from Andreessen Horowitz.</li>\n</ul>\n<h2>What the company does</h2>\n<p>See our explainer on <a href=\"/cluely-ai-assistant-explained/\">Cluely</a> for what the product does and why the debate exists.</p>\n<h2>What this profile leaves out</h2>\n<p>We have not included age, family details or wealth estimates, because published figures vary and none is confirmed by a primary source.</p>",
+  "sources": [
+    [
+      "Wikipedia: Roy Lee (entrepreneur)",
+      "https://en.wikipedia.org/wiki/Roy_Lee_(entrepreneur)"
+    ],
+    [
+      "Wikipedia: Cluely",
+      "https://en.wikipedia.org/wiki/Cluely"
+    ],
+    [
+      "The Business Standard: Expelled from Columbia for cheating",
+      "https://www.tbsnews.net/tech/expelled-columbia-cheating-funded-millions-scaling-it-1125671"
+    ],
+    [
+      "Hoodline: Former Columbia student suspended for AI tool",
+      "https://hoodline.com/2025/05/former-columbia-student-suspended-for-ai-tool-sparks-debate-and-success-with-5-3m-startup/"
+    ]
+  ],
+  "slug": "roy-lee-cluely-founder-profile"
+}

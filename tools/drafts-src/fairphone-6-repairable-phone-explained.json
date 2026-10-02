@@ -1,0 +1,44 @@
+{
+  "section": "products-tech",
+  "schema": "BlogPosting with about: Product",
+  "title": "Fairphone 6: The Repairable Phone With a Removable Battery, in Detail",
+  "seo_title": "Fairphone 6 Explained: Price, Repairability and Software Support",
+  "meta": "The Fairphone 6 is a modular phone with a removable 4,415 mAh battery, a 6.31-inch LTPO OLED display and a 10/10 iFixit score. Price, specs and software support.",
+  "dek": "The Fairphone 6 is a modular phone with a removable battery and a top repairability score. This covers the price, the specifications and how long it is supported.",
+  "intent": "Product explainer: is the Fairphone 6 worth it, how repairable is it, what is the price and support period.",
+  "topic": "Fairphone 6",
+  "questions": [
+    "How much is the Fairphone 6?",
+    "How repairable is it?",
+    "How long will it get updates?",
+    "What is the Fairphone 6+?",
+    "Is it sold in the US?"
+  ],
+  "links": [
+    "/iphone-18-pro-price-chip-camera/",
+    "/galaxy-s26-fe-price-specs/"
+  ],
+  "image": "Fairphone press images only with permission; otherwise branded graphic.",
+  "shots": "Fairphone shop page.",
+  "needs": "Resolve conflicting support dates (2032 vs 2033) and US pricing against Fairphone's own pages before publishing.",
+  "body": "<p>The Fairphone 6 is a modular smartphone launched on 25 June 2025 from EUR 549, designed so that owners can replace parts themselves. It has a 6.31-inch LTPO OLED display, a removable 4,415 mAh battery and an IP55 rating, and iFixit gave it a 10 out of 10 repairability score.</p>\n<h2>Repair in practice</h2>\n<p>Twelve components come apart with a single Torx screwdriver. The battery, display, USB-C port and back cover can each be swapped in about five minutes, and official spare parts are listed from roughly US$8 to US$90.</p>\n<h2>Specifications</h2>\n<ul>\n<li>Display: 6.31-inch LTPO OLED, 10 to 120 Hz.</li>\n<li>Processor: Qualcomm Snapdragon 7s Gen 3, with 8 GB of RAM and 256 GB of storage plus microSD up to 2 TB.</li>\n<li>Cameras: 50 MP main with optical stabilisation, 13 MP ultrawide and a 32 MP selfie camera.</li>\n<li>Battery: removable 4,415 mAh with 30 W charging.</li>\n</ul>\n<h2>Support and sustainability</h2>\n<p>Fairphone offers a five-year warranty and guaranteed spare parts. Reviews quote software support to 2032 or 2033, so confirm the exact date with the company. Fairphone says each phone has a carbon footprint of about 30 kg CO2 and uses Fairtrade materials.</p>\n<h2>The 6+ and the US</h2>\n<p>A Fairphone 6+ variant has been launched in the United States at US$649.99, according to press coverage, so US availability and pricing differ from the EU model.</p>\n<h2>Who it suits</h2>\n<p>Buyers who keep phones for many years and would rather replace a battery than a handset. It is not a performance leader against flagships.</p>",
+  "sources": [
+    [
+      "TechEBlog: Fairphone 6 teardown and repairability",
+      "https://www.techeblog.com/fairphone-6-teardown-specs-price-review/"
+    ],
+    [
+      "New Atlas: Modular, repairable Fairphone makes big US launch",
+      "https://newatlas.com/mobile-technology/fairphone-6-plus-usa-launch/"
+    ],
+    [
+      "Tom's Guide: The modular Fairphone 6",
+      "https://www.tomsguide.com/phones/android-phones/the-modular-fairphone-6-could-be-a-game-changer-for-upgradability-and-repairability-and-it-needs-to-come-to-the-us"
+    ],
+    [
+      "Wikipedia: Fairphone 6",
+      "https://en.wikipedia.org/wiki/Fairphone_6"
+    ]
+  ],
+  "slug": "fairphone-6-repairable-phone-explained"
+}

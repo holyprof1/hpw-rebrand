@@ -1,0 +1,43 @@
+{
+  "section": "apps-websites",
+  "schema": "BlogPosting with about: Organization",
+  "title": "Corgi: The AI-Native Insurer for Startups That Doubled Its Valuation in Weeks",
+  "seo_title": "Corgi Explained: Startup Insurance, Funding and Valuation",
+  "meta": "Corgi is an AI-native insurance platform for startups that raised a $160M Series B and then a $106M B1 in 2026. What it sells, who founded it and the valuations.",
+  "dek": "Corgi is an AI-native insurance platform for startups founded by Emily Yuan and Nico Laqua. This covers what it sells, how it raised money in 2026 and how the valuations line up.",
+  "intent": "Informational and news: what is Corgi insurance, who runs it, how much is it worth.",
+  "topic": "Corgi (startup insurance platform)",
+  "questions": [
+    "What insurance does Corgi sell?",
+    "Who founded Corgi?",
+    "How much has Corgi raised?",
+    "Why do two valuations appear in the news?"
+  ],
+  "links": [
+    "/ramp-corporate-card-explained/",
+    "/insurify-explained/"
+  ],
+  "image": "Branded editorial graphic: Corgi, Apps & Websites.",
+  "shots": "corgi.insure home page if clean.",
+  "needs": "Confirm which valuation applies to which round (reports differ: US$1.3B at Series B, US$2.6B at B1).",
+  "body": "<p>Corgi is an insurance company built for startups, founded by Emily Yuan and Nico Laqua, which emerged from stealth in January 2026 and raised a US$160 million Series B in May 2026 at a reported US$1.3 billion valuation, led by TCV. A further US$106 million B1 round in June was reported at US$2.6 billion.</p>\n<h2>What it sells</h2>\n<p>Corgi offers general liability, cyber liability and technology and AI liability cover, with instant quotes and modular policies matched to a startup's stage. The company calls itself full-stack because it is building the insurance carrier and the software that prices policies rather than reselling other insurers' products.</p>\n<h2>How the funding adds up</h2>\n<ol>\n<li>January 2026: US$108 million of combined seed and Series A, co-led by Y Combinator and Kindred Ventures.</li>\n<li>May 2026: US$160 million Series B led by TCV, bringing total funding past US$268 million at a reported US$1.3 billion valuation.</li>\n<li>June 2026: US$106 million Series B1, also led by TCV, reported at a US$2.6 billion valuation.</li>\n</ol>\n<p>The two valuations are not a contradiction: they are different rounds three weeks apart.</p>\n<h2>Where it is going</h2>\n<p>Company announcements say it will expand beyond startup insurance into trucking, payroll and small business.</p>\n<h2>A note on caution</h2>\n<p>Insurance is regulated by state, and a young carrier has a short claims history. Anyone buying cover should check the carrier's licence and the policy's exclusions.</p>",
+  "sources": [
+    [
+      "TechCrunch: Corgi hits $1.3B valuation 4 months after its Series A",
+      "https://techcrunch.com/2026/05/06/insurance-startup-corgi-hits-1-3b-valuation-4-months-after-its-series-a/"
+    ],
+    [
+      "Corgi: Series B press release",
+      "https://www.corgi.insure/press-releases/series-b"
+    ],
+    [
+      "PR Newswire: Corgi raises $160 million Series B",
+      "https://www.prnewswire.com/news-releases/corgi-raises-160-million-series-b-to-continue-expanding-its-full-stack-insurance-platform-into-new-verticals-302764003.html"
+    ],
+    [
+      "MLQ: Corgi raises $106M Series B1 at $2.6B valuation",
+      "https://mlq.ai/news/corgi-raises-106m-series-b1-at-26b-valuation-doubling-worth-in-three-weeks/"
+    ]
+  ],
+  "slug": "corgi-startup-insurance-explained"
+}
