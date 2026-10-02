@@ -47,8 +47,7 @@ function holyprofweb_virtual_robots_txt( $output, $public ) {
         $out[] = 'User-agent: ' . $bot;
         $out   = array_merge( $out, $rules, array( '' ) );
     }
-    $out[] = 'Sitemap: ' . home_url( '/sitemap-index.xml' );
-    $out[] = 'Sitemap: ' . home_url( '/wp-sitemap.xml' );
+    $out[] = 'Sitemap: ' . home_url( '/sitemap_index.xml' );
 
     return implode( "\n", $out ) . "\n";
 }
@@ -56,7 +55,7 @@ add_filter( 'robots_txt', 'holyprofweb_virtual_robots_txt', 10, 2 );
 
 // ---- Sitemaps ----------------------------------------------------------------------------------
 // The core index at /wp-sitemap.xml returned 404 on production while its child sitemaps worked,
-// so a second index is served at /sitemap-index.xml, built from the same providers.
+// so the primary index is /sitemap_index.xml (inc/gone.php), built from the same providers; /sitemap-index.xml redirects to it.
 
 // Only authors who wrote a bio get a sitemap entry (matches the noindex rule in inc/authors.php).
 add_filter( 'wp_sitemaps_users_query_args', function ( $args ) {
@@ -110,25 +109,9 @@ add_filter( 'query_vars', function ( $v ) {
 } );
 
 add_action( 'template_redirect', function () {
+    // The primary sitemap is /sitemap_index.xml (served in inc/gone.php). The hyphenated path only redirects there.
     if ( get_query_var( 'hpw_sitemap_index' ) ) {
-        $server = function_exists( 'wp_sitemaps_get_server' ) ? wp_sitemaps_get_server() : null;
-        if ( ! $server || ! $server->sitemaps_enabled() ) {
-            status_header( 404 );
-            exit;
-        }
-        $entries = array();
-        foreach ( $server->index->get_sitemap_list() as $entry ) {
-            $entries[] = $entry['loc'];
-        }
-        status_header( 200 );
-        header( 'Content-Type: application/xml; charset=UTF-8' );
-        header( 'X-Robots-Tag: noindex' );
-        echo '<?xml version="1.0" encoding="UTF-8"?>' . "\n";
-        echo '<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' . "\n";
-        foreach ( $entries as $url ) {
-            echo '<sitemap><loc>' . esc_url( $url ) . '</loc></sitemap>' . "\n";
-        }
-        echo '</sitemapindex>';
+        wp_redirect( home_url( '/sitemap_index.xml' ), 301, 'Holyprofweb' );
         exit;
     }
 
@@ -214,7 +197,7 @@ function holyprofweb_llms_txt() {
             $out .= '- [' . wp_strip_all_tags( html_entity_decode( get_the_title( $pid ), ENT_QUOTES, 'UTF-8' ) ) . '](' . get_permalink( $pid ) . ')' . ( $dek ? ': ' . mb_substr( $dek, 0, 200 ) : '' ) . "\n";
         }
     }
-    $out .= "\n## Machine-readable\n\n- [Sitemap index](" . home_url( '/sitemap-index.xml' ) . ")\n- [RSS feed](" . home_url( '/feed/' ) . ")\n";
+    $out .= "\n## Machine-readable\n\n- [Sitemap index](" . home_url( '/sitemap_index.xml' ) . ")\n- [RSS feed](" . home_url( '/feed/' ) . ")\n";
     return $out;
 }
 

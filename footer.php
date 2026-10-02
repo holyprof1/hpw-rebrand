@@ -56,7 +56,7 @@
                     ?>
                     <li><a href="<?php echo esc_url( home_url( '/' . $slug . '/' ) ); ?>"><?php echo esc_html( $label ); ?></a></li>
                     <?php endforeach; ?>
-                    <li><a href="<?php echo esc_url( home_url( '/sitemap-index.xml' ) ); ?>"><?php esc_html_e( 'Sitemap', 'holyprofweb' ); ?></a></li>
+                    <li><a href="<?php echo esc_url( home_url( '/sitemap_index.xml' ) ); ?>"><?php esc_html_e( 'Sitemap', 'holyprofweb' ); ?></a></li>
                 </ul>
             </nav>
         </div>
