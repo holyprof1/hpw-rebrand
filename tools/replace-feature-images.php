@@ -11,7 +11,7 @@ require_once ABSPATH . 'wp-admin/includes/image.php';
 require_once ABSPATH . 'wp-admin/includes/file.php';
 require_once ABSPATH . 'wp-admin/includes/media.php';
 $only = isset( $opts['only'] ) ? array_map( 'intval', explode( ',', $opts['only'] ) ) : array();
-foreach ( glob( __DIR__ . '/recovery/*.json' ) as $f ) {
+foreach ( array_merge( glob( __DIR__ . '/recovery/*.json' ), glob( __DIR__ . '/graphics-only/*.json' ) ) as $f ) {
     $d  = json_decode( file_get_contents( $f ), true );
     $id = (int) $d['post_id'];
     if ( $only && ! in_array( $id, $only, true ) ) { continue; }

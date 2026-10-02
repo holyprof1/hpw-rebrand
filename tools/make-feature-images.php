@@ -47,7 +47,7 @@ function hpw_gfx_pattern( $n, $accent, $dark ) {
     }
 }
 
-foreach ( glob( $dir . '/*.json' ) as $file ) {
+foreach ( array_merge( glob( $dir . '/*.json' ), glob( __DIR__ . '/graphics-only/*.json' ) ) as $file ) {
     $d  = json_decode( file_get_contents( $file ), true );
     $id = (int) ( $d['post_id'] ?? 0 );
     if ( ! $id || ( $only && ! in_array( $id, $only, true ) ) ) { continue; }
