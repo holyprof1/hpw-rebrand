@@ -11464,4 +11464,5 @@ require_once get_template_directory() . '/inc/sections.php';
 require_once get_template_directory() . '/inc/crawl-seo.php';
 require_once get_template_directory() . '/inc/publication.php';
 require_once get_template_directory() . '/inc/authors.php';
+require_once get_template_directory() . '/inc/trust.php';
 require_once get_template_directory() . '/inc/seo-rankmath-compat.php';

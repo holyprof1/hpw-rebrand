@@ -1,31 +1,21 @@
 <?php
 /**
- * Generic Page Template — HolyprofWeb
+ * Generic page template.
  */
 
 get_header();
 ?>
-
-<div class="platform-wrap">
-
-    <?php holyprofweb_left_sidebar(); ?>
-
-    <main id="primary" class="site-main platform-main">
-
-        <?php while ( have_posts() ) : the_post(); ?>
-
-        <article id="page-<?php the_ID(); ?>" <?php post_class( 'page-content-wrap' ); ?>>
-            <?php holyprofweb_render_page_breadcrumbs( get_the_ID() ); ?>
-            <h1 class="page-title"><?php the_title(); ?></h1>
-            <div class="page-body">
-                <?php the_content(); ?>
-            </div>
-        </article>
-
-        <?php endwhile; ?>
-
-    </main>
-
-</div><!-- .platform-wrap -->
-
-<?php get_footer(); ?>
+<main id="primary" class="site-main pub-article">
+    <?php while ( have_posts() ) : the_post(); ?>
+    <article id="page-<?php the_ID(); ?>" <?php post_class( 'pub-article__inner' ); ?>>
+        <header class="pub-article__head">
+            <h1 class="pub-article__title"><?php the_title(); ?></h1>
+        </header>
+        <div class="pub-article__body entry-content">
+            <?php the_content(); ?>
+        </div>
+    </article>
+    <?php endwhile; ?>
+</main>
+<?php
+get_footer();
