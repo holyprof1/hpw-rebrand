@@ -6,10 +6,12 @@
  * create a chain. Removes the source from the 410 registry so the redirect (not a 410) answers.
  */
 if ( 'cli' !== php_sapi_name() ) { exit( 'CLI only' ); }
-$file  = $argv[1] ?? '';
-$apply = in_array( '--apply', $argv, true );
+// Read the CSV before WordPress loads: plugins reuse common global variable names such as $file.
+$hpw_csv  = $argv[1] ?? '';
+$hpw_rows = $hpw_csv && is_readable( $hpw_csv ) ? array_map( 'str_getcsv', file( $hpw_csv, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES ) ) : array();
+$apply    = in_array( '--apply', $argv, true );
 require dirname( __DIR__, 4 ) . '/wp-load.php';
-$rows  = array_map( 'str_getcsv', file( $file, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES ) );
+$rows = $hpw_rows;
 array_shift( $rows );
 $gone  = (array) get_option( 'hpw_gone_paths', array() );
 $raw   = (string) get_option( 'hpw_redirect_rules', '' );
