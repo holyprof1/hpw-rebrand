@@ -79,7 +79,7 @@ $updated = array_slice( $updated, 0, 6 );
             <p class="pub-intro__lede"><?php esc_html_e( 'Holyprofweb researches what is new online and explains it in plain language: what it is, who owns it, how it works, what it costs and what to check first. Every article names its sources and says what we could not verify.', 'holyprofweb' ); ?></p>
             <form role="search" method="get" class="search-form pub-intro__search" action="<?php echo esc_url( home_url( '/' ) ); ?>">
                 <label for="intro-search" class="screen-reader-text"><?php esc_html_e( 'Search Holyprofweb', 'holyprofweb' ); ?></label>
-                <input id="intro-search" class="search-field" type="search" name="s" placeholder="<?php esc_attr_e( 'Search an app, website, product or person, for example Booking.com or Chime', 'holyprofweb' ); ?>" autocomplete="off" />
+                <input id="intro-search" class="search-field" type="search" name="s" placeholder="<?php esc_attr_e( 'Search an app, website, product or person', 'holyprofweb' ); ?>" autocomplete="off" />
                 <button type="submit" class="search-submit"><?php esc_html_e( 'Search', 'holyprofweb' ); ?></button>
             </form>
             <ul class="pub-intro__tiles">
