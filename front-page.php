@@ -73,16 +73,33 @@ $updated = array_slice( $updated, 0, 6 );
 ?>
 <main id="primary" class="site-main pub-home">
 
-    <div class="pub-masthead">
+    <section class="pub-intro" aria-labelledby="hero-title">
         <div class="pub-wrap">
-            <p><?php esc_html_e( 'New apps, websites, products, people and internet trends, researched and explained clearly.', 'holyprofweb' ); ?></p>
-            <a href="<?php echo esc_url( home_url( '/about/' ) ); ?>"><?php esc_html_e( 'How we work', 'holyprofweb' ); ?> &rarr;</a>
+            <h1 id="hero-title" class="pub-intro__title"><?php esc_html_e( 'Look up any app, website, product or person before you use it, buy it or trust it.', 'holyprofweb' ); ?></h1>
+            <p class="pub-intro__lede"><?php esc_html_e( 'Holyprofweb researches what is new online and explains it in plain language: what it is, who owns it, how it works, what it costs and what to check first. Every article names its sources and says what we could not verify.', 'holyprofweb' ); ?></p>
+            <form role="search" method="get" class="search-form pub-intro__search" action="<?php echo esc_url( home_url( '/' ) ); ?>">
+                <label for="intro-search" class="screen-reader-text"><?php esc_html_e( 'Search Holyprofweb', 'holyprofweb' ); ?></label>
+                <input id="intro-search" class="search-field" type="search" name="s" placeholder="<?php esc_attr_e( 'Search an app, website, product or person, for example Booking.com or Chime', 'holyprofweb' ); ?>" autocomplete="off" />
+                <button type="submit" class="search-submit"><?php esc_html_e( 'Search', 'holyprofweb' ); ?></button>
+            </form>
+            <ul class="pub-intro__tiles">
+                <?php
+                $tile_text = array(
+                    'apps-websites'   => __( 'Who owns it, how it works, what it costs', 'holyprofweb' ),
+                    'products-tech'   => __( 'Price, specs and who it is for', 'holyprofweb' ),
+                    'people'          => __( 'Founders and creators, verified facts only', 'holyprofweb' ),
+                    'internet-trends' => __( 'What is trending and where it started', 'holyprofweb' ),
+                );
+                foreach ( $sections as $slug => $sec ) : ?>
+                <li><a href="<?php echo esc_url( holyprofweb_section_url( $slug ) ); ?>"><strong><?php echo esc_html( $sec['label'] ); ?></strong><span><?php echo esc_html( $tile_text[ $slug ] ?? '' ); ?></span></a></li>
+                <?php endforeach; ?>
+            </ul>
         </div>
-    </div>
+    </section>
 
-    <section class="pub-hero" aria-labelledby="hero-title">
+    <section class="pub-hero" aria-label="Top stories">
         <div class="pub-wrap">
-            <h1 id="hero-title" class="pub-hero__title"><?php esc_html_e( 'Discover what’s new online.', 'holyprofweb' ); ?></h1>
+            <h2 class="pub-hero__label"><?php esc_html_e( 'Top stories', 'holyprofweb' ); ?></h2>
             <?php if ( $lead_id ) : ?>
             <div class="pub-hero__grid">
                 <?php holyprofweb_pub_card( $lead_id, array( 'variant' => 'lead', 'excerpt' => true, 'eager' => true, 'tag' => 'h2' ) ); ?>

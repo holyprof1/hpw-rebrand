@@ -371,3 +371,19 @@ html[data-theme='dark'] .theme-toggle__moon { display: block; }
 .pub-hero__side .pub-card--compact { padding-bottom: 22px; }
 
 .pub-card__body .pub-kicker { align-self: flex-start; padding: 5px 0; min-height: 24px; }
+
+/* ---------- Homepage intro: says what the site does ---------- */
+.pub-intro { padding: clamp(28px, 5vw, 60px) 0 clamp(18px, 3vw, 32px); border-bottom: 1px solid var(--line); }
+.pub-intro__title { font-size: clamp(1.9rem, 4.6vw, 3.1rem); line-height: 1.07; letter-spacing: -0.04em; font-weight: 800; max-width: 22ch; margin: 0 0 14px; text-wrap: balance; }
+.pub-intro__lede { max-width: 62ch; margin: 0 0 22px; font-size: clamp(1.02rem, 1.8vw, 1.2rem); line-height: 1.55; color: var(--ink-2); }
+.pub-intro__search { max-width: 640px; margin: 0 0 24px; }
+.pub-intro__search .search-field { padding: 15px 18px; font-size: 1.02rem; }
+.pub-intro__search .search-submit { padding: 0 26px; }
+.pub-intro__tiles { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+.pub-intro__tiles a { display: flex; flex-direction: column; gap: 4px; height: 100%; padding: 14px 16px; border: 1px solid var(--line); border-radius: 12px; text-decoration: none; background: var(--paper); transition: border-color .15s, transform .15s; }
+.pub-intro__tiles a:hover { border-color: var(--ink); }
+.pub-intro__tiles strong { font-size: 1rem; letter-spacing: -0.01em; }
+.pub-intro__tiles span { font-size: .88rem; line-height: 1.4; color: var(--muted); }
+@media (max-width: 900px) { .pub-intro__tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 480px) { .pub-intro__tiles { grid-template-columns: 1fr; } .pub-intro__search { flex-direction: column; } .pub-intro__search .search-submit { padding: 13px 22px; } }
+.pub-hero__label { font-size: .78rem; font-weight: 750; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin: 0 0 14px; }
