@@ -147,6 +147,8 @@ add_action( 'parse_request', function () {
         return;
     }
     status_header( 200 );
+    // Crawlers re-fetch sitemaps constantly; let the web server cache the index for an hour.
+    header( 'X-LiteSpeed-Cache-Control: public,max-age=3600' );
     $server->renderer->render_index( $server->index->get_sitemap_list() );
     exit;
 }, 0 );

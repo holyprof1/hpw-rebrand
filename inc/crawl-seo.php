@@ -118,7 +118,14 @@ add_action( 'template_redirect', function () {
     if ( get_query_var( 'hpw_llms' ) ) {
         status_header( 200 );
         header( 'Content-Type: text/plain; charset=UTF-8' );
-        echo holyprofweb_llms_txt(); // phpcs:ignore WordPress.Security.EscapeOutput
+        // Built from 80 posts, so keep it for an hour (the web server may cache it too) instead of rebuilding for every crawler hit.
+        header( 'X-LiteSpeed-Cache-Control: public,max-age=3600' );
+        $body = get_transient( 'hpw_llms_txt' );
+        if ( false === $body ) {
+            $body = holyprofweb_llms_txt();
+            set_transient( 'hpw_llms_txt', $body, HOUR_IN_SECONDS );
+        }
+        echo $body; // phpcs:ignore WordPress.Security.EscapeOutput
         exit;
     }
 }, 1 );
@@ -225,3 +232,6 @@ add_action( 'template_redirect', function () {
     wp_safe_redirect( $parent ? $parent : wp_get_attachment_url( $att->ID ), 301 );
     exit;
 }, 5 );
+
+// Drop the cached llms.txt whenever a post is published, updated or removed.
+add_action( 'transition_post_status', function () { delete_transient( 'hpw_llms_txt' ); } );
