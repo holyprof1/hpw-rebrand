@@ -15,7 +15,8 @@ Inputs
   --logs         optional JSON from the server-log pass: {path: {hits, g_ref, ext_ref{host: n}, googlebot}}
 
 Output: one row per removed URL with the evidence and a proposed class:
-  RESTORE SAME URL | 301 TO EQUIVALENT LIVE PAGE | KEEP 410 | MANUAL REVIEW
+  RESTORE SAME URL | REVIEW EQUIVALENT REDIRECT | REVIEW RETIREMENT | MANUAL REVIEW
+Existing configured redirects are labelled ALREADY 301. Missing measurements stay unknown.
 The class is a proposal. A page is only restored after it is rewritten and sourced; redirects are applied with
 tools/apply-redirects.php; nothing here changes the site.
 """
@@ -34,7 +35,7 @@ LIVE_ENTITY = {  # old-slug token -> live page (same entity only)
     'incogni': 'incogni-explained', 'insurify': 'insurify-explained', 'surfshark': 'surfshark-vpn-explained', 'jaecoo': 'jaecoo-7-phev-specs-and-price',
     'elon-musk': 'elon-musk-companies-and-roles', 'mrbeast': 'mrbeast-jimmy-donaldson-profile', 'tosin-eniolorunda': 'tosin-eniolorunda-moniepoint-founder',
 }
-# Linking domains that are not real editorial links: ignored in the root-domain count and listed in the report.
+# Text-pattern flags for manual inspection only. A TLD or domain name cannot establish link quality.
 QUESTIONABLE = re.compile(r'(\.xyz|\.top|\.click|\.loan|\.casino|\.bet|\.porn|\.xxx|\.work|\.gq|\.tk|\.ml|\.cf|\.ga)$|casino|poker|porn|escort|viagra|payday|seo-?(links|service)|backlink|directory|bookmark|article-?submit|pbn|spam', re.I)
 
 
@@ -116,7 +117,9 @@ def main():
             p = norm_path(r[t]); L = links[p]
             if src is not None and len(r) > src and r[src].strip():
                 h = root_domain(host(r[src]))
-                (L['junk'] if QUESTIONABLE.search(h) else L['domains']).add(h)
+                L['domains'].add(h)
+                if QUESTIONABLE.search(h):
+                    L['junk'].add(h)
             if inc is not None and len(r) > inc: L['incoming'] = max(L['incoming'], num(r[inc]))
             if sit is not None and len(r) > sit: L['sites'] = max(L['sites'], num(r[sit]))
         print('links:', name, len(rows))
@@ -124,7 +127,7 @@ def main():
     out, summary = [], collections.Counter()
     for p, t in sorted(info.items()):
         L = links.get(p, {'incoming': 0, 'sites': 0, 'domains': set(), 'junk': set()})
-        domains = max(len(L['domains']), int(L['sites']) - len(L['junk']) if L['sites'] else 0)
+        domains = max(len(L['domains']), int(L['sites']))
         pf = perf.get(p, {'clicks': 0, 'impr': 0, 'pos': 0})
         lg = logs.get(p, {})
         ext = lg.get('ext_ref', {}) if isinstance(lg, dict) else {}
@@ -133,23 +136,31 @@ def main():
         value = domains * 10 + min(L['incoming'], 50) + pf['clicks'] * 0.5 + pf['impr'] * 0.01 + len(ext) * 2
         if p in redirected:
             cls, why = 'ALREADY 301', 'redirect rule exists'
-        elif live and (domains or pf['clicks'] or value >= 0):
-            cls, why = '301 TO EQUIVALENT LIVE PAGE', 'same entity as ' + live
+        elif live:
+            cls, why = 'REVIEW EQUIVALENT REDIRECT', 'same entity candidate ' + live + '; verify the replacement answers the old search intent'
         elif domains >= 3 or (domains >= 1 and (pf['clicks'] >= 5 or pf['impr'] >= 300)):
             cls, why = 'RESTORE SAME URL', 'external links plus search demand: rewrite and restore if the topic is still useful'
         elif domains >= 1 or pf['clicks'] >= 5 or pf['impr'] >= 300 or len(ext) >= 1:
             cls, why = 'MANUAL REVIEW', 'some signal but not enough to restore automatically'
+        elif p not in links or p not in perf:
+            cls, why = 'MANUAL REVIEW', 'backlink or search-performance coverage is unavailable; absence of evidence is not evidence of no demand'
         else:
-            cls, why = 'KEEP 410', 'no external links, no meaningful search demand'
+            cls, why = 'REVIEW RETIREMENT', 'no value observed in the supplied rows; confirm content quality and export coverage before retaining 410'
         summary[cls] += 1
-        out.append({'path': p, 'title': t.get('title', ''), 'class': cls, 'reason': why, 'equivalent_live_page': live, 'linking_domains': domains,
-                    'incoming_links': int(L['incoming']), 'ignored_questionable_domains': ';'.join(sorted(L['junk'])), 'clicks': pf['clicks'], 'impressions': pf['impr'],
-                    'avg_position': round(pf['pos'], 1), 'log_hits': lg.get('hits', 0), 'log_external_referrers': ';'.join(sorted(ext)), 'value_score': round(value, 1)})
+        out.append({'path': p, 'title': t.get('title', ''), 'class': cls, 'reason': why, 'equivalent_live_page': live, 'linking_domains': domains if p in links else '',
+                    'incoming_links': int(L['incoming']) if p in links else '', 'domains_flagged_for_review': ';'.join(sorted(L['junk'])),
+                    'clicks': pf['clicks'] if p in perf else '', 'impressions': pf['impr'] if p in perf else '',
+                    'avg_position': round(pf['pos'], 1) if p in perf else '', 'backlink_coverage': 'observed row' if p in links else 'unknown',
+                    'performance_coverage': 'observed row' if p in perf else 'unknown',
+                    'log_hits': lg.get('hits', 0), 'log_external_referrers': ';'.join(sorted(ext)), 'value_score': round(value, 1)})
     out.sort(key=lambda r: -r['value_score'])
+    if not out:
+        print('No removed URLs supplied; no report written.')
+        return
     with open(a.out, 'w', newline='', encoding='utf-8') as f:
-        w = csv.DictWriter(f, fieldnames=list(out[0].keys())); w.writeheader(); w.writerows(out)
+        w = csv.DictWriter(f, fieldnames=list(out[0].keys()), lineterminator='\n'); w.writeheader(); w.writerows(out)
     print('\nremoved URLs:', len(out)); [print(' ', k, v) for k, v in summary.most_common()]
-    print('with external links:', sum(1 for r in out if r['linking_domains']))
+    print('with links observed in supplied exports:', sum(1 for r in out if r['linking_domains']))
     print('report written to', a.out)
 
 
