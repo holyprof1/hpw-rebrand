@@ -1,7 +1,7 @@
 # Holyprofweb site refresh and spam investigation
 
-Date: 10 October 2026 (Africa/Lagos). Theme changes are in the WPVibe draft,
-awaiting publishing approval. Mailbox filtering and quarantine are already live.
+Date: 10 October 2026 (Africa/Lagos). Published through WPVibe after explicit
+user approval. Theme changes, mailbox filtering and quarantine are live.
 
 ## Audit evidence
 
@@ -11,14 +11,14 @@ awaiting publishing approval. Mailbox filtering and quarantine are already live.
   each 100/100; lab LCP 1.2 s, CLS 0, TBT 0. No CrUX field data available.
 - Native theme SEO already emits descriptions, canonicals, structured data and
   sitemap providers. Installing another SEO plugin is unnecessary for these fixes.
-- Six pages used an SVG placeholder for social previews. The draft uses a local
+- Six pages used an SVG placeholder for social previews. The published theme uses a local
   1200 × 630 PNG, with dimensions, a more descriptive home title and description,
   and website Open Graph type for static pages.
 - There are 886 image attachments, 829 without media-library alt text. Many belong
   to the old archive and cards deliberately use decorative empty alt attributes.
   Do not invent blanket descriptions for uninspected or unused images.
 
-## Draft design and code
+## Published design and code
 
 Warm cream/deep green palette, editorial serif headlines, a shorter home intro,
 numbered section links and a desktop research panel. Mobile has a compact 2-column
@@ -66,6 +66,16 @@ layer later. Do not claim these controls prevent every future spam campaign.
   Both gzip integrity checks passed; files are outside the web root and owner-only.
 - Undo file: `quarantine-manifest.json` in that backup directory.
 
-After publishing, check the live home/section/article/contact routes, metadata,
-social PNG, uncached contact response and rejected bot submission. Theme publish
-purges LiteSpeed automatically; avoid redundant full cache flushes.
+Post-publication checks passed in a fresh browser session:
+
+- Home, five static policy/about pages, Apps & Websites category, Danfo Run article
+  and contact page returned HTTP 200, one H1 and no mobile horizontal overflow.
+- All six previously affected social previews now reference the active theme PNG;
+  the PNG returned HTTP 200 with the correct image content type.
+- The live home title matches the new descriptive title; no browser JS errors.
+- Contact responses use no-cache/no-store/private headers and include a signature.
+- A live submission using the confirmed bot name was explicitly rejected, without
+  a success message. No legitimate test email was sent.
+- All 17 isolated form checks passed again against the published active theme.
+- WPVibe created `holyprofweb-wpvibe-backup` and automatically purged LiteSpeed
+  and object cache during publication. No redundant full cache flush was run.
