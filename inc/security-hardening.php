@@ -28,7 +28,10 @@ function holyprofweb_get_request_fingerprint() {
 function holyprofweb_get_rate_limit_key( $action, $suffix = '' ) {
     $action = sanitize_key( (string) $action );
     $suffix = (string) $suffix;
-    return 'hpw_rl_' . md5( $action . '|' . holyprofweb_get_request_fingerprint() . '|' . $suffix );
+    // Changing User-Agent must not reset a public form's submission allowance.
+    $ip = holyprofweb_get_public_request_ip();
+    $identity = $ip ? hash_hmac( 'sha256', $ip, wp_salt( 'auth' ) ) : holyprofweb_get_request_fingerprint();
+    return 'hpw_rl_' . md5( $action . '|' . $identity . '|' . $suffix );
 }
 
 function holyprofweb_enforce_rate_limit( $action, $limit, $window, $message, $suffix = '' ) {
@@ -132,8 +135,11 @@ function holyprofweb_get_form_guard_prefix( $context ) {
 
 function holyprofweb_render_public_form_guard( $context ) {
     $prefix = holyprofweb_get_form_guard_prefix( $context );
+    $issued = time();
+    $signature = hash_hmac( 'sha256', $prefix . '|' . $issued, wp_salt( 'nonce' ) );
     ?>
-    <input type="hidden" name="<?php echo esc_attr( $prefix . '_time' ); ?>" value="<?php echo esc_attr( time() ); ?>" />
+    <input type="hidden" name="<?php echo esc_attr( $prefix . '_time' ); ?>" value="<?php echo esc_attr( $issued ); ?>" />
+    <input type="hidden" name="<?php echo esc_attr( $prefix . '_signature' ); ?>" value="<?php echo esc_attr( $signature ); ?>" />
     <div class="hpw-honeypot" style="position:absolute;left:-9999px;opacity:0;pointer-events:none;" aria-hidden="true">
         <label for="<?php echo esc_attr( $prefix . '_website' ); ?>"><?php esc_html_e( 'Website', 'holyprofweb' ); ?></label>
         <input type="text" id="<?php echo esc_attr( $prefix . '_website' ); ?>" name="<?php echo esc_attr( $prefix . '_website' ); ?>" value="" tabindex="-1" autocomplete="off" />
@@ -292,6 +298,12 @@ function holyprofweb_validate_public_form_guard( $context ) {
 
     if ( '' !== $honeypot ) {
         return new WP_Error( 'spam_honeypot', __( 'Security check failed. Please try again.', 'holyprofweb' ) );
+    }
+
+    $signature = isset( $_POST[ $prefix . '_signature' ] ) ? (string) wp_unslash( $_POST[ $prefix . '_signature' ] ) : '';
+    $expected = hash_hmac( 'sha256', $prefix . '|' . $form_time, wp_salt( 'nonce' ) );
+    if ( ! hash_equals( $expected, $signature ) ) {
+        return new WP_Error( 'spam_signature', __( 'Please refresh the page before sending your message.', 'holyprofweb' ) );
     }
 
     if ( $form_time < ( time() - DAY_IN_SECONDS ) || $form_time > time() || ( time() - $form_time ) < 4 ) {

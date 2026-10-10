@@ -57,10 +57,37 @@ function holyprofweb_get_seo_publisher_logo_url() {
     return esc_url_raw( trailingslashit( get_template_directory_uri() ) . ltrim( $relative, '/' ) );
 }
 
+/** A raster fallback for link previews; SVG placeholders are for the site UI only. */
+function holyprofweb_get_brand_share_image() {
+    return get_template_directory_uri() . '/assets/images/holyprofweb-social.png';
+}
+
+// A useful home search title instead of only the brand and a generic tagline.
+add_filter( 'document_title_parts', function ( $parts ) {
+    if ( is_front_page() ) {
+        $parts['title'] = __( 'Apps, Websites & Internet Trends Explained', 'holyprofweb' );
+        $parts['site'] = 'Holyprofweb';
+        unset( $parts['tagline'] );
+    }
+    return $parts;
+}, 60 );
+
 function holyprofweb_get_seo_image_dimensions( $image_url ) {
     $image_url = (string) $image_url;
     if ( '' === $image_url ) {
         return array( 0, 0 );
+    }
+
+    if ( false !== strpos( $image_url, '/assets/images/holyprofweb-social.png' ) ) {
+        return array( 1200, 630 );
+    }
+
+    $attachment_id = attachment_url_to_postid( $image_url );
+    if ( $attachment_id ) {
+        $metadata = wp_get_attachment_metadata( $attachment_id );
+        if ( ! empty( $metadata['width'] ) && ! empty( $metadata['height'] ) ) {
+            return array( (int) $metadata['width'], (int) $metadata['height'] );
+        }
     }
 
     if ( 0 === strpos( $image_url, 'data:image/svg+xml' ) ) {
@@ -229,12 +256,12 @@ function holyprofweb_get_archive_share_image( $context = null ) {
 
             if ( ! empty( $posts ) ) {
                 $image = holyprofweb_get_post_image_url( (int) $posts[0], 'full' );
-                return 0 === strpos( (string) $image, 'data:image/' ) ? holyprofweb_placeholder_url() : $image;
+                return 0 === strpos( (string) $image, 'data:image/' ) ? holyprofweb_get_brand_share_image() : $image;
             }
         }
     }
 
-    return holyprofweb_placeholder_url();
+    return holyprofweb_get_brand_share_image();
 }
 
 function holyprofweb_get_archive_schema_items() {
@@ -355,7 +382,7 @@ function holyprofweb_seo_head() {
         $og_url   = get_permalink( $post );
         $og_img   = holyprofweb_get_post_image_url( $post->ID, 'full' );
         if ( 0 === strpos( (string) $og_img, 'data:image/' ) ) {
-            $og_img = holyprofweb_placeholder_url();
+            $og_img = holyprofweb_get_brand_share_image();
         }
         $rating   = holyprofweb_get_post_rating( $post->ID );
         $r_count  = holyprofweb_get_review_count( $post->ID );
@@ -368,19 +395,19 @@ function holyprofweb_seo_head() {
         $raw_desc = sprintf( 'Search results for "%s" on %s', get_search_query(), $site_name );
         $og_title = sprintf( 'Search: %s — %s', get_search_query(), $site_name );
         $og_url   = get_search_link( get_search_query() );
-        $og_img   = holyprofweb_placeholder_url(); $rating = 0; $r_count = 0;
+        $og_img   = holyprofweb_get_brand_share_image(); $rating = 0; $r_count = 0;
     } else {
-        $raw_desc = is_front_page() ? __( 'New apps, websites, products, people and internet trends explained clearly.', 'holyprofweb' ) : get_bloginfo( 'description' );
+        $raw_desc = is_front_page() ? __( 'Explore apps, websites, products and internet trends with Holyprofweb. Find clear explainers on who is behind them, how they work and what to check.', 'holyprofweb' ) : get_bloginfo( 'description' );
         if ( is_page( 'contact' ) ) {
             $raw_desc = __( 'Send Holyprofweb a tip, a correction or a question. For a factual error, include the article link and a source.', 'holyprofweb' );
         }
-        $og_title = $site_name;
+        $og_title = is_front_page() ? wp_get_document_title() : $site_name;
         $og_url   = $site_url;
-        $og_img   = holyprofweb_placeholder_url(); $rating = 0; $r_count = 0;
+        $og_img   = holyprofweb_get_brand_share_image(); $rating = 0; $r_count = 0;
     }
 
     $description = esc_attr( mb_substr( wp_strip_all_tags( $raw_desc ), 0, 160 ) );
-    $og_type     = is_singular() ? 'article' : 'website';
+    $og_type     = is_singular( 'post' ) ? 'article' : 'website';
     $hreflangs   = holyprofweb_get_hreflang_urls();
     $current_hreflang = '';
     foreach ( $hreflangs as $entry ) {

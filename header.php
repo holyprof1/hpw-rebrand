@@ -52,6 +52,7 @@
         <div class="live-search-inner">
             <div class="live-search-bar">
                 <svg class="live-search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                <label for="live-search-input" class="screen-reader-text"><?php esc_html_e( 'Search Holyprofweb', 'holyprofweb' ); ?></label>
                 <input type="search" id="live-search-input" class="live-search-input"
                        placeholder="<?php esc_attr_e( 'Search apps, websites, products, people…', 'holyprofweb' ); ?>"
                        autocomplete="off" aria-controls="live-search-results" spellcheck="false" />

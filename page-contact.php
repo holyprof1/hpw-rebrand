@@ -4,6 +4,9 @@
  * Contact form with server-side validation and wp_mail delivery.
  */
 
+// Form tokens are time limited; never serve this page from a public cache.
+nocache_headers();
+do_action( 'litespeed_control_set_nocache', 'Contact form tokens' );
 get_header();
 
 $sent    = false;
@@ -49,6 +52,13 @@ if ( isset( $_POST['hpw_contact_nonce'] ) ) {
             if ( is_wp_error( $guard ) ) {
                 $errors[] = $guard->get_error_message();
             }
+        }
+
+        // Confirmed contact-form bot campaign, not a blanket block on an email provider.
+        $blocked_names = (array) get_option( 'hpw_contact_blocked_names', array( 'robertkib' ) );
+        $normalized_name = strtolower( preg_replace( '/[^a-z0-9]/i', '', $name ) );
+        if ( in_array( $normalized_name, $blocked_names, true ) ) {
+            $errors[] = __( 'This automated submission was blocked.', 'holyprofweb' );
         }
 
         if ( strlen( $name ) < 2 ) {

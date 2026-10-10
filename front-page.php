@@ -25,7 +25,7 @@ usort( $pool, function ( $x, $y ) { return holyprofweb_content_modified_ts( $y )
 
 // Lead: the freshest story with a real image; the two supporting stories come from other sections.
 $lead_id = 0;
-foreach ( $pool as $pid ) {
+foreach ( array_slice( $pool, 0, 5 ) as $pid ) {
     if ( holyprofweb_pub_has_real_image( $pid ) ) { $lead_id = $pid; break; }
 }
 if ( ! $lead_id && $pool ) {
@@ -75,13 +75,25 @@ $updated = array_slice( $updated, 0, 6 );
 
     <section class="pub-intro" aria-labelledby="hero-title">
         <div class="pub-wrap">
-            <h1 id="hero-title" class="pub-intro__title"><?php esc_html_e( 'Look up any app, website, product or person before you use it, buy it or trust it.', 'holyprofweb' ); ?></h1>
-            <p class="pub-intro__lede"><?php esc_html_e( 'Holyprofweb researches what is new online and explains it in plain language: what it is, who owns it, how it works, what it costs and what to check first. Every article names its sources and says what we could not verify.', 'holyprofweb' ); ?></p>
+            <div class="pub-intro__layout">
+            <div class="pub-intro__copy">
+            <p class="pub-eyebrow"><?php esc_html_e( "A clearer view of what is new online", "holyprofweb" ); ?></p>
+            <h1 id="hero-title" class="pub-intro__title"><?php esc_html_e( 'Understand the internet.', 'holyprofweb' ); ?> <em><?php esc_html_e( 'One story at a time.', 'holyprofweb' ); ?></em></h1>
+            <p class="pub-intro__lede"><?php esc_html_e( 'Apps, websites, products and the people behind them. Clear explainers to help you decide what to try, buy or trust.', 'holyprofweb' ); ?></p>
             <form role="search" method="get" class="search-form pub-intro__search" action="<?php echo esc_url( home_url( '/' ) ); ?>">
                 <label for="intro-search" class="screen-reader-text"><?php esc_html_e( 'Search Holyprofweb', 'holyprofweb' ); ?></label>
                 <input id="intro-search" class="search-field" type="search" name="s" placeholder="<?php esc_attr_e( 'Search an app, website, product or person', 'holyprofweb' ); ?>" autocomplete="off" />
                 <button type="submit" class="search-submit"><?php esc_html_e( 'Search', 'holyprofweb' ); ?></button>
             </form>
+            </div>
+            <aside class="pub-intro__note" aria-label="Our approach">
+                <span class="pub-note__index" aria-hidden="true">HPW / FIELD NOTES</span>
+                <h2><?php esc_html_e( 'Before you click.', 'holyprofweb' ); ?></h2>
+                <p><?php esc_html_e( 'A useful story starts with the right questions.', 'holyprofweb' ); ?></p>
+                <ol><li><?php esc_html_e( 'What is it?', 'holyprofweb' ); ?></li><li><?php esc_html_e( 'Who is behind it?', 'holyprofweb' ); ?></li><li><?php esc_html_e( 'What should I know?', 'holyprofweb' ); ?></li></ol>
+                <a href="<?php echo esc_url( home_url( '/editorial-policy/' ) ); ?>"><?php esc_html_e( 'How we research', 'holyprofweb' ); ?> <span aria-hidden="true">&rarr;</span></a>
+            </aside>
+            </div>
             <ul class="pub-intro__tiles">
                 <?php
                 $tile_text = array(
@@ -90,8 +102,8 @@ $updated = array_slice( $updated, 0, 6 );
                     'people'          => __( 'Founders and creators, verified facts only', 'holyprofweb' ),
                     'internet-trends' => __( 'What is trending and where it started', 'holyprofweb' ),
                 );
-                foreach ( $sections as $slug => $sec ) : ?>
-                <li><a href="<?php echo esc_url( holyprofweb_section_url( $slug ) ); ?>"><strong><?php echo esc_html( $sec['label'] ); ?></strong><span><?php echo esc_html( $tile_text[ $slug ] ?? '' ); ?></span></a></li>
+                $tile_index = 0; foreach ( $sections as $slug => $sec ) : $tile_index++; ?>
+                <li><a href="<?php echo esc_url( holyprofweb_section_url( $slug ) ); ?>"><small aria-hidden="true"><?php echo esc_html( sprintf( '%02d', $tile_index ) ); ?> &rarr;</small><strong><?php echo esc_html( $sec['label'] ); ?></strong><span><?php echo esc_html( $tile_text[ $slug ] ?? '' ); ?></span></a></li>
                 <?php endforeach; ?>
             </ul>
         </div>
